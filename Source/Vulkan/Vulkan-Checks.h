@@ -15,13 +15,16 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
+#include "Vulkan-Structs.h"
 
 /***********************
  * Function Prototypes *
 ************************/
 
+// Check support for Vulkan validation layers:
 int check_layer_support();
 
+// Check support for Vulkan extensions:
 int check_extension_support();
 
 #endif

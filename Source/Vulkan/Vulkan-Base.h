@@ -17,26 +17,7 @@
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
 #include "Vulkan-Config.h"
-
-// Data types:
-typedef struct {
-	int max_level;
-	VkInstance vulkan_instance;
-	GLFWwindow *window;
-	VkSurfaceKHR present_surface;
-} FracRenderVulkanBase;
-
-typedef struct {
-	int max_level;
-
-	// Validation:
-	int enable_validation; // 0 = on, -1 = off.
-	uint32_t num_validation_layers;
-	char *validation_layers[1];
-
-	// Debugging:
-	VkDebugUtilsMessengerEXT debug_messenger;
-} FracRenderVulkanValidation;
+#include "Vulkan-Structs.h"
 
 /***********************
  * Function Prototypes *
