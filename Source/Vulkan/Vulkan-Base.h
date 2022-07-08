@@ -19,28 +19,43 @@
 #include "../../Third-Party/volk/include/volk/volk.h"
 #include "Vulkan-Structs.h"
 
+// GCC won't recognise this function during compilation for some reason so declare it here:
+extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window,
+			const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
+
 /***********************
  * Function Prototypes *
 ************************/
 
 // Initialize Vulkan environment and populate data structure:
-int initialize_vulkan_base(FracRenderVulkanBase *base,
-	FracRenderVulkanLayersExtensions *layers_extensions);
+int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation);
 
-// Destroy Vulkan environment based on data structure:
+// Destroy base Vulkan environment:
 int destroy_vulkan_base(FracRenderVulkanBase *base);
 
-// Create GLFW window and KHR surface:
+// Create GLFW window:
 int create_glfw_window(FracRenderVulkanBase *base);
 
-// Get supported instance extensions:
-char **get_supported_instance_extensions(uint32_t *num_instance_extensions);
+// Create KHR surface:
+int create_KHR_surface(FracRenderVulkanBase *base);
 
-// Get supported instance layers:
-char **get_supported_instance_layers(uint32_t *num_instance_layers);
+// Create Vulkan instance:
+int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation);
 
-// Create the Vulkan instance:
-int create_vulkan_instance(FracRenderVulkanBase *base,
-	FracRenderVulkanLayersExtensions *layers_extensions);
+// Create debug messenger:
+int create_debug_messenger(FracRenderVulkanBase *base);
+
+// Debug callback function:
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_util_callback(
+	VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+	VkDebugUtilsMessageTypeFlagsEXT type,
+	VkDebugUtilsMessengerCallbackDataEXT const *data,
+	void *user_pointer);
+
+// Get severity flag char array value:
+char *get_severity_char(VkDebugUtilsMessageSeverityFlagBitsEXT severity);
+
+// Get message type char array value:
+char *get_message_type_char(VkDebugUtilsMessageTypeFlagsEXT type);
 
 #endif

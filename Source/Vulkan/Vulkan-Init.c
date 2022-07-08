@@ -42,13 +42,13 @@ int initialize_volk()
 }
 
 // Check support for Vulkan validation layers and extensions:
-int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions)
+int check_validation_support(FracRenderVulkanValidation *validation)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Checking support for validation layers and extensions:\n");
 
-	if (layers_extensions->num_validation_layers == 0) { return 0; }
+	if (validation->num_validation_layers == 0) { return 0; }
 
 	// Get number of instance layers:
 	uint32_t num_layers = 0;
@@ -68,14 +68,14 @@ int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions
 	}
 
 	// Check for name match with required layers:
-	for (int i = 0; i < layers_extensions->num_validation_layers; i++)
+	for (int i = 0; i < validation->num_validation_layers; i++)
 	{
-		printf(" ---> %s...", layers_extensions->validation_layers[i]);
+		printf(" ---> %s...", validation->validation_layers[i]);
 
 		int supported = -1;
 		for (int j = 0; j < num_layers; j++)
 		{
-			if (strcmp(layers_extensions->validation_layers[i], layers[j].layerName) == 0)
+			if (strcmp(validation->validation_layers[i], layers[j].layerName) == 0)
 			{
 				supported = 0;
 			}
@@ -85,7 +85,7 @@ int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions
 			// Required layer not supported:
 			printf("\n");
 			fprintf(stderr, "Error: Required layer \"%s\" not supported!\n",
-							layers_extensions->validation_layers[i]);
+							validation->validation_layers[i]);
 			free(layers);
 			return -1;
 		}
@@ -113,14 +113,14 @@ int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions
 	}
 
 	// Check for name match with required device extensions:
-	for (int i = 0; i < layers_extensions->num_validation_extensions; i++)
+	for (int i = 0; i < validation->num_validation_extensions; i++)
 	{
-		printf(" ---> %s...", layers_extensions->validation_extensions[i]);
+		printf(" ---> %s...", validation->validation_extensions[i]);
 
 		int supported = -1;
 		for (int j = 0; j < num_extensions; j++)
 		{
-			if (strcmp(layers_extensions->validation_extensions[i],
+			if (strcmp(validation->validation_extensions[i],
 					extensions[j].extensionName) == 0)
 			{
 				supported = 0;
@@ -131,7 +131,7 @@ int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions
 			// Required extension not supported:
 			printf("\n");
 			fprintf(stderr, "Error: Required extension \"%s\" not supported!\n",
-						layers_extensions->validation_extensions[i]);
+						validation->validation_extensions[i]);
 			free(extensions);
 			return -1;
 		}

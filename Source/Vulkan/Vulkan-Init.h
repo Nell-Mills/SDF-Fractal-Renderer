@@ -18,6 +18,6 @@
 int initialize_volk();
 
 // Check support for Vulkan validation layers and extensions:
-int check_validation_support(FracRenderVulkanLayersExtensions *layers_extensions);
+int check_validation_support(FracRenderVulkanValidation *validation);
 
 #endif

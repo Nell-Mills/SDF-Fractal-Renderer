@@ -8,20 +8,16 @@
 #include <GLFW/glfw3.h>
 
 typedef struct {
-	int initialization_level;
-
 	// Instance and window:
-	VkInstance vulkan_instance;
+	VkInstance instance;
 	GLFWwindow *window;
-	VkSurfaceKHR present_surface;
+	VkSurfaceKHR surface;
 
 	// Debug messenger:
 	VkDebugUtilsMessengerEXT debug_messenger;
 } FracRenderVulkanBase;
 
 typedef struct {
-	int initialization_level;
-
 	// Devices:
 	VkPhysicalDevice physical_device;
 	VkDevice logical_device;
@@ -49,15 +45,9 @@ typedef struct {
 	char *validation_layers[0];
 	char *validation_extensions[0];
 #endif
-
-	// GLFW:
-	uint32_t num_glfw_extensions;
-	char const **glfw_extensions;
-} FracRenderVulkanLayersExtensions;
+} FracRenderVulkanValidation;
 
 typedef struct {
-	int initialization_level;
-
 	// Swapchain:
 	VkSwapchainKHR swapchain;
 

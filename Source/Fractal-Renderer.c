@@ -20,11 +20,11 @@ void print_controls();
 
 // Initialize Vulkan structs to default values:
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-	FracRenderVulkanLayersExtensions *layers_extensions, FracRenderVulkanSwapchain *swapchain);
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain);
 
 // Destroy contents of Vulkan structs:
 int destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-	FracRenderVulkanLayersExtensions *layers_extensions, FracRenderVulkanSwapchain *swapchain);
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain);
 
 /********
  * Main *
@@ -41,21 +41,21 @@ int main(int argc, char **argv)
 	// Initialize the Vulkan structs:
 	FracRenderVulkanBase base;
 	FracRenderVulkanDevice device;
-	FracRenderVulkanLayersExtensions layers_extensions;
+	FracRenderVulkanValidation validation;
 	FracRenderVulkanSwapchain swapchain;
-	initialize_vulkan_structs(&base, &device, &layers_extensions, &swapchain);
+	initialize_vulkan_structs(&base, &device, &validation, &swapchain);
 
 	// Check support for required validation layers:
-	if (check_validation_support(&layers_extensions) != 0)
+	if (check_validation_support(&validation) != 0)
 	{
-		destroy_vulkan_structs(&base, &device, &layers_extensions, &swapchain);
+		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
 		return -1;
 	}
 
 	// Initialize the Vulkan base (instance, window and surface):
-	if (initialize_vulkan_base(&base, &layers_extensions) != 0)
+	if (initialize_vulkan_base(&base, &validation) != 0)
 	{
-		destroy_vulkan_structs(&base, &device, &layers_extensions, &swapchain);
+		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
 		return -1;
 	}
 
@@ -65,8 +65,14 @@ int main(int argc, char **argv)
 	// Print keyboard controls:
 	print_controls();
 
+	// Main loop:
+	//while(!glfwWindowShouldClose(base.window))
+	{
+
+	}
+
 	// Destroy Vulkan structs:
-	destroy_vulkan_structs(&base, &device, &layers_extensions, &swapchain);
+	destroy_vulkan_structs(&base, &device, &validation, &swapchain);
 
 	return 0;
 }
@@ -110,19 +116,16 @@ void print_controls()
 
 // Initialize Vulkan structs to default values:
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-	FracRenderVulkanLayersExtensions *layers_extensions, FracRenderVulkanSwapchain *swapchain)
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain)
 {
 	// Vulkan base:
-	base->initialization_level	= 0;
-	base->vulkan_instance		= VK_NULL_HANDLE;
-	base->window			= NULL;
-	base->present_surface		= VK_NULL_HANDLE;
+	base->instance		= VK_NULL_HANDLE;
+	base->window		= NULL;
+	base->surface		= VK_NULL_HANDLE;
 
-	base->debug_messenger		= VK_NULL_HANDLE;
+	base->debug_messenger	= VK_NULL_HANDLE;
 
 	// Device:
-	device->initialization_level	= 0;
-
 	device->physical_device		= VK_NULL_HANDLE,
 	device->logical_device		= VK_NULL_HANDLE,
 
@@ -134,24 +137,18 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	device->present_family_index	= 0;
 	device->present_queue		= VK_NULL_HANDLE;
 
-	// Layers and extensions:
+	// Validation:
 #ifdef FRACRENDER_DEBUG
-	layers_extensions->num_validation_layers	= 1;
-	layers_extensions->num_validation_extensions	= 1;
-	layers_extensions->validation_layers[0]		= "VK_LAYER_KHRONOS_validation";
-	layers_extensions->validation_extensions[0]	= "VK_EXT_debug_utils";
+	validation->num_validation_layers	= 1;
+	validation->num_validation_extensions	= 1;
+	validation->validation_layers[0]	= "VK_LAYER_KHRONOS_validation";
+	validation->validation_extensions[0]	= "VK_EXT_debug_utils";
 #else
-	layers_extensions->num_validation_layers	= 0;
-	layers_extensions->num_validation_extensions	= 0;
+	validation->num_validation_layers	= 0;
+	validation->num_validation_extensions	= 0;
 #endif
 
-	layers_extensions->num_glfw_extensions		= 0;
-	layers_extensions->glfw_extensions		= glfwGetRequiredInstanceExtensions(
-							&layers_extensions->num_glfw_extensions);
-
 	// Swapchain:
-	swapchain->initialization_level		= 0;
-
 	swapchain->swapchain			= VK_NULL_HANDLE;
 	swapchain->num_swapchain_images		= 0;
 	swapchain->swapchain_images		= NULL;
@@ -163,7 +160,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 
 // Destroy contents of Vulkan structs:
 int destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-	FracRenderVulkanLayersExtensions *layers_extensions, FracRenderVulkanSwapchain *swapchain)
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain)
 {
 	// Destroy Vulkan base:
 	destroy_vulkan_base(base);
