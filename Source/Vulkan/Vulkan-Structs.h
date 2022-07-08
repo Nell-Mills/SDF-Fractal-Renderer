@@ -1,15 +1,26 @@
 #ifndef FRACRENDER_VULKAN_STRUCTS_H
 #define FRACRENDER_VULKAN_STRUCTS_H
 
+// Library includes:
+#ifndef GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#endif
+#include <GLFW/glfw3.h>
+
 typedef struct {
-	int max_level;
+	int initialization_level;
+
+	// Instance and window:
 	VkInstance vulkan_instance;
 	GLFWwindow *window;
 	VkSurfaceKHR present_surface;
+
+	// Debug messenger:
+	VkDebugUtilsMessengerEXT debug_messenger;
 } FracRenderVulkanBase;
 
 typedef struct {
-	int max_level;
+	int initialization_level;
 
 	// Devices:
 	VkPhysicalDevice physical_device;
@@ -27,19 +38,25 @@ typedef struct {
 } FracRenderVulkanDevice;
 
 typedef struct {
-	int max_level;
-
 	// Validation:
-	int enable_validation; // 0 = on, -1 = off.
 	uint32_t num_validation_layers;
-	char *validation_layers[1];
+	uint32_t num_validation_extensions;
 
-	// Debugging:
-	VkDebugUtilsMessengerEXT debug_messenger;
-} FracRenderVulkanValidation;
+#ifdef FRACRENDER_DEBUG
+	char *validation_layers[1];
+	char *validation_extensions[1];
+#else
+	char *validation_layers[0];
+	char *validation_extensions[0];
+#endif
+
+	// GLFW:
+	uint32_t num_glfw_extensions;
+	char const **glfw_extensions;
+} FracRenderVulkanLayersExtensions;
 
 typedef struct {
-	int max_level;
+	int initialization_level;
 
 	// Swapchain:
 	VkSwapchainKHR swapchain;

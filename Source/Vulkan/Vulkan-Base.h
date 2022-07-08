@@ -8,6 +8,7 @@
 // Library includes:
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_NONE
@@ -16,7 +17,6 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "Vulkan-Config.h"
 #include "Vulkan-Structs.h"
 
 /***********************
@@ -24,10 +24,11 @@
 ************************/
 
 // Initialize Vulkan environment and populate data structure:
-int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation);
+int initialize_vulkan_base(FracRenderVulkanBase *base,
+	FracRenderVulkanLayersExtensions *layers_extensions);
 
 // Destroy Vulkan environment based on data structure:
-int destroy_vulkan_base(FracRenderVulkanBase *base, int level);
+int destroy_vulkan_base(FracRenderVulkanBase *base);
 
 // Create GLFW window and KHR surface:
 int create_glfw_window(FracRenderVulkanBase *base);
@@ -39,6 +40,7 @@ char **get_supported_instance_extensions(uint32_t *num_instance_extensions);
 char **get_supported_instance_layers(uint32_t *num_instance_layers);
 
 // Create the Vulkan instance:
-int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation);
+int create_vulkan_instance(FracRenderVulkanBase *base,
+	FracRenderVulkanLayersExtensions *layers_extensions);
 
 #endif

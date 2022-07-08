@@ -10,6 +10,10 @@ DEPS		:= $(DEPSVULKAN)
 THIRDPARTY	:= ./Third-Party/volk/src/volk.c
 LFLAGS		:= -ldl -lglfw
 SHADERS		:= ./Shader-Compile.sh
+DEBUG		:= -DFRACRENDER_DEBUG -g
+
+Debug: $(MAIN)
+	$(CC) $(MAIN) $(DEBUG) $(DEPS) $(THIRDPARTY) -o $(OUT) $(LFLAGS) && $(SHADERS)
 
 No-OpenMP: $(MAIN)
 	$(CC) $(MAIN) $(DEPS) $(THIRDPARTY) -o $(OUT) $(LFLAGS) && $(SHADERS)
