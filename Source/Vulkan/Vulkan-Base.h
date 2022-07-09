@@ -31,7 +31,7 @@ extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow*
 int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation);
 
 // Destroy base Vulkan environment:
-int destroy_vulkan_base(FracRenderVulkanBase *base);
+void destroy_vulkan_base(FracRenderVulkanBase *base);
 
 // Create GLFW window:
 int create_glfw_window(FracRenderVulkanBase *base);

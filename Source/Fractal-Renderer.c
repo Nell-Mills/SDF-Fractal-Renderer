@@ -45,15 +45,31 @@ int main(int argc, char **argv)
 	FracRenderVulkanSwapchain swapchain;
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain);
 
+#ifdef FRACRENDER_DEBUG
 	// Check support for required validation layers:
 	if (check_validation_support(&validation) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
 		return -1;
 	}
+#endif
 
-	// Initialize the Vulkan base (instance, window and surface):
+	// Initialize the Vulkan base (instance, window, surface and debug messenger):
 	if (initialize_vulkan_base(&base, &validation) != 0)
+	{
+		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
+		return -1;
+	}
+
+	// Select physical device and create logical device:
+	if (initalize_vulkan_device(&base, &device) != 0)
+	{
+		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
+		return -1;
+	}
+
+	// Create the swapchain:
+	if (initialize_vulkan_swapchain(&base, &device, &swapchain) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &validation, &swapchain);
 		return -1;
@@ -162,6 +178,12 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 int destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain)
 {
+	// Destroy Vulkan swapchain:
+	destroy_vulkan_swapchain(device, swapchain);
+
+	// Destroy Vulkan device:
+	destroy_vulkan_device(device);
+
 	// Destroy Vulkan base:
 	destroy_vulkan_base(base);
 

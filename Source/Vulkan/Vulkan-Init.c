@@ -68,12 +68,12 @@ int check_validation_support(FracRenderVulkanValidation *validation)
 	}
 
 	// Check for name match with required layers:
-	for (int i = 0; i < validation->num_validation_layers; i++)
+	for (uint32_t i = 0; i < validation->num_validation_layers; i++)
 	{
 		printf(" ---> %s...", validation->validation_layers[i]);
 
 		int supported = -1;
-		for (int j = 0; j < num_layers; j++)
+		for (uint32_t j = 0; j < num_layers; j++)
 		{
 			if (strcmp(validation->validation_layers[i], layers[j].layerName) == 0)
 			{
@@ -113,12 +113,12 @@ int check_validation_support(FracRenderVulkanValidation *validation)
 	}
 
 	// Check for name match with required device extensions:
-	for (int i = 0; i < validation->num_validation_extensions; i++)
+	for (uint32_t i = 0; i < validation->num_validation_extensions; i++)
 	{
 		printf(" ---> %s...", validation->validation_extensions[i]);
 
 		int supported = -1;
-		for (int j = 0; j < num_extensions; j++)
+		for (uint32_t j = 0; j < num_extensions; j++)
 		{
 			if (strcmp(validation->validation_extensions[i],
 					extensions[j].extensionName) == 0)

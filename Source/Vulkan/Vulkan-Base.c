@@ -3,13 +3,6 @@
 // Initialize Vulkan environment and populate data structure:
 int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation)
 {
-	/* Initialization level:
-	 * 0 --> Nothing done yet.
-	 * 1 --> GLFW initialized.
-	 * 2 --> GLFW window created.
-	 * 3 --> Vulkan KHR surface created.
-	 * 4 --> Vulkan instance created.*/
-
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Initializing Vulkan instance and window...\n");
@@ -56,7 +49,7 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 }
 
 // Destroy base Vulkan environment:
-int destroy_vulkan_base(FracRenderVulkanBase *base)
+void destroy_vulkan_base(FracRenderVulkanBase *base)
 {
 	// Destroy debug messenger:
 	if (base->debug_messenger != VK_NULL_HANDLE)
@@ -84,8 +77,6 @@ int destroy_vulkan_base(FracRenderVulkanBase *base)
 
 	// Terminate GLFW:
 	glfwTerminate();
-
-	return 0;
 }
 
 // Create GLFW window:
@@ -153,13 +144,13 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	char **extensions = malloc(extension_count * sizeof(char *));
 
 	int n = 0;
-	for (int i = n; i < (n + validation->num_validation_extensions); i++)
+	for (uint32_t i = n; i < (n + validation->num_validation_extensions); i++)
 	{
 		extensions[i] = malloc(max_name_length * sizeof(char));
 		strcpy(extensions[i], validation->validation_extensions[i - n]);
 	}
 	n += validation->num_validation_extensions;
-	for (int i = n; i < (n + num_glfw_extensions); i++)
+	for (uint32_t i = n; i < (n + num_glfw_extensions); i++)
 	{
 		extensions[i] = malloc(max_name_length * sizeof(char));
 		strcpy(extensions[i], glfw_extensions[i - n]);
@@ -193,7 +184,7 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	}
 
 	// Free memory:
-	for (int i = 0; i < extension_count; i++)
+	for (uint32_t i = 0; i < extension_count; i++)
 	{
 		free(extensions[i]);
 	}
