@@ -1,6 +1,10 @@
 #ifndef FRACRENDER_VULKAN_SWAPCHAIN_H
 #define FRACRENDER_VULKAN_SWAPCHAIN_H
 
+// Library includes:
+#include <stdio.h>
+#include <stdlib.h>
+
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
 #include "Vulkan-Structs.h"
@@ -24,7 +28,7 @@ int recreate_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice
 int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 					FracRenderVulkanSwapchain *swapchain);
 
-// Create swapchain images:
+// Create swapchain images and image views:
 int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 					FracRenderVulkanSwapchain *swapchain);
 
