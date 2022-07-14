@@ -1,0 +1,5 @@
+Create descriptors
+
+Finish creating debug messenger
+Create debug callback function
+Create functions to print errors
