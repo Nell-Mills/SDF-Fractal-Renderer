@@ -17,7 +17,7 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "Vulkan-Structs.h"
+#include "01-Vulkan-Structs.h"
 
 // GCC won't recognise this function during compilation for some reason so declare it here:
 extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window,

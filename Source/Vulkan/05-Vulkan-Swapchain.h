@@ -1,13 +1,17 @@
 #ifndef FRACRENDER_VULKAN_SWAPCHAIN_H
 #define FRACRENDER_VULKAN_SWAPCHAIN_H
 
+/********************************************************************
+ * To set up and destroy the Vulkan swapchain and associated images *
+ ********************************************************************/
+
 // Library includes:
 #include <stdio.h>
 #include <stdlib.h>
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "Vulkan-Structs.h"
+#include "01-Vulkan-Structs.h"
 
 /***********************
  * Function Prototypes *

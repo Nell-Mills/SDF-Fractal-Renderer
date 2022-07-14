@@ -1,4 +1,4 @@
-#include "Vulkan-Device.h"
+#include "04-Vulkan-Device.h"
 
 // Select physical device and create logical device:
 int initalize_vulkan_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *device)
@@ -11,7 +11,6 @@ int initalize_vulkan_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 	printf(" ---> Selecting physical device.\n");
 	if (select_physical_device(base, device) != 0)
 	{
-		destroy_vulkan_device(device);
 		return -1;
 	}
 
@@ -36,7 +35,6 @@ int initalize_vulkan_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 	printf(" ---> Creating logical device.\n");
 	if (create_logical_device(base, device) != 0)
 	{
-		destroy_vulkan_device(device);
 		return -1;
 	}
 
@@ -50,6 +48,8 @@ int initalize_vulkan_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 // Destroy Vulkan device structure:
 void destroy_vulkan_device(FracRenderVulkanDevice *device)
 {
+	printf(" ---> Destroying Vulkan device.\n");
+
 	if (device->logical_device != VK_NULL_HANDLE)
 	{
 		vkDestroyDevice(device->logical_device, NULL);
@@ -78,7 +78,6 @@ int select_physical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *d
 
 	// Score the physical devices and select the best one:
 	int best_score = -1;
-	device->physical_device = VK_NULL_HANDLE;
 
 	for (uint32_t i = 0; i < num_physical_devices; i++)
 	{
@@ -284,7 +283,6 @@ int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	logical_device_info.pEnabledFeatures		= NULL;
 
 	// Create the logical device:
-	device->logical_device = VK_NULL_HANDLE;
 	if (vkCreateDevice(device->physical_device, &logical_device_info, NULL,
 					&device->logical_device) != VK_SUCCESS)
 	{

@@ -13,10 +13,13 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "Vulkan-Structs.h"
-#include "Vulkan-Init.h"
-#include "Vulkan-Base.h"
-#include "Vulkan-Device.h"
-#include "Vulkan-Swapchain.h"
+#include "01-Vulkan-Structs.h"
+#include "02-Vulkan-Init.h"
+#include "03-Vulkan-Base.h"
+#include "04-Vulkan-Device.h"
+#include "05-Vulkan-Swapchain.h"
+#include "06-Vulkan-Descriptors.h"
+#include "07-Vulkan-Pipeline.h"
+#include "08-Vulkan-Framebuffers.h"
 
 #endif

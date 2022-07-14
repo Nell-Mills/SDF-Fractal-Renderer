@@ -1,4 +1,4 @@
-#include "Vulkan-Swapchain.h"
+#include "05-Vulkan-Swapchain.h"
 
 // Create Vulkan swapchain and associated images:
 int initialize_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
@@ -11,14 +11,12 @@ int initialize_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevi
 	printf(" ---> Creating swapchain.\n");
 	if (create_swapchain(base, device, swapchain) != 0)
 	{
-		destroy_vulkan_swapchain(device, swapchain);
 		return -1;
 	}
 
 	printf(" ---> Creating swapchain images and image views.\n");
 	if (create_swapchain_images(base, device, swapchain) != 0)
 	{
-		destroy_vulkan_swapchain(device, swapchain);
 		return -1;
 	}
 
@@ -32,7 +30,7 @@ int initialize_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevi
 // Destroy Vulkan swapchain structure:
 void destroy_vulkan_swapchain(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain)
 {
-	// Destroy framebuffers:
+	printf(" ---> Destroying Vulkan swapchain.\n");
 
 	// Destroy swapchain image views:
 	if (swapchain->swapchain_image_views)
@@ -253,7 +251,6 @@ int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	}
 
 	// Create the swapchain:
-	swapchain->swapchain = VK_NULL_HANDLE;
 	if (vkCreateSwapchainKHR(device->logical_device, &swapchain_info, NULL,
 					&swapchain->swapchain) != VK_SUCCESS)
 	{
@@ -269,7 +266,6 @@ int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 					FracRenderVulkanSwapchain *swapchain)
 {
 	// Get number of swapchain images:
-	swapchain->num_swapchain_images = 0;
 	if (vkGetSwapchainImagesKHR(device->logical_device, swapchain->swapchain,
 			&swapchain->num_swapchain_images, NULL) != VK_SUCCESS)
 	{
@@ -286,7 +282,7 @@ int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 		return -1;
 	}
 
-	// For each swapchain image, create an image view:
+	// For each swapchain image, create an image view. Free is in destroy_vulkan_swapchain:
 	swapchain->swapchain_image_views = malloc(swapchain->num_swapchain_images *
 								sizeof(VkImageView));
 	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)

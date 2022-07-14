@@ -1,4 +1,4 @@
-#include "Vulkan-Base.h"
+#include "03-Vulkan-Base.h"
 
 // Initialize Vulkan environment and populate data structure:
 int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation)
@@ -11,7 +11,6 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	printf(" ---> Creating GLFW window and Vulkan surface.\n");
 	if (create_glfw_window(base) != 0)
 	{
-		destroy_vulkan_base(base);
 		return -1;
 	}
 
@@ -19,7 +18,6 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	printf(" ---> Creating the Vulkan instance.\n");
 	if (create_vulkan_instance(base, validation) != 0)
 	{
-		destroy_vulkan_base(base);
 		return -1;
 	}
 
@@ -27,7 +25,6 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	printf(" ---> Creating the Vulkan surface.\n");
 	if (create_KHR_surface(base) != 0)
 	{
-		destroy_vulkan_base(base);
 		return -1;
 	}
 
@@ -36,7 +33,6 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	printf(" ---> Creating the debug messenger.\n");
 	if (create_debug_messenger(base) != 0)
 	{
-		destroy_vulkan_base(base);
 		return -1;
 	}
 #endif
@@ -51,6 +47,8 @@ int initialize_vulkan_base(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 // Destroy base Vulkan environment:
 void destroy_vulkan_base(FracRenderVulkanBase *base)
 {
+	printf(" ---> Destroying Vulkan instance and window.\n");
+
 	// Destroy debug messenger:
 	if (base->debug_messenger != VK_NULL_HANDLE)
 	{
@@ -170,7 +168,6 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	};
 
 	// Create the instance:
-	base->instance = VK_NULL_HANDLE;
 	if (vkCreateInstance(&instanceCreateInfo, NULL, &base->instance) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Failed to create the Vulkan instance!\n");

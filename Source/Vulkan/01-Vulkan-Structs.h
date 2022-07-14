@@ -1,6 +1,10 @@
 #ifndef FRACRENDER_VULKAN_STRUCTS_H
 #define FRACRENDER_VULKAN_STRUCTS_H
 
+/********************************************************
+ * Structures for storing the entire Vulkan environment *
+ ********************************************************/
+
 // Library includes:
 #ifndef GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_NONE
@@ -62,5 +66,49 @@ typedef struct {
 	VkFormat swapchain_format;
 	VkExtent2D swapchain_extent;
 } FracRenderVulkanSwapchain;
+
+typedef struct {
+	// Scene descriptor:
+	VkDescriptorSetLayout scene_descriptor;
+} FracRenderVulkanDescriptors;
+
+typedef struct {
+	// Pipeline layouts:
+	VkPipelineLayout geometry_pipeline_layout;
+	VkPipelineLayout colour_pipeline_layout;
+
+	// Pipelines:
+	VkPipeline geometry_pipeline;
+	VkPipeline colour_pipeline;
+
+	// Render passes:
+	VkRenderPass geometry_render_pass;
+	VkRenderPass colour_render_pass;
+
+	// Shader modules:
+	VkShaderModule geometry_vertex_shader;
+	VkShaderModule geometry_fragment_shader;
+	VkShaderModule colour_vertex_shader;
+	VkShaderModule colour_fragment_shader;
+
+	// Shader paths:
+	const char *geometry_vertex_shader_path;
+	const char *geometry_fragment_shader_path;
+	const char *colour_vertex_shader_path;
+	const char *colour_fragment_shader_path;
+} FracRenderVulkanPipeline;
+
+typedef struct {
+	// Framebuffers:
+	VkFramebuffer *framebuffers;
+
+	// G-Buffer:
+	VkFramebuffer g_buffer;
+} FracRenderVulkanFramebuffers;
+
+typedef struct {
+	// Column-major camera transformation matrix:
+	float cameraTransform[16];
+} FracRenderVulkanSceneUniform;
 
 #endif

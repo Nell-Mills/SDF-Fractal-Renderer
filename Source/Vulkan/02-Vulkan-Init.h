@@ -1,6 +1,10 @@
 #ifndef FRACRENDER_VULKAN_INIT_H
 #define FRACRENDER_VULKAN_INIT_H
 
+/******************************************************************
+ * To initialize Volk and check support for layers and extensions *
+ ******************************************************************/
+
 // Library includes:
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +12,7 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "Vulkan-Structs.h"
+#include "01-Vulkan-Structs.h"
 
 /***********************
  * Function Prototypes *
