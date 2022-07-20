@@ -21,5 +21,7 @@
 #include "06-Vulkan-Descriptors.h"
 #include "07-Vulkan-Pipeline.h"
 #include "08-Vulkan-Framebuffers.h"
+#include "09-Vulkan-Commands.h"
+#include "10-Vulkan-Main.h"
 
 #endif

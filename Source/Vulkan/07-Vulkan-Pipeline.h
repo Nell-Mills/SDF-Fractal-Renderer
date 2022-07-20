@@ -20,7 +20,7 @@
 // Create Vulkan pipelines and render passes:
 int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
-	FracRenderVulkanPipeline *pipeline);
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline);
 
 // Destroy Vulkan pipeline structure:
 void destroy_vulkan_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline);
@@ -30,6 +30,14 @@ int load_shaders(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipel
 
 // Load shader module:
 VkShaderModule load_shader_module(FracRenderVulkanDevice *device, const char *shader_path);
+
+// Create geometry render pass:
+int create_geometry_render_pass(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline,
+							FracRenderVulkanFramebuffers *framebuffers);
+
+// Create colour render pass:
+int create_colour_render_pass(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline);
 
 // Create pipeline layout:
 int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline,

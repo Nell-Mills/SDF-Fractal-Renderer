@@ -15,7 +15,7 @@ int initialize_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevi
 	}
 
 	printf(" ---> Creating swapchain images and image views.\n");
-	if (create_swapchain_images(base, device, swapchain) != 0)
+	if (create_swapchain_images(device, swapchain) != 0)
 	{
 		return -1;
 	}
@@ -262,8 +262,7 @@ int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 }
 
 // Create swapchain images and image views:
-int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-					FracRenderVulkanSwapchain *swapchain)
+int create_swapchain_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain)
 {
 	// Get number of swapchain images:
 	if (vkGetSwapchainImagesKHR(device->logical_device, swapchain->swapchain,
@@ -287,6 +286,10 @@ int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 								sizeof(VkImageView));
 	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
 	{
+		swapchain->swapchain_image_views[i] = VK_NULL_HANDLE;
+	}
+	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
+	{
 		// Define image view creation info:
 		VkImageViewCreateInfo view_info;
 		view_info.sType			= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -308,7 +311,6 @@ int create_swapchain_images(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 		view_info.subresourceRange.layerCount = 1;
 
 		// Create the image view:
-		swapchain->swapchain_image_views[i] = VK_NULL_HANDLE;
 		if (vkCreateImageView(device->logical_device, &view_info, NULL,
 			&swapchain->swapchain_image_views[i]) != VK_SUCCESS)
 		{

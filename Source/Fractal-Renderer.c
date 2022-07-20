@@ -23,12 +23,13 @@ void print_controls();
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers);
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
-		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers);
+		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+		FracRenderVulkanCommands *commands);
 
 /********
  * Main *
@@ -50,15 +51,35 @@ int main(int argc, char **argv)
 	FracRenderVulkanDescriptors descriptors;
 	FracRenderVulkanPipeline pipeline;
 	FracRenderVulkanFramebuffers framebuffers;
+	FracRenderVulkanCommands commands;
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-										&framebuffers);
+									&framebuffers, &commands);
+
+	// Initialize the scene UBO:
+	FracRenderVulkanSceneUniform scene_uniform;
+	for (int i = 0; i < 16; i++)
+	{
+		scene_uniform.camera_transform[i] = 0.f;
+	}
+
+	// Check the size of the scene UBO:
+	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
+	{
+		fprintf(stderr, "Error: Size of Scene Uniform must be 65536 bytes or less!\n");
+		return -1;
+	}
+	if (sizeof(FracRenderVulkanSceneUniform) % 4 != 0)
+	{
+		fprintf(stderr, "Error: Size of Scene Uniform must be a multiple of 4 bytes!\n");
+		return -1;
+	}
 
 #ifdef FRACRENDER_DEBUG
 	// Check support for required validation layers:
 	if (check_validation_support(&validation) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 #endif
@@ -67,7 +88,7 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_base(&base, &validation) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 
@@ -75,7 +96,7 @@ int main(int argc, char **argv)
 	if (initalize_vulkan_device(&base, &device) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 
@@ -83,7 +104,7 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_swapchain(&base, &device, &swapchain) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 
@@ -91,23 +112,32 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_descriptors(&device, &descriptors) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 
 	// Create the pipelines and render passes:
-	if (initialize_vulkan_pipeline(&device, &swapchain, &descriptors, &pipeline) != 0)
+	if (initialize_vulkan_pipeline(&device, &swapchain, &descriptors, &framebuffers,
+									&pipeline) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
 		return -1;
 	}
 
 	// Create the framebuffers and G-buffer:
-	if (initialize_vulkan_framebuffers() != 0)
+	if (initialize_vulkan_framebuffers(&device, &swapchain, &pipeline, &framebuffers) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers);
+								&framebuffers, &commands);
+		return -1;
+	}
+
+	// Create the command pool, fences and semaphores:
+	if (initialize_vulkan_commands(&device, &swapchain, &commands) != 0)
+	{
+		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+								&framebuffers, &commands);
 		return -1;
 	}
 
@@ -118,13 +148,84 @@ int main(int argc, char **argv)
 	print_controls();
 
 	// Main loop:
-	//while(!glfwWindowShouldClose(base.window))
+	while(!glfwWindowShouldClose(base.window))
 	{
+		// Get next swapchain image:
+		uint32_t image_index = 0;
+		VkResult acquisition_result = vkAcquireNextImageKHR(
+			device.logical_device,
+			swapchain.swapchain,
+			UINT64_MAX,
+			commands.image_available,
+			VK_NULL_HANDLE,
+			&image_index
+		);
 
+		// See if swapchain needs recreating:
+		if ((acquisition_result == VK_SUBOPTIMAL_KHR) ||
+			(acquisition_result == VK_ERROR_OUT_OF_DATE_KHR))
+		{
+			printf("AAAAAAAA\n");
+		}
+
+		// See if next image was acquired:
+		if (acquisition_result != VK_SUCCESS)
+		{
+			fprintf(stderr, "Error: Unable to get next swapchain image!\n");
+			//break;
+		}
+
+		// Update scene uniform:
+		update_scene_uniform(&base, &device, &scene_uniform);
+
+		// Wait for a command buffer to be available:
+		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],
+							VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+		{
+			fprintf(stderr, "Error: Unable to get free command buffer %d!\n",
+									image_index);
+			break;
+		}
+
+		// Reset fence:
+		if (vkResetFences(device.logical_device, 1,
+			&commands.fences[image_index]) != VK_SUCCESS)
+		{
+			fprintf(stderr, "Error: Unable to reset fence %d!\n", image_index);
+			break;
+		}
+
+		// Record commands:
+		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers,
+					&commands, &scene_uniform, image_index) != 0)
+		{
+			break;
+		}
+
+		// Submit commands:
+		if (submit_commands(&device, &commands, image_index) != 0)
+		{
+			break;
+		}
+
+		// Present results:
+		int present_result = present_results(&device, &swapchain, &commands, image_index);
+		if (present_result == -1)
+		{
+			break;
+		}
+		else if (present_result == 1)
+		{
+			// Swapchain needs recreating:
+		}
 	}
 
+	// Wait for Vulkan commands to finish:
+	vkDeviceWaitIdle(device.logical_device);
+
 	// Destroy Vulkan structs:
-	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers);
+	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,
+											&commands);
 
 	return 0;
 }
@@ -170,7 +271,7 @@ void print_controls()
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers)
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
 {
 	// Vulkan base:
 	base->instance		= VK_NULL_HANDLE;
@@ -212,7 +313,16 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	swapchain->swapchain_extent.height	= 0;
 
 	// Descriptors:
-	descriptors->scene_descriptor	= VK_NULL_HANDLE;
+	descriptors->descriptor_pool			= VK_NULL_HANDLE;
+
+	descriptors->scene_descriptor_layout		= VK_NULL_HANDLE;
+	descriptors->scene_descriptor			= VK_NULL_HANDLE;
+	descriptors->scene_buffer			= VK_NULL_HANDLE;
+	descriptors->scene_memory			= VK_NULL_HANDLE;
+
+	descriptors->num_g_buffer_descriptors		= 1;
+	descriptors->g_buffer_descriptor_layouts	= NULL;
+	descriptors->g_buffer_descriptors		= NULL;
 
 	// Pipeline:
 	pipeline->geometry_pipeline_layout	= VK_NULL_HANDLE;
@@ -235,22 +345,43 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	pipeline->colour_fragment_shader_path	= "Assets/Shaders/Fractal-Colour.frag.sprv";
 
 	// Framebuffers:
-	framebuffers->framebuffers	= NULL;
+	framebuffers->framebuffers		= NULL;
 
-	framebuffers->g_buffer		= VK_NULL_HANDLE;
+	framebuffers->g_buffer			= VK_NULL_HANDLE;
+	framebuffers->num_g_buffer_images	= 1;
+	framebuffers->g_buffer_images		= NULL;
+	framebuffers->g_buffer_image_views	= NULL;
+
+	// Allocate memory for G-buffer formats (free in destroy_vulkan_framebuffers):
+	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
+									sizeof(VkFormat));
+	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R16G16B16A16_SFLOAT;
+
+	framebuffers->sampler			= VK_NULL_HANDLE;
+
+	// Commands:
+	commands->command_pool		= VK_NULL_HANDLE;
+	commands->command_buffers	= NULL;
+	commands->fences		= NULL;
+	commands->image_available	= VK_NULL_HANDLE;
+	commands->render_finished	= VK_NULL_HANDLE;
 }
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
-		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers)
+		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+		FracRenderVulkanCommands *commands)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Cleaning up...\n");
 
-	// Destroy framebuffers:
-	destroy_vulkan_framebuffers(device, framebuffers);
+	// Destroy Vulkan command pool, fences and semaphores:
+	destroy_vulkan_commands(device, swapchain, commands);
+
+	// Destroy Vulkan framebuffers:
+	destroy_vulkan_framebuffers(device, swapchain, framebuffers);
 
 	// Destroy Vulkan pipeline:
 	destroy_vulkan_pipeline(device, pipeline);

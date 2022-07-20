@@ -11,6 +11,8 @@
 #endif
 #include <GLFW/glfw3.h>
 
+
+
 typedef struct {
 	// Instance and window:
 	VkInstance instance;
@@ -60,16 +62,25 @@ typedef struct {
 	VkImage *swapchain_images;
 	VkImageView *swapchain_image_views;
 
-	// Framebuffers:
-
 	// Format:
 	VkFormat swapchain_format;
 	VkExtent2D swapchain_extent;
 } FracRenderVulkanSwapchain;
 
 typedef struct {
+	// Descriptor pool:
+	VkDescriptorPool descriptor_pool;
+
 	// Scene descriptor:
-	VkDescriptorSetLayout scene_descriptor;
+	VkDescriptorSetLayout scene_descriptor_layout;
+	VkDescriptorSet scene_descriptor;
+	VkBuffer scene_buffer;
+	VkDeviceMemory scene_memory;
+
+	// G-buffer descriptors:
+	uint32_t num_g_buffer_descriptors;
+	VkDescriptorSetLayout *g_buffer_descriptor_layouts;
+	VkDescriptorSet *g_buffer_descriptors;
 } FracRenderVulkanDescriptors;
 
 typedef struct {
@@ -102,13 +113,36 @@ typedef struct {
 	// Framebuffers:
 	VkFramebuffer *framebuffers;
 
-	// G-Buffer:
+	// G-buffer:
 	VkFramebuffer g_buffer;
+	uint32_t num_g_buffer_images;
+	VkImage *g_buffer_images;
+	VkDeviceMemory *g_buffer_image_memory;
+	VkImageView *g_buffer_image_views;
+	VkFormat *g_buffer_formats;
+
+	// Sampler:
+	VkSampler sampler;
 } FracRenderVulkanFramebuffers;
 
 typedef struct {
+	// Command pool:
+	VkCommandPool command_pool;
+
+	// Command buffers:
+	VkCommandBuffer *command_buffers;
+
+	// Fences:
+	VkFence *fences;
+
+	// Semaphores:
+	VkSemaphore image_available;
+	VkSemaphore render_finished;
+} FracRenderVulkanCommands;
+
+typedef struct {
 	// Column-major camera transformation matrix:
-	float cameraTransform[16];
+	float camera_transform[16];
 } FracRenderVulkanSceneUniform;
 
 #endif
