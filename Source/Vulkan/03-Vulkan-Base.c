@@ -212,6 +212,12 @@ int create_debug_messenger(FracRenderVulkanBase *base)
 	debug_info.pfnUserCallback	= &debug_util_callback;
 	debug_info.pUserData		= NULL;
 
+	if (vkCreateDebugUtilsMessengerEXT(base->instance, &debug_info, NULL, &base->debug_messenger) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create debug messenger!\n");
+		return -1;
+	}
+
 	return 0;
 }
 

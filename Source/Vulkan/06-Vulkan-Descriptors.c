@@ -1,18 +1,24 @@
 #include "06-Vulkan-Descriptors.h"
 
-// Create Vulkan descriptors:
-int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
-			FracRenderVulkanDescriptors *descriptors)
+// Create Vulkan descriptor layouts:
+int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
+				FracRenderVulkanDescriptors *descriptors)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
-	printf("Initializing Vulkan descriptors...\n");
+	printf("Initializing Vulkan descriptor layouts and sampler...\n");
 
 	// Create descriptor pool:
 	printf(" ---> Creating descriptor pool.\n");
 	if (create_descriptor_pool(device, descriptors) != 0)
 	{
-		fprintf(stderr, "Error: Unable to create descriptor pool!\n");
+		return -1;
+	}
+
+	// Create sampler:
+	printf(" ---> Creating sampler.\n");
+	if (create_sampler(device, descriptors) != 0)
+	{
 		return -1;
 	}
 
@@ -20,23 +26,49 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	printf(" ---> Creating scene buffer.\n");
 	if (create_scene_buffer(device, descriptors) != 0)
 	{
-		fprintf(stderr, "Error: Unable to create scene buffer!\n");
 		return -1;
 	}
+
+	// Create scene descriptor layout:
+	printf(" ---> Creating scene descriptor layout.\n");
+	if (create_scene_descriptor_layout(device, descriptors) != 0)
+	{
+		return -1;
+	}
+
+	// Create G-buffer descriptor layout:
+	printf(" ---> Creating G-buffer descriptor layout.\n");
+	if (create_g_buffer_descriptor_layout(device, descriptors) != 0)
+	{
+		return -1;
+	}
+
+	printf("... Done.\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	return 0;
+}
+
+// Create Vulkan descriptors (after creating the framebuffers):
+int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors)
+{
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Initializing Vulkan descriptors...\n");
 
 	// Create scene descriptor:
 	printf(" ---> Creating scene descriptor.\n");
 	if (create_scene_descriptor(device, descriptors) != 0)
 	{
-		fprintf(stderr, "Error: Unable to create scene descriptor!\n");
 		return -1;
 	}
 
 	// Create G-buffer descriptors:
 	printf(" ---> Creating G-buffer descriptors.\n");
-	if (create_g_buffer_descriptors(device, descriptors) != 0)
+	if (create_g_buffer_descriptors(device, framebuffers, descriptors) != 0)
 	{
-		fprintf(stderr, "Error: Unable to create G-buffer descriptors!\n");
 		return -1;
 	}
 
@@ -51,7 +83,7 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 void destroy_vulkan_descriptors(FracRenderVulkanDevice *device,
 			FracRenderVulkanDescriptors *descriptors)
 {
-	printf(" ---> Destroying Vulkan descriptors.\n");
+	printf(" ---> Destroying Vulkan descriptors and sampler.\n");
 
 	// Destroy scene descriptor layout:
 	if (descriptors->scene_descriptor_layout != VK_NULL_HANDLE)
@@ -70,22 +102,23 @@ void destroy_vulkan_descriptors(FracRenderVulkanDevice *device,
 		vkFreeMemory(device->logical_device, descriptors->scene_memory, NULL);
 	}
 
-	// Destroy G-buffer descriptor layouts and free memory:
-	if (descriptors->g_buffer_descriptor_layouts)
+	// Destroy G-buffer descriptor layout:
+	if (descriptors->g_buffer_descriptor_layout != VK_NULL_HANDLE)
 	{
-		for (uint32_t i = 0; i < descriptors->num_g_buffer_descriptors; i++)
-		{
-			if (descriptors->g_buffer_descriptor_layouts[i] != VK_NULL_HANDLE)
-			{
-				vkDestroyDescriptorSetLayout(device->logical_device,
-					descriptors->g_buffer_descriptor_layouts[i], NULL);
-			}
-		}
-		free(descriptors->g_buffer_descriptor_layouts);
+		vkDestroyDescriptorSetLayout(device->logical_device,
+			descriptors->g_buffer_descriptor_layout, NULL);
 	}
+
+	// Free memory for G-buffer descriptors:
 	if (descriptors->g_buffer_descriptors)
 	{
 		free(descriptors->g_buffer_descriptors);
+	}
+
+	// Destroy sampler:
+	if (descriptors->sampler != VK_NULL_HANDLE)
+	{
+		vkDestroySampler(device->logical_device, descriptors->sampler, NULL);
 	}
 
 	// Destroy descriptor pool:
@@ -121,6 +154,41 @@ int create_descriptor_pool(FracRenderVulkanDevice *device,
 				&descriptors->descriptor_pool) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Unable to create descriptor pool!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+// Create sampler:
+int create_sampler(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors)
+{
+	// Define sampler creation info:
+	VkSamplerCreateInfo sampler_info;
+	sampler_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	sampler_info.pNext			= NULL;
+	sampler_info.flags			= 0;
+	sampler_info.magFilter			= VK_FILTER_LINEAR;
+	sampler_info.minFilter			= VK_FILTER_LINEAR;
+	sampler_info.mipmapMode			= VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	sampler_info.addressModeU		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.addressModeV		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.addressModeW		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.mipLodBias			= 0.f;
+	sampler_info.anisotropyEnable		= VK_FALSE;
+	sampler_info.maxAnisotropy		= 0.f;
+	sampler_info.compareEnable		= VK_FALSE;
+	sampler_info.compareOp			= VK_COMPARE_OP_NEVER;
+	sampler_info.minLod			= 0.f;
+	sampler_info.maxLod			= VK_LOD_CLAMP_NONE;
+	sampler_info.borderColor		= VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+	sampler_info.unnormalizedCoordinates	= VK_FALSE;
+
+	// Create the sampler:
+	if (vkCreateSampler(device->logical_device, &sampler_info, NULL,
+				&descriptors->sampler) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error, Unable to create the sampler!\n");
 		return -1;
 	}
 
@@ -201,8 +269,8 @@ int create_scene_buffer(FracRenderVulkanDevice *device,
 	return 0;
 }
 
-// Create scene descriptor:
-int create_scene_descriptor(FracRenderVulkanDevice *device,
+// Create scene descriptor layout:
+int create_scene_descriptor_layout(FracRenderVulkanDevice *device,
 			FracRenderVulkanDescriptors *descriptors)
 {
 	// Create array of descriptor set layout bindings:
@@ -229,6 +297,13 @@ int create_scene_descriptor(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
+	return 0;
+}
+
+// Create scene descriptor:
+int create_scene_descriptor(FracRenderVulkanDevice *device,
+			FracRenderVulkanDescriptors *descriptors)
+{
 	// Allocate descriptor set:
 	VkDescriptorSetAllocateInfo allocate_info;
 	allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -268,9 +343,91 @@ int create_scene_descriptor(FracRenderVulkanDevice *device,
 	return 0;
 }
 
-// Create G-buffer descriptors:
-int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
+// Create G-buffer descriptor layout:
+int create_g_buffer_descriptor_layout(FracRenderVulkanDevice *device,
 			FracRenderVulkanDescriptors *descriptors)
 {
+	// Create array of descriptor set layout bindings:
+	VkDescriptorSetLayoutBinding bindings[1];
+	bindings[0].binding		= 0;
+	bindings[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[0].descriptorCount	= 1;
+	bindings[0].stageFlags		= VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[0].pImmutableSamplers	= NULL;
+
+	// Create descriptor set layout:
+	VkDescriptorSetLayoutCreateInfo layout_info;
+	layout_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layout_info.pNext		= NULL;
+	layout_info.flags		= 0;
+	layout_info.bindingCount	= 1;
+	layout_info.pBindings		= bindings;
+
+	if (vkCreateDescriptorSetLayout(device->logical_device, &layout_info,
+		NULL, &descriptors->g_buffer_descriptor_layout) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create G-buffer descriptor set layout!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+// Create G-buffer descriptors:
+int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors)
+{
+	// Allocate memory for descriptors. Free in destroy_vulkan_descriptors:
+	descriptors->g_buffer_descriptors = malloc(descriptors->num_g_buffer_descriptors *
+								sizeof(VkDescriptorSet));
+
+	// Initialize descriptors to VK_NULL_HANDLE:
+	for (uint32_t i = 0; i < descriptors->num_g_buffer_descriptors; i++)
+	{
+		descriptors->g_buffer_descriptors[i] = VK_NULL_HANDLE;
+	}
+
+	// Loop through G-buffer images:
+	for (uint32_t i = 0; i < descriptors->num_g_buffer_descriptors; i++)
+	{
+		// Allocate descriptor set:
+		VkDescriptorSetAllocateInfo allocate_info;
+		allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocate_info.pNext			= NULL;
+		allocate_info.descriptorPool		= descriptors->descriptor_pool;
+		allocate_info.descriptorSetCount	= 1;
+		allocate_info.pSetLayouts		= &descriptors->g_buffer_descriptor_layout;
+
+		if (vkAllocateDescriptorSets(device->logical_device, &allocate_info,
+				&descriptors->g_buffer_descriptors[i]) != VK_SUCCESS)
+		{
+			fprintf(stderr, "Error: Unable to allocate G-buffer "
+						"descriptor set %d!\n", i);
+			return -1;
+		}
+
+		// Define texture and sampler info:
+		VkDescriptorImageInfo image_info;
+		image_info.sampler	= descriptors->sampler;
+		image_info.imageView	= framebuffers->g_buffer_image_views[i];
+		image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		// Create descriptor set writing info:
+		VkWriteDescriptorSet descriptor_write[1];
+		descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptor_write[0].pNext		= NULL;
+		descriptor_write[0].dstSet		= descriptors->g_buffer_descriptors[i];
+		descriptor_write[0].dstBinding		= 0;
+		descriptor_write[0].dstArrayElement	= 0;
+		descriptor_write[0].descriptorCount	= 1;
+		descriptor_write[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptor_write[0].pImageInfo		= &image_info;
+		descriptor_write[0].pBufferInfo		= NULL;
+		descriptor_write[0].pTexelBufferView	= NULL;
+
+		// Update the descriptor sets:
+		vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
+	}
+
 	return 0;
 }

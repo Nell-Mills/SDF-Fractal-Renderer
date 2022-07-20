@@ -39,7 +39,4 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers);
 
-// Create sampler:
-int create_sampler(FracRenderVulkanDevice *device, FracRenderVulkanFramebuffers *framebuffers);
-
 #endif

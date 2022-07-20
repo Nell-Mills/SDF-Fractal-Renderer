@@ -38,6 +38,13 @@ int initalize_vulkan_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 		return -1;
 	}
 
+	// Get device queues:
+	printf(" ---> Getting device queues.\n");
+	if (get_device_queues(device) != 0)
+	{
+		return -1;
+	}
+
 	printf("... Done.\n");
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -295,6 +302,39 @@ int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 
 	// Free memory:
 	free(queue_info);
+
+	return 0;
+}
+
+// Get device queues:
+int get_device_queues(FracRenderVulkanDevice *device)
+{
+	// Get graphics queue:
+	vkGetDeviceQueue(device->logical_device, device->graphics_family_index,
+						0, &device->graphics_queue);
+
+	if (device->graphics_queue == VK_NULL_HANDLE)
+	{
+		fprintf(stderr, "Error: Unable to retrieve graphics queue!\n");
+		return -1;
+	}
+
+	// Get present queue:
+	if (device->graphics_family_index == device->present_family_index)
+	{
+		device->present_queue = device->graphics_queue;
+	}
+	else
+	{
+		vkGetDeviceQueue(device->logical_device, device->present_family_index,
+							0, &device->present_queue);
+
+		if (device->present_queue == VK_NULL_HANDLE)
+		{
+			fprintf(stderr, "Error: Unable to retrieve present queue!\n");
+			return -1;
+		}
+	}
 
 	return 0;
 }

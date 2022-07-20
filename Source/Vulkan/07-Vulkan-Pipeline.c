@@ -370,17 +370,17 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanPipel
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		num_layouts = 2;
+		num_layouts = 1;
 		layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 		layouts[0] = descriptors->scene_descriptor_layout;
-		layouts[1] = descriptors->scene_descriptor_layout;
 	}
 	else
 	{
 		// Colour pipeline:
-		num_layouts = 1;
+		num_layouts = 2;
 		layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 		layouts[0] = descriptors->scene_descriptor_layout;
+		layouts[1] = descriptors->g_buffer_descriptor_layout;
 	}
 
 	// Create the pipeline layout info:

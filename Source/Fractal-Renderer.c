@@ -108,8 +108,8 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// Initialize the descriptors:
-	if (initialize_vulkan_descriptors(&device, &descriptors) != 0)
+	// Initialize the descriptor layouts and sampler:
+	if (initialize_vulkan_descriptor_layouts(&device, &descriptors) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 								&framebuffers, &commands);
@@ -133,6 +133,14 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	// Create the descriptors:
+	if (initialize_vulkan_descriptors(&device, &framebuffers, &descriptors) != 0)
+	{
+		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+								&framebuffers, &commands);
+		return -1;
+	}
+
 	// Create the command pool, fences and semaphores:
 	if (initialize_vulkan_commands(&device, &swapchain, &commands) != 0)
 	{
@@ -140,6 +148,10 @@ int main(int argc, char **argv)
 								&framebuffers, &commands);
 		return -1;
 	}
+
+	// Print all Vulkan handles for debugging:
+//	print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
+//								&framebuffers, &commands);
 
 	// Print title:
 	print_title();
@@ -287,9 +299,9 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	device->num_device_extensions	= 1;
 	device->device_extensions[0]	= VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
-	device->graphics_family_index	= 0;
+	device->graphics_family_index	= 100;
 	device->graphics_queue		= VK_NULL_HANDLE;
-	device->present_family_index	= 0;
+	device->present_family_index	= 100;
 	device->present_queue		= VK_NULL_HANDLE;
 
 	// Validation:
@@ -315,13 +327,15 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	// Descriptors:
 	descriptors->descriptor_pool			= VK_NULL_HANDLE;
 
+	descriptors->sampler				= VK_NULL_HANDLE;
+
 	descriptors->scene_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->scene_descriptor			= VK_NULL_HANDLE;
 	descriptors->scene_buffer			= VK_NULL_HANDLE;
 	descriptors->scene_memory			= VK_NULL_HANDLE;
 
 	descriptors->num_g_buffer_descriptors		= 1;
-	descriptors->g_buffer_descriptor_layouts	= NULL;
+	descriptors->g_buffer_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->g_buffer_descriptors		= NULL;
 
 	// Pipeline:
@@ -356,8 +370,6 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
 									sizeof(VkFormat));
 	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R16G16B16A16_SFLOAT;
-
-	framebuffers->sampler			= VK_NULL_HANDLE;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;

@@ -71,6 +71,9 @@ typedef struct {
 	// Descriptor pool:
 	VkDescriptorPool descriptor_pool;
 
+	// Sampler:
+	VkSampler sampler;
+
 	// Scene descriptor:
 	VkDescriptorSetLayout scene_descriptor_layout;
 	VkDescriptorSet scene_descriptor;
@@ -79,7 +82,7 @@ typedef struct {
 
 	// G-buffer descriptors:
 	uint32_t num_g_buffer_descriptors;
-	VkDescriptorSetLayout *g_buffer_descriptor_layouts;
+	VkDescriptorSetLayout g_buffer_descriptor_layout;
 	VkDescriptorSet *g_buffer_descriptors;
 } FracRenderVulkanDescriptors;
 
@@ -120,9 +123,6 @@ typedef struct {
 	VkDeviceMemory *g_buffer_image_memory;
 	VkImageView *g_buffer_image_views;
 	VkFormat *g_buffer_formats;
-
-	// Sampler:
-	VkSampler sampler;
 } FracRenderVulkanFramebuffers;
 
 typedef struct {

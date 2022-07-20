@@ -35,4 +35,10 @@ int submit_commands(FracRenderVulkanDevice *device, FracRenderVulkanCommands *co
 int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 				FracRenderVulkanCommands *commands, uint32_t image_index);
 
+// Print all Vulkan handles for debugging:
+void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
+
 #endif

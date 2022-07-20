@@ -30,13 +30,6 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	// Create sampler:
-	printf(" ---> Creating sampler.\n");
-	if (create_sampler(device, framebuffers) != 0)
-	{
-		return -1;
-	}
-
 	printf("... Done.\n");
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -105,12 +98,6 @@ void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	if (framebuffers->g_buffer_formats)
 	{
 		free(framebuffers->g_buffer_formats);
-	}
-
-	// Destroy sampler:
-	if (framebuffers->sampler != VK_NULL_HANDLE)
-	{
-		vkDestroySampler(device->logical_device, framebuffers->sampler, NULL);
 	}
 }
 
@@ -314,41 +301,6 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 					&framebuffers->g_buffer) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Unable to create G-buffer!\n");
-		return -1;
-	}
-
-	return 0;
-}
-
-// Create sampler:
-int create_sampler(FracRenderVulkanDevice *device, FracRenderVulkanFramebuffers *framebuffers)
-{
-	// Define sampler creation info:
-	VkSamplerCreateInfo sampler_info;
-	sampler_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	sampler_info.pNext			= NULL;
-	sampler_info.flags			= 0;
-	sampler_info.magFilter			= VK_FILTER_LINEAR;
-	sampler_info.minFilter			= VK_FILTER_LINEAR;
-	sampler_info.mipmapMode			= VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	sampler_info.addressModeU		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.addressModeV		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.addressModeW		= VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.mipLodBias			= 0.f;
-	sampler_info.anisotropyEnable		= VK_FALSE;
-	sampler_info.maxAnisotropy		= 0.f;
-	sampler_info.compareEnable		= VK_FALSE;
-	sampler_info.compareOp			= VK_COMPARE_OP_NEVER;
-	sampler_info.minLod			= 0.f;
-	sampler_info.maxLod			= VK_LOD_CLAMP_NONE;
-	sampler_info.borderColor		= VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-	sampler_info.unnormalizedCoordinates	= VK_FALSE;
-
-	// Create the sampler:
-	if (vkCreateSampler(device->logical_device, &sampler_info, NULL,
-				&framebuffers->sampler) != VK_SUCCESS)
-	{
-		fprintf(stderr, "Error, Unable to create the sampler!\n");
 		return -1;
 	}
 

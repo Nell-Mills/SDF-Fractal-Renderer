@@ -34,4 +34,7 @@ int score_physical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 // Create logical device:
 int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *device);
 
+// Get device queues:
+int get_device_queues(FracRenderVulkanDevice *device);
+
 #endif

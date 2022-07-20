@@ -170,12 +170,9 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	// Bind G-buffer descriptors:
 	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
 	{
-		descriptors->g_buffer_descriptors[i];
-printf("NIN\n");
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->colour_pipeline_layout,
 			i + 1, 1, &descriptors->g_buffer_descriptors[i], 0, NULL);
-printf("NISHK\n");
 	}
 
 	// Draw fullscreen triangle:
@@ -256,4 +253,128 @@ int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	}
 
 	return 0;
+}
+
+// Print all Vulkan handles for debugging:
+void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
+{
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Base:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Instance:
+	if (base->instance == VK_NULL_HANDLE)
+	{
+		printf("Instance\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Instance\t\t---> %p\n", base->instance);
+	}
+
+	// Window:
+	if (base->window == NULL)
+	{
+		printf("Window\t\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Window\t\t\t---> %p\n", base->window);
+	}
+
+	// Surface:
+	if (base->surface == VK_NULL_HANDLE)
+	{
+		printf("Surface\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Surface\t\t\t---> %p\n", base->surface);
+	}
+
+	// Debug Messenger:
+	if (base->debug_messenger == VK_NULL_HANDLE)
+	{
+		printf("Debug Messenger\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Debug Messenger\t\t---> %p\n", base->debug_messenger);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Device:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Physical Device:
+	if (device->physical_device == VK_NULL_HANDLE)
+	{
+		printf("Physical Device\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Physical Device\t\t\t---> %p\n", device->physical_device);
+	}
+
+	// Logical Device:
+	if (device->logical_device == VK_NULL_HANDLE)
+	{
+		printf("Logical Device\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Logical Device\t\t\t---> %p\n", device->logical_device);
+	}
+
+	// Number of Device Extensions:
+	printf("Number of Device Extensions\t---> %d\n", device->num_device_extensions);
+
+	// Device Extensions:
+	if (device->device_extensions == NULL)
+	{
+		printf("Device Extensions\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Device Extensions\t\t---> %p\n", device->device_extensions);
+	}
+
+	// Graphics Family Index:
+	printf("Graphics Family Index\t\t---> %d\n", device->graphics_family_index);
+
+	// Graphics Queue:
+	if (device->graphics_queue == VK_NULL_HANDLE)
+	{
+		printf("Graphics Queue\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Graphics Queue\t\t\t---> %p\n", device->graphics_queue);
+	}
+
+	// Present Family Index:
+	printf("Present Family Index\t\t---> %d\n", device->present_family_index);
+
+	// Present Queue:
+	if (device->present_queue == VK_NULL_HANDLE)
+	{
+		printf("Present Queue\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Present Queue\t\t\t---> %p\n", device->present_queue);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
 }
