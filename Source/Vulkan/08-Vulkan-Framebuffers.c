@@ -306,3 +306,72 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	return 0;
 }
+
+// Recreate swapchain framebuffers:
+int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,
+	FracRenderVulkanFramebuffers *framebuffers, uint32_t num_images)
+{
+	// Destroy current framebuffers and free memory:
+	for (uint32_t i = 0; i < num_images; i++)
+	{
+		vkDestroyFramebuffer(device->logical_device, framebuffers->framebuffers[i], NULL);
+		framebuffers->framebuffers[i] = VK_NULL_HANDLE;
+	}
+	free(framebuffers->framebuffers);
+
+	// Create new ones:
+	if (create_swapchain_framebuffers(device, swapchain, pipeline, framebuffers) != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+// Recreate G-buffer images and views:
+int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers)
+{
+	// Destroy G-buffer views and free memory:
+	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
+	{
+		vkDestroyImageView(device->logical_device,
+			framebuffers->g_buffer_image_views[i], NULL);
+	}
+	free(framebuffers->g_buffer_image_views);
+
+	// Destroy G-buffer images and free memory:
+	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
+	{
+		vkDestroyImage(device->logical_device,
+			framebuffers->g_buffer_images[i], NULL);
+		vkFreeMemory(device->logical_device,
+			framebuffers->g_buffer_image_memory[i], NULL);
+	}
+	free(framebuffers->g_buffer_images);
+	free(framebuffers->g_buffer_image_memory);
+
+	// Create new images and views:
+	if (create_g_buffer_images(device, swapchain, framebuffers) != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+// Recreate G-buffer:
+int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers)
+{
+	// Destroy current G-buffer:
+	vkDestroyFramebuffer(device->logical_device, framebuffers->g_buffer, NULL);
+
+	if (create_g_buffer(device, swapchain, pipeline, framebuffers) != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}

@@ -32,19 +32,28 @@ int load_shaders(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipel
 VkShaderModule load_shader_module(FracRenderVulkanDevice *device, const char *shader_path);
 
 // Create geometry render pass:
-int create_geometry_render_pass(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline,
-							FracRenderVulkanFramebuffers *framebuffers);
+int create_geometry_render_pass(FracRenderVulkanDevice *device,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline);
 
 // Create colour render pass:
 int create_colour_render_pass(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline);
 
 // Create pipeline layout:
-int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline,
-					 FracRenderVulkanDescriptors *descriptors, int pipe);
+int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
+						FracRenderVulkanPipeline *pipeline, int pipe);
 
 // Create pipeline:
-int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline,
-					FracRenderVulkanSwapchain *swapchain, int pipe);
+int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+					FracRenderVulkanPipeline *pipeline, int pipe);
+
+// Recreate render passes:
+int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
+	FracRenderVulkanPipeline *pipeline);
+
+// Recreate pipelines:
+int recreate_vulkan_pipelines(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+								FracRenderVulkanPipeline *pipeline);
 
 #endif

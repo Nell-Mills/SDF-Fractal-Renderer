@@ -160,11 +160,97 @@ int main(int argc, char **argv)
 	// Print keyboard controls:
 	print_controls();
 
+	// Tracking program state:
+	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
+
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
 	{
 		// Poll GLFW events:
 		glfwPollEvents();
+
+		// Check recreate_swapchain flag:
+		if (recreate_swapchain == 0)
+		{
+			// Save current number of swapchain images:
+			uint32_t num_images = swapchain.num_swapchain_images;
+
+			// Wait for Vulkan commands to finish:
+			vkDeviceWaitIdle(device.logical_device);
+
+			// Recreate swapchain and see what value is returned:
+			int changed_extent = -1;
+			int changed_format = -1;
+			int changes = recreate_vulkan_swapchain(&base, &device, &swapchain);
+
+			if (changes == -1)
+			{
+				// Error code:
+				break;
+			}
+			else if (changes == 1)
+			{
+				changed_extent = 0;
+			}
+			else if (changes == 2)
+			{
+				changed_format = 0;
+			}
+			else if (changes == 3)
+			{
+				changed_extent = 0;
+				changed_format = 0;
+			}
+
+			// If format changed, recreate render passes:
+			if (changed_format == 0)
+			{
+				if (recreate_vulkan_render_passes(&device, &swapchain,
+							&framebuffers, &pipeline) != 0)
+				{
+					break;
+				}
+			}
+
+			// If extent changed, recreate G-buffer images and views:
+			if (changed_extent == 0)
+			{
+				if (recreate_vulkan_g_buffer_images(&device,
+					&swapchain, &framebuffers) != 0)
+				{
+					break;
+				}
+
+				// Update G-buffer descriptors:
+				update_vulkan_g_buffer_descriptors(&device,
+						&framebuffers, &descriptors);
+			}
+
+			// Recreate swapchain framebuffers:
+			if (recreate_vulkan_swapchain_framebuffers(&device, &swapchain,
+					&pipeline, &framebuffers, num_images) != 0)
+			{
+				break;
+			}
+
+			// Recreate G-buffer:
+			if (recreate_vulkan_g_buffer(&device, &swapchain,
+					&pipeline, &framebuffers) != 0)
+			{
+				break;
+			}
+
+			// If extent changed, recreate pipelines:
+			if (changed_extent == 0)
+			{
+				if (recreate_vulkan_pipelines(&device, &swapchain, &pipeline) != 0)
+				{
+					break;
+				}
+			}
+
+			recreate_swapchain = -1;
+		}
 
 		// Get next swapchain image:
 		uint32_t image_index = 0;
@@ -181,14 +267,15 @@ int main(int argc, char **argv)
 		if ((acquisition_result == VK_SUBOPTIMAL_KHR) ||
 			(acquisition_result == VK_ERROR_OUT_OF_DATE_KHR))
 		{
-			printf("AAAAAAAA\n");
+			recreate_swapchain = 0;
+			continue;
 		}
 
 		// See if next image was acquired:
 		if (acquisition_result != VK_SUCCESS)
 		{
 			fprintf(stderr, "Error: Unable to get next swapchain image!\n");
-			//break;
+			break;
 		}
 
 		// Update scene uniform:
@@ -233,6 +320,7 @@ int main(int argc, char **argv)
 		else if (present_result == 1)
 		{
 			// Swapchain needs recreating:
+			recreate_swapchain = 0;
 		}
 	}
 

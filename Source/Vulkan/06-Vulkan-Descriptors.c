@@ -431,3 +431,34 @@ int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
 
 	return 0;
 }
+
+// Update G-buffer descriptors:
+void update_vulkan_g_buffer_descriptors(FracRenderVulkanDevice *device,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors)
+{
+	// Loop through G-buffer images:
+	for (uint32_t i = 0; i < descriptors->num_g_buffer_descriptors; i++)
+	{
+		// Define texture and sampler info:
+		VkDescriptorImageInfo image_info;
+		image_info.sampler	= descriptors->sampler;
+		image_info.imageView	= framebuffers->g_buffer_image_views[i];
+		image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		// Create descriptor set writing info:
+		VkWriteDescriptorSet descriptor_write[1];
+		descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptor_write[0].pNext		= NULL;
+		descriptor_write[0].dstSet		= descriptors->g_buffer_descriptors[i];
+		descriptor_write[0].dstBinding		= 0;
+		descriptor_write[0].dstArrayElement	= 0;
+		descriptor_write[0].descriptorCount	= 1;
+		descriptor_write[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptor_write[0].pImageInfo		= &image_info;
+		descriptor_write[0].pBufferInfo		= NULL;
+		descriptor_write[0].pTexelBufferView	= NULL;
+
+		// Update the descriptor sets:
+		vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
+	}
+}

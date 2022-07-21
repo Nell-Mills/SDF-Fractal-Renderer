@@ -1,7 +1,6 @@
 Create debug callback function
 Create functions to print errors
 
-Recreate swapchain
 Keyboard controls and scene uniform
 
 Mandelbulb

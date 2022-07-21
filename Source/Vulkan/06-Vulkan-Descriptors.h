@@ -56,4 +56,8 @@ int create_g_buffer_descriptor_layout(FracRenderVulkanDevice *device,
 int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors);
 
+// Update G-buffer descriptors:
+void update_vulkan_g_buffer_descriptors(FracRenderVulkanDevice *device,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors);
+
 #endif

@@ -30,7 +30,7 @@ int recreate_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice
 
 // Create Vulkan swapchain:
 int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-					FracRenderVulkanSwapchain *swapchain);
+	FracRenderVulkanSwapchain *swapchain, VkSwapchainKHR old_swapchain);
 
 // Create swapchain images and image views:
 int create_swapchain_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain);

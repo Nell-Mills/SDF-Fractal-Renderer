@@ -9,7 +9,7 @@ int initialize_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevi
 	printf("Initializing Vulkan swapchain...\n");
 
 	printf(" ---> Creating swapchain.\n");
-	if (create_swapchain(base, device, swapchain) != 0)
+	if (create_swapchain(base, device, swapchain, VK_NULL_HANDLE) != 0)
 	{
 		return -1;
 	}
@@ -32,7 +32,7 @@ void destroy_vulkan_swapchain(FracRenderVulkanDevice *device, FracRenderVulkanSw
 {
 	printf(" ---> Destroying Vulkan swapchain.\n");
 
-	// Destroy swapchain image views:
+	// Destroy swapchain image views and free memory:
 	if (swapchain->swapchain_image_views)
 	{
 		for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
@@ -40,8 +40,6 @@ void destroy_vulkan_swapchain(FracRenderVulkanDevice *device, FracRenderVulkanSw
 			vkDestroyImageView(device->logical_device,
 				swapchain->swapchain_image_views[i], NULL);
 		}
-
-		// Free memory for swapchain image views:
 		free(swapchain->swapchain_image_views);
 	}
 
@@ -62,12 +60,70 @@ void destroy_vulkan_swapchain(FracRenderVulkanDevice *device, FracRenderVulkanSw
 int recreate_vulkan_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 							FracRenderVulkanSwapchain *swapchain)
 {
-	return 0;
+	// Save current format and extent to see what's changed:
+	VkFormat old_format = swapchain->swapchain_format;
+	VkExtent2D old_extent = swapchain->swapchain_extent;
+
+	// Keep old swapchain to use in creation of new one:
+	VkSwapchainKHR old_swapchain = swapchain->swapchain;
+
+	// Destroy the image views and discard the images:
+	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
+	{
+		vkDestroyImageView(device->logical_device,
+			swapchain->swapchain_image_views[i], NULL);
+		swapchain->swapchain_image_views[i] = VK_NULL_HANDLE;
+		swapchain->swapchain_images[i] = VK_NULL_HANDLE;
+	}
+	free(swapchain->swapchain_image_views);
+	free(swapchain->swapchain_images);
+
+	// Create new swapchain:
+	if (create_swapchain(base, device, swapchain, old_swapchain) != 0)
+	{
+		// Restore old swapchain so it gets destroyed properly:
+		swapchain->swapchain = old_swapchain;
+
+		fprintf(stderr, "Error: Unable to recreate swapchain!\n");
+		return -1;
+	}
+
+	// Destroy old swapchain:
+	vkDestroySwapchainKHR(device->logical_device, old_swapchain, NULL);
+
+	// Get new swapchain images and image views:
+	if (create_swapchain_images(device, swapchain) != 0)
+	{
+		fprintf(stderr, "Error: Unable to create new swapchain images!\n");
+		return -1;
+	}
+
+	int return_value = 0;
+
+	// Return a value depending on which things have changed:
+	if ((old_extent.width != swapchain->swapchain_extent.width) ||
+		(old_extent.height != swapchain->swapchain_extent.height))
+	{
+		return_value = 1;
+	}
+	if (old_format != swapchain->swapchain_format)
+	{
+		if (return_value == 1)
+		{
+			return_value = 3;
+		}
+		else
+		{
+			return_value = 2;
+		}
+	}
+
+	return return_value;
 }
 
 // Create Vulkan swapchain:
 int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-					FracRenderVulkanSwapchain *swapchain)
+	FracRenderVulkanSwapchain *swapchain, VkSwapchainKHR old_swapchain)
 {
 	// Get surface formats:
 	uint32_t num_formats = 0;
@@ -230,7 +286,7 @@ int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	swapchain_info.compositeAlpha		= VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	swapchain_info.presentMode		= chosen_mode;
 	swapchain_info.clipped			= VK_TRUE;
-	swapchain_info.oldSwapchain		= VK_NULL_HANDLE;
+	swapchain_info.oldSwapchain		= old_swapchain;
 
 	// Use exclusive image sharing if only one queue, otherwise concurrent:
 	const uint32_t queue_family_indices[] = {
