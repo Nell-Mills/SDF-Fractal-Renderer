@@ -241,15 +241,27 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_util_callback(
 // Get severity flag char array value:
 char *get_severity_char(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
 {
-	char *result = "Temp";
-
-	return result;
+	if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+	{ return "SEVERITY_VERBOSE"; }
+	else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+	{ return "SEVERITY_INFO"; }
+	else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+	{ return "SEVERITY_WARNING"; }
+	else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+	{ return "SEVERITY_ERROR"; }
+	else
+	{ return "UNKNOWN SEVERITY TYPE"; }
 }
 
 // Get message type char array value:
 char *get_message_type_char(VkDebugUtilsMessageTypeFlagsEXT type)
 {
-	char *result = "Temp";
-
-	return result;
+	if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
+	{ return "GENERAL"; }
+	if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
+	{ return "VALIDATION"; }
+	if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
+	{ return "PERFORMANCE"; }
+	else
+	{ return "UNKNOWN MESSAGE TYPE"; }
 }

@@ -1,6 +1,3 @@
-Create debug callback function
-Create functions to print errors
-
 Keyboard controls and scene uniform
 
 Mandelbulb
