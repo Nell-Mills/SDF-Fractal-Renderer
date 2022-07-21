@@ -11,7 +11,8 @@
 #endif
 #include <GLFW/glfw3.h>
 
-
+// Local includes:
+#include "../Utility/Matrices.h"
 
 typedef struct {
 	// Instance and window:
@@ -141,8 +142,11 @@ typedef struct {
 } FracRenderVulkanCommands;
 
 typedef struct {
+	// Eye position:
+	FracRenderVector4 eye_position;
+
 	// Column-major camera transformation matrix:
-	float camera_transform[16];
+	FracRenderMatrix4 camera_transform;
 } FracRenderVulkanSceneUniform;
 
 #endif

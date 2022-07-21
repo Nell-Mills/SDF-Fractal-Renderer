@@ -1,18 +1,23 @@
 #version 450
 
-layout (location = 0) out vec3 oPosition;
+layout (location = 0) out vec4 out_position;
 
 void main()
 {
-	vec2 oTexCoord = vec2(
+	// Generate 2D coordinates for fullscreen triangle:
+	vec2 coord_2d = vec2(
 		(gl_VertexIndex << 1) & 2,
 		gl_VertexIndex & 2
 	);
 
-	oPosition = vec3(
-		oTexCoord * 2.f - 1.f,
-		0.f
+	// Get position in range -1 to 1:
+	vec4 position = vec4(
+		coord_2d * 2.f - 1.f,
+		0.f,
+		1.f
 	);
 
-	gl_Position = vec4(oPosition, 1.f);
+	// Pass to fragment shader:
+	out_position = position;
+	gl_Position = position;
 }

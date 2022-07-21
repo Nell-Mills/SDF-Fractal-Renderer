@@ -1,4 +1,9 @@
 Create debug callback function
 Create functions to print errors
 
-Solve segmentation fault
+Recreate swapchain
+Keyboard controls and scene uniform
+
+Mandelbulb
+
+SDF

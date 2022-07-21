@@ -8,6 +8,7 @@
 // Local includes:
 #include "Vulkan/00-Vulkan-API.h"
 #include "Utility/Input.h"
+#include "Utility/Matrices.h"
 
 /***********************
  * Function Prototypes *
@@ -57,10 +58,10 @@ int main(int argc, char **argv)
 
 	// Initialize the scene UBO:
 	FracRenderVulkanSceneUniform scene_uniform;
-	for (int i = 0; i < 16; i++)
-	{
-		scene_uniform.camera_transform[i] = 0.f;
-	}
+
+	scene_uniform.eye_position = initialize_vector(0.f, 0.f, 0.f, 1.f);
+
+	scene_uniform.camera_transform = get_identity_matrix();
 
 	// Check the size of the scene UBO:
 	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
@@ -162,6 +163,9 @@ int main(int argc, char **argv)
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
 	{
+		// Poll GLFW events:
+		glfwPollEvents();
+
 		// Get next swapchain image:
 		uint32_t image_index = 0;
 		VkResult acquisition_result = vkAcquireNextImageKHR(
@@ -369,7 +373,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	// Allocate memory for G-buffer formats (free in destroy_vulkan_framebuffers):
 	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
 									sizeof(VkFormat));
-	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R16G16B16A16_SFLOAT;
+	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;
