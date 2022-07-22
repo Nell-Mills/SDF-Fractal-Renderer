@@ -17,9 +17,8 @@
  * Function Prototypes *
 ************************/
 
-// Update scene uniform:
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-					FracRenderVulkanSceneUniform *scene_uniform);
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform);
 
 // Record commands:
 int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,

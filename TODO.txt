@@ -1,3 +1,5 @@
+Finish handle printing function
+
 Keyboard controls and scene uniform
 
 Mandelbulb

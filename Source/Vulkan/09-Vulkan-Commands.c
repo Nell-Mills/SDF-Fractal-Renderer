@@ -90,6 +90,7 @@ int create_command_pool(FracRenderVulkanDevice *device, FracRenderVulkanCommands
 {
 	// Define command pool creation info:
 	VkCommandPoolCreateInfo pool_info;
+	memset(&pool_info, 0, sizeof(VkCommandPoolCreateInfo));
 	pool_info.sType			= VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	pool_info.pNext			= NULL;
 	pool_info.flags			= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
@@ -120,6 +121,7 @@ int create_command_buffers(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 	{
 		// Define command buffer allocation info:
 		VkCommandBufferAllocateInfo allocate_info;
+		memset(&allocate_info, 0, sizeof(VkCommandBufferAllocateInfo));
 		allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocate_info.pNext			= NULL;
 		allocate_info.commandPool		= commands->command_pool;
@@ -156,6 +158,7 @@ int create_fences(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swa
 	{
 		// Define fence creation info:
 		VkFenceCreateInfo fence_info;
+		memset(&fence_info, 0, sizeof(VkFenceCreateInfo));
 		fence_info.sType	= VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fence_info.pNext	= NULL;
 		fence_info.flags	= VK_FENCE_CREATE_SIGNALED_BIT;
@@ -177,6 +180,7 @@ int create_semaphores(FracRenderVulkanDevice *device, FracRenderVulkanCommands *
 {
 	// Create semaphore to signal that an image is available:
 	VkSemaphoreCreateInfo image_available_info;
+	memset(&image_available_info, 0, sizeof(VkSemaphoreCreateInfo));
 	image_available_info.sType	= VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	image_available_info.pNext	= NULL;
 	image_available_info.flags	= 0;
@@ -190,6 +194,7 @@ int create_semaphores(FracRenderVulkanDevice *device, FracRenderVulkanCommands *
 
 	// Create semaphore to signal that rendering is finished:
 	VkSemaphoreCreateInfo render_finished_info;
+	memset(&render_finished_info, 0, sizeof(VkSemaphoreCreateInfo));
 	render_finished_info.sType	= VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	render_finished_info.pNext	= NULL;
 	render_finished_info.flags	= 0;

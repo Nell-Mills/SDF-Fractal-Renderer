@@ -8,6 +8,7 @@
 // Library includes:
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"

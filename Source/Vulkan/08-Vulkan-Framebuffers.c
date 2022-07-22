@@ -110,6 +110,12 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 	framebuffers->framebuffers = malloc(swapchain->num_swapchain_images *
 							sizeof(VkFramebuffer));
 
+	// Set handles to VK_NULL_HANDLE:
+	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
+	{
+		framebuffers->framebuffers[i] = VK_NULL_HANDLE;
+	}
+
 	// Loop through the swapchain views:
 	for (uint32_t i = 0; i < swapchain->num_swapchain_images; i++)
 	{
@@ -120,6 +126,7 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 		// Define framebuffer creation info:
 		VkFramebufferCreateInfo framebuffer_info;
+		memset(&framebuffer_info, 0, sizeof(VkFramebufferCreateInfo));
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebuffer_info.pNext			= NULL;
 		framebuffer_info.flags			= 0;
@@ -167,6 +174,7 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 	{
 		// Define image creation info:
 		VkImageCreateInfo image_info;
+		memset(&image_info, 0, sizeof(VkImageCreateInfo));
 		image_info.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		image_info.pNext			= NULL;
 		image_info.flags			= 0;
@@ -201,6 +209,7 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 
 		// Allocate memory for image:
 		VkMemoryAllocateInfo allocate_info;
+		memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
 		allocate_info.sType		= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocate_info.pNext		= NULL;
 		allocate_info.allocationSize	= memory_requirements.size;
@@ -244,6 +253,7 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 
 		// Define image view creation info:
 		VkImageViewCreateInfo view_info;
+		memset(&view_info, 0, sizeof(VkImageViewCreateInfo));
 		view_info.sType			= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		view_info.pNext			= NULL;
 		view_info.flags			= 0;
@@ -286,6 +296,7 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define G-buffer creation info:
 	VkFramebufferCreateInfo g_buffer_info;
+	memset(&g_buffer_info, 0, sizeof(VkFramebufferCreateInfo));
 	g_buffer_info.sType		= VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	g_buffer_info.pNext		= NULL;
 	g_buffer_info.flags		= 0;

@@ -236,6 +236,15 @@ int score_physical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	// Free memory:
 	free(queues);
 
+	// Check supported device features (need shaderFloat64):
+	VkPhysicalDeviceFeatures supported_features;
+	vkGetPhysicalDeviceFeatures(physical_device, &supported_features);
+
+	if (supported_features.shaderFloat64 != VK_TRUE)
+	{
+		return -1;
+	}
+
 	return score;
 }
 
@@ -255,11 +264,12 @@ int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	}
 
 	VkDeviceQueueCreateInfo *queue_info = malloc(num_queues * sizeof(VkDeviceQueueCreateInfo));
-	float queue_priorities[1] = {1.f};
+	float queue_priorities[1] = { 1.f };
 
 	for (uint32_t i = 0; i < num_queues; i++)
 	{
 		VkDeviceQueueCreateInfo *info = &queue_info[i];
+		memset(info, 0, sizeof(VkDeviceQueueCreateInfo));
 		info->sType		= VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		info->pNext		= NULL;
 		info->flags		= 0;
@@ -276,8 +286,14 @@ int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		}
 	}
 
+	// Define enabled features (shaderFloat64):
+	VkPhysicalDeviceFeatures enabled_features;
+	memset(&enabled_features, 0, sizeof(VkPhysicalDeviceFeatures));
+	enabled_features.shaderFloat64 = VK_TRUE;
+
 	// Define the logical device creation info:
 	VkDeviceCreateInfo logical_device_info;
+	memset(&logical_device_info, 0, sizeof(VkDeviceCreateInfo));
 	logical_device_info.sType			= VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	logical_device_info.pNext			= NULL;
 	logical_device_info.flags			= 0;
@@ -287,7 +303,7 @@ int create_logical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	logical_device_info.ppEnabledLayerNames		= NULL;
 	logical_device_info.enabledExtensionCount	= device->num_device_extensions;
 	logical_device_info.ppEnabledExtensionNames	= (const char **)device->device_extensions;
-	logical_device_info.pEnabledFeatures		= NULL;
+	logical_device_info.pEnabledFeatures		= &enabled_features;
 
 	// Create the logical device:
 	if (vkCreateDevice(device->physical_device, &logical_device_info, NULL,

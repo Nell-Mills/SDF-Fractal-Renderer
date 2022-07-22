@@ -215,6 +215,7 @@ VkShaderModule load_shader_module(FracRenderVulkanDevice *device, const char *sh
 
 	// Create the shader module info:
 	VkShaderModuleCreateInfo module_info;
+	memset(&module_info, 0, sizeof(VkShaderModuleCreateInfo));
 	module_info.sType	= VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	module_info.pNext	= NULL;
 	module_info.flags	= 0;
@@ -246,6 +247,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 {
 	// Create attachment descriptions:
 	VkAttachmentDescription attachments[1];
+	memset(attachments, 0, 1 * sizeof(VkAttachmentDescription));
 
 	// Position attachment:
 	attachments[0].flags		= 0;
@@ -260,6 +262,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 
 	// Create subpass attachments:
 	VkAttachmentReference subpass_attachments[1];
+	memset(subpass_attachments, 0, 1 * sizeof(VkAttachmentReference));
 
 	// Position attachment:
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
@@ -267,6 +270,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 
 	// Create subpass:
 	VkSubpassDescription subpasses[1];
+	memset(subpasses, 0, 1 * sizeof(VkSubpassDescription));
 	subpasses[0].flags			= 0;
 	subpasses[0].pipelineBindPoint		= VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].inputAttachmentCount	= 0;
@@ -280,6 +284,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 
 	// Define render pass creation info:
 	VkRenderPassCreateInfo pass_info;
+	memset(&pass_info, 0, sizeof(VkRenderPassCreateInfo));
 	pass_info.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	pass_info.pNext			= NULL;
 	pass_info.flags			= 0;
@@ -307,6 +312,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 {
 	// Create colour attachment description:
 	VkAttachmentDescription attachments[1];
+	memset(attachments, 0, 1 * sizeof(VkAttachmentDescription));
 	attachments[0].flags		= 0;
 	attachments[0].format		= swapchain->swapchain_format;
 	attachments[0].samples		= VK_SAMPLE_COUNT_1_BIT;
@@ -319,6 +325,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 	// Create subpass attachments:
 	VkAttachmentReference subpass_attachments[1];
+	memset(subpass_attachments, 0, 1 * sizeof(VkAttachmentReference));
 
 	// Position attachment:
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
@@ -326,6 +333,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 	// Create subpass:
 	VkSubpassDescription subpasses[1];
+	memset(subpasses, 0, 1 * sizeof(VkSubpassDescription));
 	subpasses[0].flags			= 0;
 	subpasses[0].pipelineBindPoint		= VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].inputAttachmentCount	= 0;
@@ -339,6 +347,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 	// Define render pass creation info:
 	VkRenderPassCreateInfo pass_info;
+	memset(&pass_info, 0, sizeof(VkRenderPassCreateInfo));
 	pass_info.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	pass_info.pNext			= NULL;
 	pass_info.flags			= 0;
@@ -385,6 +394,7 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 
 	// Create the pipeline layout info:
 	VkPipelineLayoutCreateInfo layout_info;
+	memset(&layout_info, 0, sizeof(VkPipelineLayoutCreateInfo));
 	layout_info.sType			= VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	layout_info.pNext			= NULL;
 	layout_info.flags			= 0;
@@ -433,6 +443,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 {
 	// Define shader stages:
 	VkPipelineShaderStageCreateInfo shader_stages[2];
+	memset(shader_stages, 0, 2 * sizeof(VkPipelineShaderStageCreateInfo));
 
 	// Vertex shader:
 	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -465,6 +476,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define vertex input state:
 	VkPipelineVertexInputStateCreateInfo input_info;
+	memset(&input_info, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
 	input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	input_info.pNext				= NULL;
 	input_info.flags				= 0;
@@ -475,6 +487,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define input assembly state (which type of primitive to use):
 	VkPipelineInputAssemblyStateCreateInfo assembly_info;
+	memset(&assembly_info, 0, sizeof(VkPipelineInputAssemblyStateCreateInfo));
 	assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	assembly_info.pNext			= NULL;
 	assembly_info.flags			= 0;
@@ -483,6 +496,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define the viewport state:
 	VkViewport viewport;
+	memset(&viewport, 0, sizeof(VkViewport));
 	viewport.x		= 0.f;
 	viewport.y		= 0.f;
 	viewport.width		= swapchain->swapchain_extent.width;
@@ -492,6 +506,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define the "scissor" (parts of the image to cut off):
 	VkRect2D scissor;
+	memset(&scissor, 0, sizeof(VkRect2D));
 	scissor.offset.x	= 0;
 	scissor.offset.y	= 0;
 	scissor.extent.width	= swapchain->swapchain_extent.width;
@@ -499,6 +514,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Create the viewport info structure:
 	VkPipelineViewportStateCreateInfo viewport_info;
+	memset(&viewport_info, 0, sizeof(VkPipelineViewportStateCreateInfo));
 	viewport_info.sType		= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_info.pNext		= NULL;
 	viewport_info.flags		= 0;
@@ -509,6 +525,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define rasterization state:
 	VkPipelineRasterizationStateCreateInfo raster_info;
+	memset(&raster_info, 0, sizeof(VkPipelineRasterizationStateCreateInfo));
 	raster_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	raster_info.pNext			= NULL;
 	raster_info.flags			= 0;
@@ -525,6 +542,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Define multisampling state (single sample):
 	VkPipelineMultisampleStateCreateInfo sampling_info;
+	memset(&sampling_info, 0, sizeof(VkPipelineMultisampleStateCreateInfo));
 	sampling_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	sampling_info.pNext			= NULL;
 	sampling_info.flags			= 0;
@@ -550,6 +568,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	}
 
 	blend_states = malloc(num_blend_states * sizeof(VkPipelineColorBlendAttachmentState));
+	memset(blend_states, 0, num_blend_states * sizeof(VkPipelineColorBlendAttachmentState));
 
 	for (uint32_t i = 0; i < num_blend_states; i++)
 	{
@@ -568,6 +587,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Create the blending state info structure:
 	VkPipelineColorBlendStateCreateInfo blend_info;
+	memset(&blend_info, 0, sizeof(VkPipelineColorBlendStateCreateInfo));
 	blend_info.sType		= VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blend_info.pNext		= NULL;
 	blend_info.flags		= 0;
@@ -582,6 +602,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 	// Finally, create the pipeline creation structure:
 	VkGraphicsPipelineCreateInfo pipeline_info;
+	memset(&pipeline_info, 0, sizeof(VkGraphicsPipelineCreateInfo));
 	pipeline_info.sType			= VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipeline_info.pNext			= NULL;
 	pipeline_info.flags			= 0;

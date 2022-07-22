@@ -120,15 +120,15 @@ int create_KHR_surface(FracRenderVulkanBase *base)
 int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidation *validation)
 {
 	// Define application info:
-	VkApplicationInfo applicationInfo = {
-		.sType			= VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext			= NULL,
-		.pApplicationName	= "Fractal Renderer",
-		.applicationVersion	= VK_MAKE_VERSION(1, 0, 0),
-		.pEngineName		= "None",
-		.engineVersion		= VK_MAKE_VERSION(1, 0, 0),
-		.apiVersion		= VK_MAKE_API_VERSION(0, 1, 3, 0) // Version 1.3.
-	};
+	VkApplicationInfo application_info;
+	memset(&application_info, 0, sizeof(VkApplicationInfo));
+	application_info.sType			= VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	application_info.pNext			= NULL;
+	application_info.pApplicationName	= "Fractal Renderer";
+	application_info.applicationVersion	= VK_MAKE_VERSION(1, 0, 0);
+	application_info.pEngineName		= "None";
+	application_info.engineVersion		= VK_MAKE_VERSION(1, 0, 0);
+	application_info.apiVersion		= VK_MAKE_API_VERSION(0, 1, 3, 0); // Version 1.3.
 
 	// Get GLFW extensions:
 	uint32_t num_glfw_extensions = 0;
@@ -155,20 +155,20 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	}
 
 	// Define instance creation info:
-	VkInstanceCreateInfo instanceCreateInfo = {
-		.sType				= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		.pNext				= NULL,
-		.flags				= 0,
-		.pApplicationInfo		= &applicationInfo,
-		.enabledLayerCount		= validation->num_validation_layers,
-		.ppEnabledLayerNames		= (const char **)validation->
-								validation_layers,
-		.enabledExtensionCount		= extension_count,
-		.ppEnabledExtensionNames	= (const char **)extensions
-	};
+	VkInstanceCreateInfo instance_create_info;
+	memset(&instance_create_info, 0, sizeof(VkInstanceCreateInfo));
+	instance_create_info.sType			= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instance_create_info.pNext			= NULL;
+	instance_create_info.flags			= 0;
+	instance_create_info.pApplicationInfo		= &application_info;
+	instance_create_info.enabledLayerCount		= validation->num_validation_layers;
+	instance_create_info.ppEnabledLayerNames	= (const char **)validation->
+									validation_layers;
+	instance_create_info.enabledExtensionCount	= extension_count;
+	instance_create_info.ppEnabledExtensionNames	= (const char **)extensions;
 
 	// Create the instance:
-	if (vkCreateInstance(&instanceCreateInfo, NULL, &base->instance) != VK_SUCCESS)
+	if (vkCreateInstance(&instance_create_info, NULL, &base->instance) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Failed to create the Vulkan instance!\n");
 		base->instance = VK_NULL_HANDLE;
@@ -198,6 +198,7 @@ int create_debug_messenger(FracRenderVulkanBase *base)
 {
 	// Define messenger creation information:
 	VkDebugUtilsMessengerCreateInfoEXT debug_info;
+	memset(&debug_info, 0, sizeof(VkDebugUtilsMessengerCreateInfoEXT));
 	debug_info.sType			= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	debug_info.pNext			= NULL;
 	debug_info.flags			= 0;

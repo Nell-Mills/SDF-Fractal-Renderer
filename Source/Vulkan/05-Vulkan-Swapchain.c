@@ -272,6 +272,7 @@ int create_swapchain(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 
 	// Define the swapchain creation information:
 	VkSwapchainCreateInfoKHR swapchain_info;
+	memset(&swapchain_info, 0, sizeof(VkSwapchainCreateInfoKHR));
 	swapchain_info.sType			= VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchain_info.pNext			= NULL;
 	swapchain_info.flags			= 0;
@@ -348,6 +349,7 @@ int create_swapchain_images(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 	{
 		// Define image view creation info:
 		VkImageViewCreateInfo view_info;
+		memset(&view_info, 0, sizeof(VkImageViewCreateInfo));
 		view_info.sType			= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		view_info.pNext			= NULL;
 		view_info.flags			= 0;

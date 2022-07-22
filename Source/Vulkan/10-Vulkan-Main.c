@@ -2,9 +2,10 @@
 
 // Update scene uniform:
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-					FracRenderVulkanSceneUniform *scene_uniform)
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform)
 {
-
+	scene_uniform->aspect_ratio = (float)(swapchain->swapchain_extent.width)
+				/ (float)(swapchain->swapchain_extent.height);
 }
 
 // Record commands:
@@ -15,6 +16,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 {
 	// Create command buffer begin info:
 	VkCommandBufferBeginInfo begin_info;
+	memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
 	begin_info.sType		= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	begin_info.pNext		= NULL;
 	begin_info.flags		= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -30,6 +32,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Upload scene uniform data. First put up a barrier:
 	VkBufferMemoryBarrier buffer_barrier_1;
+	memset(&buffer_barrier_1, 0, sizeof(VkBufferMemoryBarrier));
 	buffer_barrier_1.sType			= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	buffer_barrier_1.pNext			= NULL;
 	buffer_barrier_1.srcAccessMask		= VK_ACCESS_UNIFORM_READ_BIT;
@@ -50,6 +53,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Put up a final barrier:
 	VkBufferMemoryBarrier buffer_barrier_2;
+	memset(&buffer_barrier_2, 0, sizeof(VkBufferMemoryBarrier));
 	buffer_barrier_2.sType			= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	buffer_barrier_2.pNext			= NULL;
 	buffer_barrier_2.srcAccessMask		= VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -76,6 +80,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Define render pass begin info:
 	VkRenderPassBeginInfo geometry_pass_info;
+	memset(&geometry_pass_info, 0, sizeof(VkRenderPassBeginInfo));
 	geometry_pass_info.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	geometry_pass_info.pNext			= NULL;
 	geometry_pass_info.renderPass			= pipeline->geometry_render_pass;
@@ -110,6 +115,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
 	{
 		VkImageMemoryBarrier image_barrier;
+		memset(&image_barrier, 0, sizeof(VkImageMemoryBarrier));
 		image_barrier.sType 			= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		image_barrier.pNext			= NULL;
 		image_barrier.srcAccessMask		= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -143,6 +149,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Define render pass begin info:
 	VkRenderPassBeginInfo colour_pass_info;
+	memset(&colour_pass_info, 0, sizeof(VkRenderPassBeginInfo));
 	colour_pass_info.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	colour_pass_info.pNext				= NULL;
 	colour_pass_info.renderPass			= pipeline->colour_render_pass;
@@ -200,6 +207,7 @@ int submit_commands(FracRenderVulkanDevice *device, FracRenderVulkanCommands *co
 
 	// Create command submission info:
 	VkSubmitInfo submit_info;
+	memset(&submit_info, 0, sizeof(VkSubmitInfo));
 	submit_info.sType			= VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.pNext			= NULL;
 	submit_info.waitSemaphoreCount		= 1;
@@ -227,6 +235,7 @@ int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 {
 	// Define presentation info:
 	VkPresentInfoKHR present_info;
+	memset(&present_info, 0, sizeof(VkPresentInfoKHR));
 	present_info.sType		= VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.pNext		= NULL;
 	present_info.waitSemaphoreCount	= 1;

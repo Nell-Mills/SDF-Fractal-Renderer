@@ -56,13 +56,6 @@ int main(int argc, char **argv)
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
 									&framebuffers, &commands);
 
-	// Initialize the scene UBO:
-	FracRenderVulkanSceneUniform scene_uniform;
-
-	scene_uniform.eye_position = initialize_vector(0.f, 0.f, 0.f, 1.f);
-
-	scene_uniform.camera_transform = get_identity_matrix();
-
 	// Check the size of the scene UBO:
 	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
 	{
@@ -149,6 +142,19 @@ int main(int argc, char **argv)
 								&framebuffers, &commands);
 		return -1;
 	}
+
+	// Initialize the scene UBO:
+	FracRenderVulkanSceneUniform scene_uniform;
+
+	scene_uniform.eye_position = initialize_vector_3(0.f, 0.f, 1.f);
+
+	scene_uniform.aspect_ratio = (float)(swapchain.swapchain_extent.width)
+				/ (float)(swapchain.swapchain_extent.height);
+
+	scene_uniform.camera_transform = get_identity_matrix();
+
+	// Set GLFW callback functions:
+	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
 
 	// Print all Vulkan handles for debugging:
 //	print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
@@ -279,7 +285,7 @@ int main(int argc, char **argv)
 		}
 
 		// Update scene uniform:
-		update_scene_uniform(&base, &device, &scene_uniform);
+		update_scene_uniform(&base, &device, &swapchain, &scene_uniform);
 
 		// Wait for a command buffer to be available:
 		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],

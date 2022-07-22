@@ -143,7 +143,10 @@ typedef struct {
 
 typedef struct {
 	// Eye position:
-	FracRenderVector4 eye_position;
+	FracRenderVector3 eye_position;
+
+	// Screen aspect ratio:
+	float aspect_ratio;
 
 	// Column-major camera transformation matrix:
 	FracRenderMatrix4 camera_transform;

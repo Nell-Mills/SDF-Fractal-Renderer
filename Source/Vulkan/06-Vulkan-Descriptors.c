@@ -135,6 +135,7 @@ int create_descriptor_pool(FracRenderVulkanDevice *device,
 {
 	// Define the descriptor pool types:
 	VkDescriptorPoolSize pools[2];
+	memset(pools, 0, 2 * sizeof(VkDescriptorPoolSize));
 	pools[0].type			= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	pools[0].descriptorCount	= 2048;
 	pools[1].type			= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -142,6 +143,7 @@ int create_descriptor_pool(FracRenderVulkanDevice *device,
 
 	// Define the descriptor pool creation info:
 	VkDescriptorPoolCreateInfo pool_info;
+	memset(&pool_info, 0, sizeof(VkDescriptorPoolCreateInfo));
 	pool_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	pool_info.pNext		= NULL;
 	pool_info.flags		= 0;
@@ -165,6 +167,7 @@ int create_sampler(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *
 {
 	// Define sampler creation info:
 	VkSamplerCreateInfo sampler_info;
+	memset(&sampler_info, 0, sizeof(VkSamplerCreateInfo));
 	sampler_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	sampler_info.pNext			= NULL;
 	sampler_info.flags			= 0;
@@ -201,6 +204,7 @@ int create_scene_buffer(FracRenderVulkanDevice *device,
 {
 	// Define buffer creation info:
 	VkBufferCreateInfo buffer_info;
+	memset(&buffer_info, 0, sizeof(VkBufferCreateInfo));
 	buffer_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	buffer_info.pNext			= NULL;
 	buffer_info.flags			= 0;
@@ -226,6 +230,7 @@ int create_scene_buffer(FracRenderVulkanDevice *device,
 
 	// Get memory allocation info:
 	VkMemoryAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
 	allocate_info.sType		= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocate_info.pNext		= NULL;
 	allocate_info.allocationSize	= memory_requirements.size;
@@ -275,6 +280,7 @@ int create_scene_descriptor_layout(FracRenderVulkanDevice *device,
 {
 	// Create array of descriptor set layout bindings:
 	VkDescriptorSetLayoutBinding bindings[1];
+	memset(bindings, 0, 1 * sizeof(VkDescriptorSetLayoutBinding));
 	bindings[0].binding		= 0;
 	bindings[0].descriptorType	= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	bindings[0].descriptorCount	= 1;
@@ -284,6 +290,7 @@ int create_scene_descriptor_layout(FracRenderVulkanDevice *device,
 
 	// Create descriptor set layout:
 	VkDescriptorSetLayoutCreateInfo layout_info;
+	memset(&layout_info, 0, sizeof(VkDescriptorSetLayoutCreateInfo));
 	layout_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layout_info.pNext		= NULL;
 	layout_info.flags		= 0;
@@ -306,6 +313,7 @@ int create_scene_descriptor(FracRenderVulkanDevice *device,
 {
 	// Allocate descriptor set:
 	VkDescriptorSetAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
 	allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocate_info.pNext			= NULL;
 	allocate_info.descriptorPool		= descriptors->descriptor_pool;
@@ -321,11 +329,13 @@ int create_scene_descriptor(FracRenderVulkanDevice *device,
 
 	// Create descriptor set:
 	VkDescriptorBufferInfo scene_UBO_info;
+	memset(&scene_UBO_info, 0, sizeof(VkDescriptorBufferInfo));
 	scene_UBO_info.buffer	= descriptors->scene_buffer;
 	scene_UBO_info.offset	= 0;
 	scene_UBO_info.range	= VK_WHOLE_SIZE;
 
 	VkWriteDescriptorSet descriptor_write[1];
+	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	descriptor_write[0].pNext		= NULL;
 	descriptor_write[0].dstSet		= descriptors->scene_descriptor;
@@ -349,6 +359,7 @@ int create_g_buffer_descriptor_layout(FracRenderVulkanDevice *device,
 {
 	// Create array of descriptor set layout bindings:
 	VkDescriptorSetLayoutBinding bindings[1];
+	memset(bindings, 0, 1 * sizeof(VkDescriptorSetLayoutBinding));
 	bindings[0].binding		= 0;
 	bindings[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	bindings[0].descriptorCount	= 1;
@@ -357,6 +368,7 @@ int create_g_buffer_descriptor_layout(FracRenderVulkanDevice *device,
 
 	// Create descriptor set layout:
 	VkDescriptorSetLayoutCreateInfo layout_info;
+	memset(&layout_info, 0, sizeof(VkDescriptorSetLayout));
 	layout_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layout_info.pNext		= NULL;
 	layout_info.flags		= 0;
@@ -392,6 +404,7 @@ int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
 	{
 		// Allocate descriptor set:
 		VkDescriptorSetAllocateInfo allocate_info;
+		memset(&allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
 		allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocate_info.pNext			= NULL;
 		allocate_info.descriptorPool		= descriptors->descriptor_pool;
@@ -408,12 +421,14 @@ int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
 
 		// Define texture and sampler info:
 		VkDescriptorImageInfo image_info;
+		memset(&image_info, 0, sizeof(VkDescriptorImageInfo));
 		image_info.sampler	= descriptors->sampler;
 		image_info.imageView	= framebuffers->g_buffer_image_views[i];
 		image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		// Create descriptor set writing info:
 		VkWriteDescriptorSet descriptor_write[1];
+		memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 		descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptor_write[0].pNext		= NULL;
 		descriptor_write[0].dstSet		= descriptors->g_buffer_descriptors[i];
@@ -441,12 +456,14 @@ void update_vulkan_g_buffer_descriptors(FracRenderVulkanDevice *device,
 	{
 		// Define texture and sampler info:
 		VkDescriptorImageInfo image_info;
+		memset(&image_info, 0, sizeof(VkDescriptorImageInfo));
 		image_info.sampler	= descriptors->sampler;
 		image_info.imageView	= framebuffers->g_buffer_image_views[i];
 		image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		// Create descriptor set writing info:
 		VkWriteDescriptorSet descriptor_write[1];
+		memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 		descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptor_write[0].pNext		= NULL;
 		descriptor_write[0].dstSet		= descriptors->g_buffer_descriptors[i];
