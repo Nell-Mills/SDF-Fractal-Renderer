@@ -12,6 +12,7 @@
 #include <GLFW/glfw3.h>
 
 // Local includes:
+#include "../../Third-Party/volk/include/volk/volk.h"
 #include "../Utility/Matrices.h"
 
 typedef struct {
@@ -151,5 +152,21 @@ typedef struct {
 	// Column-major camera transformation matrix:
 	FracRenderMatrix4 camera_transform;
 } FracRenderVulkanSceneUniform;
+
+typedef struct {
+	// Camera:
+	FracRenderVector3 position;
+	FracRenderVector3 front;
+	FracRenderVector3 up;
+
+	// Time:
+	double last_update;
+	double current_update;
+	double delta_t;
+
+	// Controls:
+	float base_movement_speed;
+	float mouse_sensitivity;
+} FracRenderProgramState;
 
 #endif

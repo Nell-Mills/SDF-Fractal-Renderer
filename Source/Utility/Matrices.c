@@ -65,6 +65,50 @@ void print_matrix(FracRenderMatrix4 *matrix)
 	printf("%.1f\n\n", get_element(matrix, 3, 3));
 }
 
+// Get camera matrix from position, front and up:
+FracRenderMatrix4 look_at(FracRenderVector3 *position, FracRenderVector3 *front,
+							FracRenderVector3 *up)
+{
+	FracRenderMatrix4 result;
+
+	FracRenderVector3 x;
+	FracRenderVector3 y;
+	FracRenderVector3 z;
+
+	// Create new coordinate system:
+	z.x = position->x - front->x;
+	z.y = position->y - front->y;
+	z.z = position->z - front->z;
+	z = normalize(&z);
+	y = *up;
+	x = cross(&y, &z);
+
+	y = cross(&z, &x);
+
+	x = normalize(&x);
+	y = normalize(&y);
+
+	// Put values into the matrix:
+	set_element(&result, 0, 0, x.x);
+	set_element(&result, 1, 0, x.y);
+	set_element(&result, 2, 0, x.z);
+	set_element(&result, 3, 0, -dot(&x, position));
+	set_element(&result, 0, 1, y.x);
+	set_element(&result, 1, 1, y.y);
+	set_element(&result, 2, 1, y.z);
+	set_element(&result, 3, 1, -dot(&y, position));
+	set_element(&result, 0, 2, z.x);
+	set_element(&result, 1, 2, z.y);
+	set_element(&result, 2, 2, z.z);
+	set_element(&result, 3, 2, -dot(&z, position));
+	set_element(&result, 0, 3, 0.f);
+	set_element(&result, 1, 3, 0.f);
+	set_element(&result, 2, 3, 0.f);
+	set_element(&result, 3, 3, 1.f);
+
+	return result;
+}
+
 /***********
  * Vectors *
  ***********/
@@ -130,4 +174,68 @@ FracRenderVector3 matrix_by_vector_3(FracRenderMatrix4 *matrix, FracRenderVector
 	vector_4 = matrix_by_vector_4(matrix, &vector_4);
 
 	return initialize_vector_3(vector_4.x, vector_4.y, vector_4.z);
+}
+
+// Get length of 3D vector:
+float length(FracRenderVector3 *vector)
+{
+	if ((vector->x == 0.f) && (vector->y == 0.f) && (vector->z == 0.f)) { return 0.f; }
+
+	return sqrt(
+		(vector->x * vector->x) +
+		(vector->y * vector->y) +
+		(vector->z * vector->z)
+	);
+}
+
+// Normalize 3D vector:
+FracRenderVector3 normalize(FracRenderVector3 *vector)
+{
+	FracRenderVector3 result;
+	result.x = vector->x;
+	result.y = vector->y;
+	result.z = vector->z;
+
+	float vector_length = length(vector);
+
+	if (vector_length != 0.f)
+	{
+		result.x /= vector_length;
+		result.y /= vector_length;
+		result.z /= vector_length;
+	}
+
+	return result;
+}
+
+// Cross product of 2 3D vectors:
+FracRenderVector3 cross(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2)
+{
+	FracRenderVector3 result;
+
+	result.x =   (vector_1->y * vector_2->z) - (vector_1->z * vector_2->y);
+	result.y = -((vector_1->x * vector_2->z) - (vector_1->z * vector_2->x));
+	result.z =   (vector_1->x * vector_2->y) - (vector_1->y * vector_2->x);
+
+	return result;
+}
+
+// Dot product of 2 3D vectors:
+float dot(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2)
+{
+	return	(vector_1->x * vector_2->x) +
+		(vector_1->y * vector_2->y) +
+		(vector_1->z * vector_2->z);
+}
+
+/**************************
+ * Additional Mathematics *
+ **************************/
+
+// Convert degrees into radians:
+float radians(float degrees)
+{
+	float pi = 3.14159f;
+
+	return (degrees * pi) / 180.f;
 }

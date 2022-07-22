@@ -11,88 +11,103 @@ layout (set = 0, binding = 0) uniform UScene
 
 layout (location = 0) out vec4 out_iterations;
 
-// 2D Mandelbrot function prototypes:
-dvec2 square_complex(dvec2 complex_number);
-float mandelbrot_2d(dvec4 pixel_location);
-
-// 3D Mandelbrot (Mandelbulb) function prototypes:
-
+// Function prototypes:
+float mandelbulb(vec3 position);
+float distance_estimator(vec3 position);
+vec3 raymarch(vec3 origin, vec3 ray);
 
 // Main function:
 void main()
 {
 	// Full view, 1:1 x:y ratio:
-	double min_x = -1.8;
-	double max_x = 0.7;
-	double min_y = -1.25;
-	double max_y = 1.25;
-
-	// Zoomed in:
-//	double min_x = -0.6636137233169267;
-//	double max_x = -0.6393484547743432;
-//	double min_y = -0.4555960782958095;
-//	double max_y = -0.4313308097542259;
-
-	// Really zoomed in:
-//	double min_x = -0.48276924785372444;
-//	double max_x = -0.4827692478531531;
-//	double min_y = -0.6267432530084442;
-//	double max_y = -0.6267432530078725;
+	float min_x = -1.f;
+	float max_x =  1.f;
+	float min_y = -1.f;
+	float max_y =  1.f;
 
 	// Get axis dimensions:
-	double dist_x = max_x - min_x;
-	double dist_y = max_y - min_y;
+	float dist_x = max_x - min_x;
+	float dist_y = max_y - min_y;
 
 	// Reposition the pixel according to above min/max values:
-	dvec4 new_position;
+	vec3 new_position;
 	new_position.x = in_position.x;
 	new_position.y = in_position.y;
 	new_position.z = in_position.z;
-	new_position.w = 1.0;
 
 	// For x-coordinate, scale by aspect ratio:
-	new_position.x *= (dist_x / 2.0) * u_scene.aspect_ratio;
-	new_position.x += max_x - (dist_x / 2.0);
+	new_position.x *= (dist_x / 2.f) * u_scene.aspect_ratio;
+	new_position.x += max_x - (dist_x / 2.f);
 
 	// For y-coordinate, reverse direction to go -1 to 1, bottom-to-top:
-	new_position.y *= -dist_y / 2.0;
-	new_position.y += max_y - (dist_y / 2.0);
+	new_position.y *= -dist_y / 2.f;
+	new_position.y += max_y - (dist_y / 2.f);
 
-	// Calculate Mandelbrot iterations and output to texture image:
-	float iterations_achieved = mandelbrot_2d(new_position);
-	out_iterations = vec4(vec3(iterations_achieved), 1.f);
+	// Transform by camera matrix:
+	new_position = vec3(u_scene.camera * vec4(new_position, 1.f));
+
+	// Get position on Mandelbulb surface:
+	vec3 ray = new_position - u_scene.eye_position;
+	vec3 surface = raymarch(new_position, ray);
+
+	// Calculate Mandelbulb iterations and output to texture image:
+//	float iterations_achieved = mandelbulb(surface);
+//	out_iterations = vec4(vec3(iterations_achieved), 1.f);
+
+	out_iterations = vec4(surface, 1.f);
 }
 
-dvec2 square_complex(dvec2 complex_number)
+float mandelbulb(vec3 pixel_location)
 {
-	dvec2 result;
-	result.x = (complex_number.x * complex_number.x) - (complex_number.y * complex_number.y);
-	result.y = complex_number.x * complex_number.y * 2.0;
-
-	return result;
-}
-
-float mandelbrot_2d(dvec4 pixel_location)
-{
-	// Equation: z = z^2 + c
-	dvec2 z = dvec2(0.0, 0.0);
-	dvec2 c = dvec2(pixel_location.x, pixel_location.y);
-
 	int iterations_achieved = 0;
 	int max_iterations = 500;
-	double threshold_value = 2.0;
+	float threshold_value = 2.f;
 
-	for (int i = 0; i < max_iterations; i++)
+	return float(iterations_achieved) / float(max_iterations);
+}
+
+float distance_estimator(vec3 position)
+{
+	vec3 w = position;
+	float m = dot(w, w);
+	float dz = 1.f;
+
+	for (int i = 0; i < 4; i++)
 	{
-		z = square_complex(z) + c;
+		dz = (8.f * pow(sqrt(m), 7.f) * dz) + 1.f;
+		float r = length(w);
+		float b = 8.f * acos(w.y / r);
+		float a = 8.f * atan(w.z, w.x);
+		w = pow(r, 8) * vec3(sin(b) * sin(a), cos(b), sin(b) * cos(a)) + position;
+		m = dot(w, w);
+		if (m > 256.f) { break; }
+	}
 
-		if (length(z) > threshold_value)
+	return 0.25f * log(m) * sqrt(m) / dz;
+}
+
+vec3 raymarch(vec3 origin, vec3 ray)
+{
+	vec3 current_position;
+	int max_steps = 25;
+	float distance_travelled = 0.f;
+	float distance_threshold = 0.0001f;
+
+	for (int steps_taken = 0; steps_taken < max_steps; steps_taken++)
+	{
+		// Get current position:
+		current_position = origin + (ray * distance_travelled);
+
+		// Get distance estimate and update total distance travelled:
+		float distance_estimate = distance_estimator(current_position);
+		distance_travelled += distance_estimate;
+
+		// Check how close the point is to the surface:
+		if (distance_estimate < distance_threshold)
 		{
 			break;
 		}
-
-		iterations_achieved++;
 	}
 
-	return float(iterations_achieved) / float(max_iterations);
+	return current_position;
 }

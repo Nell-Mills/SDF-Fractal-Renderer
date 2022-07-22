@@ -26,6 +26,7 @@ void main()
 	iterations_achieved = 1.f - iterations_achieved;
 
 	float coordinate = iterations_achieved * 3.f;
+	if (coordinate > 3.f) { coordinate = 3.f; }
 
 	vec3 lower_colour = colour_palette[int(coordinate)];
 	vec3 higher_colour = colour_palette[int(coordinate) + 1];
@@ -33,5 +34,10 @@ void main()
 	// Get distribution of the colours:
 	float distribution = coordinate - floor(coordinate);
 
-	out_colour = vec4(mix(lower_colour, higher_colour, distribution), 1.f);
+//	out_colour = vec4(mix(lower_colour, higher_colour, distribution), 1.f);
+
+	vec4 colour = texture(u_iterations_sampler, in_tex_coord).rgba;
+	colour += 1.f;
+	colour *= 0.5f;
+	out_colour = colour;
 }

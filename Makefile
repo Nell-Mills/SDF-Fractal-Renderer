@@ -9,7 +9,7 @@ OUT		:= ./FracRender
 MAIN		:= ./Source/Fractal-Renderer.c
 DEPS		:= $(DEPSVULKAN) $(DEPSUTILITY)
 THIRDPARTY	:= ./Third-Party/volk/src/volk.c
-LFLAGS		:= -ldl -lglfw
+LFLAGS		:= -ldl -lglfw -lm
 SHADERS		:= ./Shader-Compile.sh
 DEBUG		:= -DFRACRENDER_DEBUG -g
 
@@ -25,3 +25,4 @@ With-OpenMP: $(MAIN)
 # Explanation of links:
 # dl -> libdl, used for dlsym, dlopen, etc. Inside volk.c.
 # glfw -> GLFW
+# m -> Maths library

@@ -153,8 +153,23 @@ int main(int argc, char **argv)
 
 	scene_uniform.camera_transform = get_identity_matrix();
 
+	// Initialize the program state:
+	FracRenderProgramState program_state;
+	program_state.position			= initialize_vector_3(0.f, 0.f, 0.f);
+	program_state.front			= initialize_vector_3(0.f, 0.f, -1.f);
+	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
+	program_state.last_update		= 0.0;
+	program_state.current_update		= 0.0;
+	program_state.delta_t			= 0.0;
+	program_state.base_movement_speed	= 0.1f;
+	program_state.mouse_sensitivity		= 10.f;
+
 	// Set GLFW callback functions:
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
+	glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position);
+
+	// Set GLFW user pointer to point to the program state:
+	glfwSetWindowUserPointer(base.window, &program_state);
 
 	// Print all Vulkan handles for debugging:
 //	print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
@@ -172,7 +187,10 @@ int main(int argc, char **argv)
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
 	{
-		// Poll GLFW events:
+		// Get current time and deltaT, and poll GLFW events and movement keys:
+		program_state.current_update = glfwGetTime();
+		program_state.delta_t = program_state.current_update - program_state.last_update;
+		poll_movement_keys(base.window);
 		glfwPollEvents();
 
 		// Check recreate_swapchain flag:
@@ -328,6 +346,9 @@ int main(int argc, char **argv)
 			// Swapchain needs recreating:
 			recreate_swapchain = 0;
 		}
+
+		// Update the time:
+		program_state.last_update = program_state.current_update;
 	}
 
 	// Wait for Vulkan commands to finish:

@@ -10,6 +10,10 @@
 #define GLFW_INCLUDE_NONE
 #endif
 #include <GLFW/glfw3.h>
+#include <math.h>
+
+// Local includes:
+#include "../Vulkan/01-Vulkan-Structs.h"
 
 /***********************
  * Function Prototypes *

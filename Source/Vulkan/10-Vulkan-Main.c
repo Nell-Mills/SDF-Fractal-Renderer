@@ -4,8 +4,24 @@
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform)
 {
+	// Get program state:
+	FracRenderProgramState *program_state = (FracRenderProgramState *)
+				glfwGetWindowUserPointer(base->window);
+
+	// Get aspect ratio:
 	scene_uniform->aspect_ratio = (float)(swapchain->swapchain_extent.width)
 				/ (float)(swapchain->swapchain_extent.height);
+
+	// Get camera matrix:
+	scene_uniform->camera_transform = look_at(&program_state->position,
+				&program_state->front, &program_state->up);
+
+	// Get eye position:
+	scene_uniform->eye_position = initialize_vector_3(
+		program_state->position.x - program_state->front.x,
+		program_state->position.y - program_state->front.y,
+		program_state->position.z - program_state->front.z
+	);
 }
 
 // Record commands:

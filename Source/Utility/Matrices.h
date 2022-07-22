@@ -1,13 +1,14 @@
 #ifndef FRACRENDER_UTILITY_MATRICES_H
 #define FRACRENDER_UTILITY_MATRICES_H
 
-/***************************************************
- * Utilities for dealing with matrices and vectors *
- ***************************************************/
+/***********************************************************
+ * Utilities for dealing with matrices, vectors and angles *
+ ***********************************************************/
 
 // Library includes:
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 
 typedef struct {
 	// Column major:
@@ -43,6 +44,10 @@ FracRenderMatrix4 get_identity_matrix();
 // Print contents of matrix for debugging:
 void print_matrix(FracRenderMatrix4 *matrix);
 
+// Get camera matrix from position, front and up:
+FracRenderMatrix4 look_at(FracRenderVector3 *position, FracRenderVector3 *front,
+							FracRenderVector3 *up);
+
 /***********
  * Vectors *
  ***********/
@@ -58,5 +63,24 @@ FracRenderVector3 initialize_vector_3(float x, float y, float z);
 
 // Multiply 3D vector by 4D matrix:
 FracRenderVector3 matrix_by_vector_3(FracRenderMatrix4 *matrix, FracRenderVector3 *vector);
+
+// Get length of 3D vector:
+float length(FracRenderVector3 *vector);
+
+// Normalize 3D vector:
+FracRenderVector3 normalize(FracRenderVector3 *vector);
+
+// Cross product of 2 3D vectors:
+FracRenderVector3 cross(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2);
+
+// Dot product of 2 3D vectors:
+float dot(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2);
+
+/**************************
+ * Additional Mathematics *
+ **************************/
+
+// Convert degrees into radians:
+float radians(float degrees);
 
 #endif
