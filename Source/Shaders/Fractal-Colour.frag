@@ -4,8 +4,11 @@ layout (location = 0) in vec2 in_tex_coord;
 
 layout (set = 0, binding = 0) uniform UScene
 {
-	vec4 eye_position;
-	mat4 camera;
+	vec3 camera_position;
+	vec3 x_axis;
+	vec3 y_axis;
+	vec3 eye_position;
+	float aspect_ratio;
 } u_scene;
 
 layout (set = 1, binding = 0) uniform sampler2D u_iterations_sampler;
@@ -37,7 +40,5 @@ void main()
 //	out_colour = vec4(mix(lower_colour, higher_colour, distribution), 1.f);
 
 	vec4 colour = texture(u_iterations_sampler, in_tex_coord).rgba;
-	colour += 1.f;
-	colour *= 0.5f;
 	out_colour = colour;
 }

@@ -4,9 +4,11 @@ layout (location = 0) in vec4 in_position;
 
 layout (set = 0, binding = 0) uniform UScene
 {
+	vec3 camera_position;
+	vec3 x_axis;
+	vec3 y_axis;
 	vec3 eye_position;
 	float aspect_ratio;
-	mat4 camera;
 } u_scene;
 
 layout (location = 0) out vec4 out_iterations;
@@ -19,36 +21,10 @@ vec3 raymarch(vec3 origin, vec3 ray);
 // Main function:
 void main()
 {
-	// Full view, 1:1 x:y ratio:
-	float min_x = -1.f;
-	float max_x =  1.f;
-	float min_y = -1.f;
-	float max_y =  1.f;
-
-	// Get axis dimensions:
-	float dist_x = max_x - min_x;
-	float dist_y = max_y - min_y;
-
-	// Reposition the pixel according to above min/max values:
-	vec3 new_position;
-	new_position.x = in_position.x;
-	new_position.y = in_position.y;
-	new_position.z = in_position.z;
-
-	// For x-coordinate, scale by aspect ratio:
-	new_position.x *= (dist_x / 2.f) * u_scene.aspect_ratio;
-	new_position.x += max_x - (dist_x / 2.f);
-
-	// For y-coordinate, reverse direction to go -1 to 1, bottom-to-top:
-	new_position.y *= -dist_y / 2.f;
-	new_position.y += max_y - (dist_y / 2.f);
-
-	// Transform by camera matrix:
-	new_position = vec3(u_scene.camera * vec4(new_position, 1.f));
-
 	// Get position on Mandelbulb surface:
-	vec3 ray = new_position - u_scene.eye_position;
-	vec3 surface = raymarch(new_position, ray);
+	vec3 ray = in_position.xyz - u_scene.eye_position;
+	ray = normalize(ray);
+	vec3 surface = raymarch(in_position.xyz, ray);
 
 	// Calculate Mandelbulb iterations and output to texture image:
 //	float iterations_achieved = mandelbulb(surface);
@@ -89,7 +65,7 @@ float distance_estimator(vec3 position)
 vec3 raymarch(vec3 origin, vec3 ray)
 {
 	vec3 current_position;
-	int max_steps = 25;
+	int max_steps = 50;
 	float distance_travelled = 0.f;
 	float distance_threshold = 0.0001f;
 
@@ -100,7 +76,7 @@ vec3 raymarch(vec3 origin, vec3 ray)
 
 		// Get distance estimate and update total distance travelled:
 		float distance_estimate = distance_estimator(current_position);
-		distance_travelled += distance_estimate;
+		distance_travelled += distance_estimate * 0.9f;
 
 		// Check how close the point is to the surface:
 		if (distance_estimate < distance_threshold)

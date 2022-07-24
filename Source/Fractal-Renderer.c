@@ -146,22 +146,15 @@ int main(int argc, char **argv)
 	// Initialize the scene UBO:
 	FracRenderVulkanSceneUniform scene_uniform;
 
-	scene_uniform.eye_position = initialize_vector_3(0.f, 0.f, 1.f);
-
-	scene_uniform.aspect_ratio = (float)(swapchain.swapchain_extent.width)
-				/ (float)(swapchain.swapchain_extent.height);
-
-	scene_uniform.camera_transform = get_identity_matrix();
-
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	program_state.position			= initialize_vector_3(0.f, 0.f, 0.f);
-	program_state.front			= initialize_vector_3(0.f, 0.f, -1.f);
+	program_state.position			= initialize_vector_3(0.f, 0.f, -3.f);
+	program_state.front			= initialize_vector_3(0.f, 0.f, 1.f);
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
-	program_state.base_movement_speed	= 0.1f;
+	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 10.f;
 
 	// Set GLFW callback functions:

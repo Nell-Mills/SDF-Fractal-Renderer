@@ -143,14 +143,16 @@ typedef struct {
 } FracRenderVulkanCommands;
 
 typedef struct {
+	// Axes in camera coordinate system:
+	FracRenderVector3 camera_position; float pad_0;
+	FracRenderVector3 x_axis; float pad_1;
+	FracRenderVector3 y_axis; float pad_2;
+
 	// Eye position:
 	FracRenderVector3 eye_position;
 
 	// Screen aspect ratio:
 	float aspect_ratio;
-
-	// Column-major camera transformation matrix:
-	FracRenderMatrix4 camera_transform;
 } FracRenderVulkanSceneUniform;
 
 typedef struct {

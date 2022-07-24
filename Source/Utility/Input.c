@@ -31,7 +31,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 	static double last_y = 0.0;
 
 	static double pitch = 0.0;
-	static double yaw = -90.0;
+	static double yaw = 90.0;
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 	{
@@ -44,7 +44,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 		double dy = y_pos - last_y;
 
 		// Update pitch and clamp:
-		pitch -= dy * program_state->delta_t * program_state->mouse_sensitivity;
+		pitch += dy * program_state->delta_t * program_state->mouse_sensitivity;
 		if (pitch > 89.f) { pitch = 89.f; }
 		if (pitch < -89.f) { pitch = -89.f; }
 
@@ -59,7 +59,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 
 		camera_direction.z = (float)(sin(radians(yaw)) * cos(radians(pitch)));
 
-		program_state->front = normalize(&camera_direction);
+		program_state->front = normalize(camera_direction);
 	}
 
 	last_x = x_pos;
@@ -99,8 +99,8 @@ void poll_movement_keys(GLFWwindow *window)
 	// Left and right. Left takes priority:
 	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_A))
 	{
-		FracRenderVector3 cross_f_u = cross(&program_state->front, &program_state->up);
-		cross_f_u = normalize(&cross_f_u);
+		FracRenderVector3 cross_f_u = cross(program_state->front, program_state->up);
+		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x -= (float)(program_state->base_movement_speed *
 						program_state->delta_t) * cross_f_u.x;
@@ -111,8 +111,8 @@ void poll_movement_keys(GLFWwindow *window)
 	}
 	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_D))
 	{
-		FracRenderVector3 cross_f_u = cross(&program_state->front, &program_state->up);
-		cross_f_u = normalize(&cross_f_u);
+		FracRenderVector3 cross_f_u = cross(program_state->front, program_state->up);
+		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x += (float)(program_state->base_movement_speed *
 						program_state->delta_t) * cross_f_u.x;
@@ -125,20 +125,20 @@ void poll_movement_keys(GLFWwindow *window)
 	// Up and down. Up takes priority:
 	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_E))
 	{
-		program_state->position.x += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.x;
-		program_state->position.y += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.y;
-		program_state->position.z += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.z;
-	}
-	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_Q))
-	{
 		program_state->position.x -= (float)(program_state->base_movement_speed *
 					program_state->delta_t) * program_state->up.x;
 		program_state->position.y -= (float)(program_state->base_movement_speed *
 					program_state->delta_t) * program_state->up.y;
 		program_state->position.z -= (float)(program_state->base_movement_speed *
+					program_state->delta_t) * program_state->up.z;
+	}
+	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_Q))
+	{
+		program_state->position.x += (float)(program_state->base_movement_speed *
+					program_state->delta_t) * program_state->up.x;
+		program_state->position.y += (float)(program_state->base_movement_speed *
+					program_state->delta_t) * program_state->up.y;
+		program_state->position.z += (float)(program_state->base_movement_speed *
 					program_state->delta_t) * program_state->up.z;
 	}
 }

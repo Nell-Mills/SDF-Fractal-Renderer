@@ -1,11 +1,5 @@
 #version 450
 
-layout (set = 0, binding = 0) uniform UScene
-{
-	vec4 eye_position;
-	mat4 camera_transform;
-} u_scene;
-
 layout (location = 0) out vec2 out_tex_coord;
 
 void main()

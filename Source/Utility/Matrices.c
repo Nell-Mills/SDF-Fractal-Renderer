@@ -5,9 +5,9 @@
  ************/
 
 // Get value at [column, row]:
-float get_element(FracRenderMatrix4 *matrix, uint32_t column, uint32_t row)
+float get_element(FracRenderMatrix4 matrix, uint32_t column, uint32_t row)
 {
-	return matrix->matrix[(4 * column) + row];
+	return matrix.matrix[(4 * column) + row];
 }
 
 // Set value at [column, row]:
@@ -38,7 +38,7 @@ FracRenderMatrix4 get_identity_matrix()
 }
 
 // Print contents of matrix for debugging:
-void print_matrix(FracRenderMatrix4 *matrix)
+void print_matrix(FracRenderMatrix4 matrix)
 {
 	// First row:
 	printf("%.1f\t", get_element(matrix, 0, 0));
@@ -66,8 +66,8 @@ void print_matrix(FracRenderMatrix4 *matrix)
 }
 
 // Get camera matrix from position, front and up:
-FracRenderMatrix4 look_at(FracRenderVector3 *position, FracRenderVector3 *front,
-							FracRenderVector3 *up)
+FracRenderMatrix4 look_at(FracRenderVector3 position, FracRenderVector3 front,
+							FracRenderVector3 up)
 {
 	FracRenderMatrix4 result;
 
@@ -75,32 +75,32 @@ FracRenderMatrix4 look_at(FracRenderVector3 *position, FracRenderVector3 *front,
 	FracRenderVector3 y;
 	FracRenderVector3 z;
 
-	// Create new coordinate system:
-	z.x = position->x - front->x;
-	z.y = position->y - front->y;
-	z.z = position->z - front->z;
-	z = normalize(&z);
-	y = *up;
-	x = cross(&y, &z);
+	// Get axes:
+	z = front;
+	y = up;
 
-	y = cross(&z, &x);
+	x = cross(z, y);
+	x = normalize(x);
 
-	x = normalize(&x);
-	y = normalize(&y);
+	y = cross(x, z);
+	y = normalize(y);
 
 	// Put values into the matrix:
 	set_element(&result, 0, 0, x.x);
 	set_element(&result, 1, 0, x.y);
 	set_element(&result, 2, 0, x.z);
-	set_element(&result, 3, 0, -dot(&x, position));
+	set_element(&result, 3, 0, -dot(x, position));
+
 	set_element(&result, 0, 1, y.x);
 	set_element(&result, 1, 1, y.y);
 	set_element(&result, 2, 1, y.z);
-	set_element(&result, 3, 1, -dot(&y, position));
-	set_element(&result, 0, 2, z.x);
-	set_element(&result, 1, 2, z.y);
-	set_element(&result, 2, 2, z.z);
-	set_element(&result, 3, 2, -dot(&z, position));
+	set_element(&result, 3, 1, -dot(y, position));
+
+	set_element(&result, 0, 2, -z.x);
+	set_element(&result, 1, 2, -z.y);
+	set_element(&result, 2, 2, -z.z);
+	set_element(&result, 3, 2, dot(z, position));
+
 	set_element(&result, 0, 3, 0.f);
 	set_element(&result, 1, 3, 0.f);
 	set_element(&result, 2, 3, 0.f);
@@ -127,29 +127,29 @@ FracRenderVector4 initialize_vector_4(float x, float y, float z, float w)
 }
 
 // Multiply 4D vector by 4D matrix:
-FracRenderVector4 matrix_by_vector_4(FracRenderMatrix4 *matrix, FracRenderVector4 *vector)
+FracRenderVector4 matrix_by_vector_4(FracRenderMatrix4 matrix, FracRenderVector4 vector)
 {
 	FracRenderVector4 result;
 
-	result.x =	(get_element(matrix, 0, 0) * vector->x) +
-			(get_element(matrix, 1, 0) * vector->y) +
-			(get_element(matrix, 2, 0) * vector->z) +
-			(get_element(matrix, 3, 0) * vector->w);
+	result.x =	(get_element(matrix, 0, 0) * vector.x) +
+			(get_element(matrix, 1, 0) * vector.y) +
+			(get_element(matrix, 2, 0) * vector.z) +
+			(get_element(matrix, 3, 0) * vector.w);
 
-	result.y =	(get_element(matrix, 0, 1) * vector->x) +
-			(get_element(matrix, 1, 1) * vector->y) +
-			(get_element(matrix, 2, 1) * vector->z) +
-			(get_element(matrix, 3, 1) * vector->w);
+	result.y =	(get_element(matrix, 0, 1) * vector.x) +
+			(get_element(matrix, 1, 1) * vector.y) +
+			(get_element(matrix, 2, 1) * vector.z) +
+			(get_element(matrix, 3, 1) * vector.w);
 
-	result.z =	(get_element(matrix, 0, 2) * vector->x) +
-			(get_element(matrix, 1, 2) * vector->y) +
-			(get_element(matrix, 2, 2) * vector->z) +
-			(get_element(matrix, 3, 2) * vector->w);
+	result.z =	(get_element(matrix, 0, 2) * vector.x) +
+			(get_element(matrix, 1, 2) * vector.y) +
+			(get_element(matrix, 2, 2) * vector.z) +
+			(get_element(matrix, 3, 2) * vector.w);
 
-	result.w =	(get_element(matrix, 0, 3) * vector->x) +
-			(get_element(matrix, 1, 3) * vector->y) +
-			(get_element(matrix, 2, 3) * vector->z) +
-			(get_element(matrix, 3, 3) * vector->w);
+	result.w =	(get_element(matrix, 0, 3) * vector.x) +
+			(get_element(matrix, 1, 3) * vector.y) +
+			(get_element(matrix, 2, 3) * vector.z) +
+			(get_element(matrix, 3, 3) * vector.w);
 
 	return result;
 }
@@ -167,34 +167,34 @@ FracRenderVector3 initialize_vector_3(float x, float y, float z)
 }
 
 // Multiply 3D vector by 4D matrix:
-FracRenderVector3 matrix_by_vector_3(FracRenderMatrix4 *matrix, FracRenderVector3 *vector)
+FracRenderVector3 matrix_by_vector_3(FracRenderMatrix4 matrix, FracRenderVector3 vector)
 {
-	FracRenderVector4 vector_4 = initialize_vector_4(vector->x, vector->y, vector->z, 1.f);
+	FracRenderVector4 vector_4 = initialize_vector_4(vector.x, vector.y, vector.z, 1.f);
 
-	vector_4 = matrix_by_vector_4(matrix, &vector_4);
+	vector_4 = matrix_by_vector_4(matrix, vector_4);
 
 	return initialize_vector_3(vector_4.x, vector_4.y, vector_4.z);
 }
 
 // Get length of 3D vector:
-float length(FracRenderVector3 *vector)
+float length(FracRenderVector3 vector)
 {
-	if ((vector->x == 0.f) && (vector->y == 0.f) && (vector->z == 0.f)) { return 0.f; }
+	if ((vector.x == 0.f) && (vector.y == 0.f) && (vector.z == 0.f)) { return 0.f; }
 
 	return sqrt(
-		(vector->x * vector->x) +
-		(vector->y * vector->y) +
-		(vector->z * vector->z)
+		(vector.x * vector.x) +
+		(vector.y * vector.y) +
+		(vector.z * vector.z)
 	);
 }
 
 // Normalize 3D vector:
-FracRenderVector3 normalize(FracRenderVector3 *vector)
+FracRenderVector3 normalize(FracRenderVector3 vector)
 {
 	FracRenderVector3 result;
-	result.x = vector->x;
-	result.y = vector->y;
-	result.z = vector->z;
+	result.x = vector.x;
+	result.y = vector.y;
+	result.z = vector.z;
 
 	float vector_length = length(vector);
 
@@ -209,23 +209,31 @@ FracRenderVector3 normalize(FracRenderVector3 *vector)
 }
 
 // Cross product of 2 3D vectors:
-FracRenderVector3 cross(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2)
+FracRenderVector3 cross(FracRenderVector3 vector_1, FracRenderVector3 vector_2)
 {
 	FracRenderVector3 result;
 
-	result.x =   (vector_1->y * vector_2->z) - (vector_1->z * vector_2->y);
-	result.y = -((vector_1->x * vector_2->z) - (vector_1->z * vector_2->x));
-	result.z =   (vector_1->x * vector_2->y) - (vector_1->y * vector_2->x);
+	result.x =   (vector_1.y * vector_2.z) - (vector_1.z * vector_2.y);
+	result.y = -((vector_1.x * vector_2.z) - (vector_1.z * vector_2.x));
+	result.z =   (vector_1.x * vector_2.y) - (vector_1.y * vector_2.x);
 
 	return result;
 }
 
 // Dot product of 2 3D vectors:
-float dot(FracRenderVector3 *vector_1, FracRenderVector3 *vector_2)
+float dot(FracRenderVector3 vector_1, FracRenderVector3 vector_2)
 {
-	return	(vector_1->x * vector_2->x) +
-		(vector_1->y * vector_2->y) +
-		(vector_1->z * vector_2->z);
+	return	(vector_1.x * vector_2.x) +
+		(vector_1.y * vector_2.y) +
+		(vector_1.z * vector_2.z);
+}
+
+// Get axes in coordinate system of input:
+void get_axes(FracRenderVector3 position, FracRenderVector3 forward, FracRenderVector3 up,
+				FracRenderVector3 *x_axis, FracRenderVector3 *y_axis)
+{
+	*x_axis = normalize(cross(forward, up));
+	*y_axis = normalize(cross(*x_axis, forward));
 }
 
 /**************************
