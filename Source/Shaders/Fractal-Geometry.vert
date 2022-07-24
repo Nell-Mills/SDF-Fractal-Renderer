@@ -2,7 +2,7 @@
 
 layout (set = 0, binding = 0) uniform UScene
 {
-	vec3 camera_position;
+	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
@@ -20,8 +20,8 @@ void main()
 	);
 	coord_2d = (coord_2d * 2.f) - 1.f;
 
-	// Get position according to current camera transform:
-	vec3 position = u_scene.camera_position;
+	// Get position according to current plane transform:
+	vec3 position = u_scene.plane_centre;
 
 	// Translate along x-axis:
 	position += u_scene.x_axis * coord_2d.x;

@@ -4,7 +4,7 @@ layout (location = 0) in vec4 in_position;
 
 layout (set = 0, binding = 0) uniform UScene
 {
-	vec3 camera_position;
+	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
@@ -16,7 +16,7 @@ layout (location = 0) out vec4 out_iterations;
 // Function prototypes:
 float mandelbulb(vec3 position);
 float distance_estimator(vec3 position);
-vec3 raymarch(vec3 origin, vec3 ray);
+vec4 raymarch(vec3 origin, vec3 ray);
 
 // Main function:
 void main()
@@ -24,13 +24,13 @@ void main()
 	// Get position on Mandelbulb surface:
 	vec3 ray = in_position.xyz - u_scene.eye_position;
 	ray = normalize(ray);
-	vec3 surface = raymarch(in_position.xyz, ray);
+	vec4 surface = raymarch(in_position.xyz, ray);
 
 	// Calculate Mandelbulb iterations and output to texture image:
 //	float iterations_achieved = mandelbulb(surface);
 //	out_iterations = vec4(vec3(iterations_achieved), 1.f);
 
-	out_iterations = vec4(surface, 1.f);
+	out_iterations = surface;
 }
 
 float mandelbulb(vec3 pixel_location)
@@ -62,9 +62,9 @@ float distance_estimator(vec3 position)
 	return 0.25f * log(m) * sqrt(m) / dz;
 }
 
-vec3 raymarch(vec3 origin, vec3 ray)
+vec4 raymarch(vec3 origin, vec3 ray)
 {
-	vec3 current_position;
+	vec4 current_position;
 	int max_steps = 50;
 	float distance_travelled = 0.f;
 	float distance_threshold = 0.0001f;
@@ -72,10 +72,11 @@ vec3 raymarch(vec3 origin, vec3 ray)
 	for (int steps_taken = 0; steps_taken < max_steps; steps_taken++)
 	{
 		// Get current position:
-		current_position = origin + (ray * distance_travelled);
+		current_position = vec4(origin + (ray * distance_travelled),
+					1.f - (float(steps_taken) / float(max_steps)));
 
 		// Get distance estimate and update total distance travelled:
-		float distance_estimate = distance_estimator(current_position);
+		float distance_estimate = distance_estimator(current_position.xyz);
 		distance_travelled += distance_estimate * 0.9f;
 
 		// Check how close the point is to the surface:

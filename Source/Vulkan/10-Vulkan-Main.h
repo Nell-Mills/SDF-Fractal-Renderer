@@ -12,7 +12,7 @@
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
 #include "01-Vulkan-Structs.h"
-#include "../Utility/Matrices.h"
+#include "../Utility/Vectors.h"
 
 /***********************
  * Function Prototypes *

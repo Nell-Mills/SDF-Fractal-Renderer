@@ -8,7 +8,7 @@
 // Local includes:
 #include "Vulkan/00-Vulkan-API.h"
 #include "Utility/Input.h"
-#include "Utility/Matrices.h"
+#include "Utility/Vectors.h"
 
 /***********************
  * Function Prototypes *
@@ -148,14 +148,14 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	program_state.position			= initialize_vector_3(0.f, 0.f, -3.f);
+	program_state.position			= initialize_vector_3(0.f, 0.f, -13.f);
 	program_state.front			= initialize_vector_3(0.f, 0.f, 1.f);
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
-	program_state.mouse_sensitivity		= 10.f;
+	program_state.mouse_sensitivity		= 2.5f;
 
 	// Set GLFW callback functions:
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);

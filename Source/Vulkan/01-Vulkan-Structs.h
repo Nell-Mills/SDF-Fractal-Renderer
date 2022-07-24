@@ -13,7 +13,7 @@
 
 // Local includes:
 #include "../../Third-Party/volk/include/volk/volk.h"
-#include "../Utility/Matrices.h"
+#include "../Utility/Vectors.h"
 
 typedef struct {
 	// Instance and window:
@@ -143,8 +143,8 @@ typedef struct {
 } FracRenderVulkanCommands;
 
 typedef struct {
-	// Axes in camera coordinate system:
-	FracRenderVector3 camera_position; float pad_0;
+	// Axes in eye coordinate system:
+	FracRenderVector3 plane_centre; float pad_0;
 	FracRenderVector3 x_axis; float pad_1;
 	FracRenderVector3 y_axis; float pad_2;
 
@@ -156,7 +156,7 @@ typedef struct {
 } FracRenderVulkanSceneUniform;
 
 typedef struct {
-	// Camera:
+	// Camera (eye):
 	FracRenderVector3 position;
 	FracRenderVector3 front;
 	FracRenderVector3 up;

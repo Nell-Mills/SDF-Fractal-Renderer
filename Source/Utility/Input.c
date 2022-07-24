@@ -39,6 +39,12 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 		FracRenderProgramState *program_state = (FracRenderProgramState *)
 						glfwGetWindowUserPointer(window);
 
+		// Get screen aspect ratio:
+		int screen_width;
+		int screen_height;
+		glfwGetFramebufferSize(window, &screen_width, &screen_height);
+		float aspect = (float)(screen_width) / (float)(screen_height);
+
 		// Change in mouse position since last call:
 		double dx = x_pos - last_x;
 		double dy = y_pos - last_y;
@@ -49,7 +55,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 		if (pitch < -89.f) { pitch = -89.f; }
 
 		// Update yaw:
-		yaw += dx * program_state->delta_t * program_state->mouse_sensitivity;
+		yaw += (dx * program_state->delta_t * program_state->mouse_sensitivity) / aspect;
 
 		// Calculate rotation values:
 		FracRenderVector3 camera_direction;
@@ -75,6 +81,12 @@ void poll_movement_keys(GLFWwindow *window)
 	// Get program state:
 	FracRenderProgramState *program_state = (FracRenderProgramState *)
 					glfwGetWindowUserPointer(window);
+
+	// Get screen aspect ratio:
+	int screen_width;
+	int screen_height;
+	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+	float aspect = (float)(screen_width) / (float)(screen_height);
 
 	// Movement keys. Start with forward and back (forward takes priority):
 	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_W))
@@ -103,11 +115,11 @@ void poll_movement_keys(GLFWwindow *window)
 		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x -= (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.x;
+					program_state->delta_t) * cross_f_u.x / aspect;
 		program_state->position.y -= (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.y;
+					program_state->delta_t) * cross_f_u.y / aspect;
 		program_state->position.z -= (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.z;
+					program_state->delta_t) * cross_f_u.z / aspect;
 	}
 	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_D))
 	{
@@ -115,11 +127,11 @@ void poll_movement_keys(GLFWwindow *window)
 		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x += (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.x;
+					program_state->delta_t) * cross_f_u.x / aspect;
 		program_state->position.y += (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.y;
+					program_state->delta_t) * cross_f_u.y / aspect;
 		program_state->position.z += (float)(program_state->base_movement_speed *
-						program_state->delta_t) * cross_f_u.z;
+					program_state->delta_t) * cross_f_u.z / aspect;
 	}
 
 	// Up and down. Up takes priority:

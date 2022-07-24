@@ -8,28 +8,24 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	FracRenderProgramState *program_state = (FracRenderProgramState *)
 				glfwGetWindowUserPointer(base->window);
 
-	// Get camera position:
-	scene_uniform->camera_position = program_state->position;
+	// Get eye position:
+	scene_uniform->eye_position = program_state->position;
 
-	// Get axes in camera coordinate system:
+	// Get plane centre position (10.f in front of eye):
+	scene_uniform->plane_centre = add_vector_3(program_state->position,
+			multiply_vector_3_scalar(program_state->front, 10.f));
+
+	// Get axes in eye coordinate system:
 	get_axes(program_state->position, program_state->front, program_state->up,
 				&scene_uniform->x_axis, &scene_uniform->y_axis);
-
-	// Get eye position (-10.f from camera position):
-	scene_uniform->eye_position = initialize_vector_3(
-		program_state->position.x - (10.f * program_state->front.x),
-		program_state->position.y - (10.f * program_state->front.y),
-		program_state->position.z - (10.f * program_state->front.z)
-	);
 
 	// Get screen aspect ratio:
 	scene_uniform->aspect_ratio = (float)(swapchain->swapchain_extent.width)
 				/ (float)(swapchain->swapchain_extent.height);
 
 	// Scale x-axis by aspect ratio:
-	scene_uniform->x_axis.x *= scene_uniform->aspect_ratio;
-	scene_uniform->x_axis.y *= scene_uniform->aspect_ratio;
-	scene_uniform->x_axis.z *= scene_uniform->aspect_ratio;
+	scene_uniform->x_axis = multiply_vector_3_scalar(scene_uniform->x_axis,
+						scene_uniform->aspect_ratio);
 }
 
 // Record commands:

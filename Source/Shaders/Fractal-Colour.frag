@@ -4,7 +4,7 @@ layout (location = 0) in vec2 in_tex_coord;
 
 layout (set = 0, binding = 0) uniform UScene
 {
-	vec3 camera_position;
+	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
@@ -20,13 +20,12 @@ void main()
 	// Define a colour palette:
 	vec3 colour_palette[4] = {
 		vec3(0.f, 0.f, 0.f),
-		vec3(1.f, 0.f, 0.f),
+		vec3(0.f, 0.f, 1.f),
 		vec3(0.f, 1.f, 0.f),
-		vec3(0.f, 0.f, 1.f)
+		vec3(1.f, 0.f, 0.f)
 	};
 
-	float iterations_achieved = texture(u_iterations_sampler, in_tex_coord).r;
-	iterations_achieved = 1.f - iterations_achieved;
+	float iterations_achieved = texture(u_iterations_sampler, in_tex_coord).a;
 
 	float coordinate = iterations_achieved * 3.f;
 	if (coordinate > 3.f) { coordinate = 3.f; }
@@ -37,8 +36,7 @@ void main()
 	// Get distribution of the colours:
 	float distribution = coordinate - floor(coordinate);
 
-//	out_colour = vec4(mix(lower_colour, higher_colour, distribution), 1.f);
+	//out_colour = vec4(mix(lower_colour, higher_colour, distribution), 1.f);
 
-	vec4 colour = texture(u_iterations_sampler, in_tex_coord).rgba;
-	out_colour = colour;
+	out_colour = vec4(vec3(iterations_achieved), 1.f);
 }
