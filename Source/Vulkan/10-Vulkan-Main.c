@@ -89,14 +89,20 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 1, &buffer_barrier_2, 0, NULL);
 
 	// Set G-buffer clear colour:
-	VkClearValue geometry_clear_values[1];
-	memset(&geometry_clear_values, 0, 1 * sizeof(VkClearValue));
+	VkClearValue geometry_clear_values[2];
+	memset(&geometry_clear_values, 0, 2 * sizeof(VkClearValue));
 
-	// Position:
+	// Position/iteration:
 	geometry_clear_values[0].color.float32[0] = 0.f;
 	geometry_clear_values[0].color.float32[1] = 0.f;
 	geometry_clear_values[0].color.float32[2] = 0.f;
 	geometry_clear_values[0].color.float32[3] = 1.f;
+
+	// Normal:
+	geometry_clear_values[1].color.float32[0] = 0.f;
+	geometry_clear_values[1].color.float32[1] = 0.f;
+	geometry_clear_values[1].color.float32[2] = 0.f;
+	geometry_clear_values[1].color.float32[3] = 1.f;
 
 	// Define render pass begin info:
 	VkRenderPassBeginInfo geometry_pass_info;
@@ -109,7 +115,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_pass_info.renderArea.offset.y		= 0;
 	geometry_pass_info.renderArea.extent.width	= swapchain->swapchain_extent.width;
 	geometry_pass_info.renderArea.extent.height	= swapchain->swapchain_extent.height;
-	geometry_pass_info.clearValueCount		= 1;
+	geometry_pass_info.clearValueCount		= 2;
 	geometry_pass_info.pClearValues			= geometry_clear_values;
 
 	// Begin render pass:

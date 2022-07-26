@@ -3,11 +3,12 @@
 # Wildcards:
 DEPSVULKAN	:= $(wildcard ./Source/Vulkan/*.c)
 DEPSUTILITY	:= $(wildcard ./Source/Utility/*.c)
+DEPSSDF		:= $(wildcard ./Source/SDF/*.c)
 
 CC		:= gcc
 OUT		:= ./FracRender
 MAIN		:= ./Source/Fractal-Renderer.c
-DEPS		:= $(DEPSVULKAN) $(DEPSUTILITY)
+DEPS		:= $(DEPSVULKAN) $(DEPSUTILITY) $(DEPSSDF)
 THIRDPARTY	:= ./Third-Party/volk/src/volk.c
 LFLAGS		:= -ldl -lglfw -lm
 SHADERS		:= ./Shader-Compile.sh

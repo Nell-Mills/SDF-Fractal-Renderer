@@ -220,13 +220,13 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 
 		VkMemoryPropertyFlags required_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		int success_flag = -1;
-		for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
+		for (uint32_t j = 0; j < memory_properties.memoryTypeCount; j++)
 		{
-			if ((memory_requirements.memoryTypeBits & (1 << i)) &&
-				((memory_properties.memoryTypes[i].propertyFlags &
+			if ((memory_requirements.memoryTypeBits & (1 << j)) &&
+				((memory_properties.memoryTypes[j].propertyFlags &
 				required_properties) == required_properties))
 			{
-				allocate_info.memoryTypeIndex = i;
+				allocate_info.memoryTypeIndex = j;
 				success_flag = 0;
 				break;
 			}
@@ -289,9 +289,18 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers)
 {
+	/* Adding new attachments:
+	 * Add here.
+	 * Clear values in Vulkan-Main record_commands.
+	 * Render pass info in record_commands.
+	 * Geometry pipeline blending states.
+	 * Colour pipeline layout descriptor set layouts.
+	 * Attachments in geometry render pass. */
+
 	// Create attachments:
-	VkImageView attachments[1] = {
-		framebuffers->g_buffer_image_views[0]
+	VkImageView attachments[2] = {
+		framebuffers->g_buffer_image_views[0],
+		framebuffers->g_buffer_image_views[1]
 	};
 
 	// Define G-buffer creation info:
@@ -301,7 +310,7 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	g_buffer_info.pNext		= NULL;
 	g_buffer_info.flags		= 0;
 	g_buffer_info.renderPass	= pipeline->geometry_render_pass;
-	g_buffer_info.attachmentCount	= 1;
+	g_buffer_info.attachmentCount	= 2;
 	g_buffer_info.pAttachments	= attachments;
 	g_buffer_info.width		= swapchain->swapchain_extent.width;
 	g_buffer_info.height		= swapchain->swapchain_extent.height;

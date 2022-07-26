@@ -246,10 +246,10 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline)
 {
 	// Create attachment descriptions:
-	VkAttachmentDescription attachments[1];
-	memset(attachments, 0, 1 * sizeof(VkAttachmentDescription));
+	VkAttachmentDescription attachments[2];
+	memset(attachments, 0, 2 * sizeof(VkAttachmentDescription));
 
-	// Position attachment:
+	// Position/iteration attachment:
 	attachments[0].flags		= 0;
 	attachments[0].format		= framebuffers->g_buffer_formats[0];
 	attachments[0].samples		= VK_SAMPLE_COUNT_1_BIT;
@@ -260,13 +260,28 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	attachments[0].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[0].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	// Create subpass attachments:
-	VkAttachmentReference subpass_attachments[1];
-	memset(subpass_attachments, 0, 1 * sizeof(VkAttachmentReference));
+	// Normal attachment:
+	attachments[1].flags		= 0;
+	attachments[1].format		= framebuffers->g_buffer_formats[1];
+	attachments[1].samples		= VK_SAMPLE_COUNT_1_BIT;
+	attachments[1].loadOp		= VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[1].storeOp		= VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[1].stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_LOAD;
+	attachments[1].stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[1].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[1].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	// Position attachment:
+	// Create subpass attachments:
+	VkAttachmentReference subpass_attachments[2];
+	memset(subpass_attachments, 0, 2 * sizeof(VkAttachmentReference));
+
+	// Position/iteration attachment:
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
 	subpass_attachments[0].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	// Normal attachment:
+	subpass_attachments[1].attachment	= 1;	// Attachments[0].
+	subpass_attachments[1].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	// Create subpass:
 	VkSubpassDescription subpasses[1];
@@ -275,7 +290,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	subpasses[0].pipelineBindPoint		= VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].inputAttachmentCount	= 0;
 	subpasses[0].pInputAttachments		= NULL;
-	subpasses[0].colorAttachmentCount	= 1;
+	subpasses[0].colorAttachmentCount	= 2;
 	subpasses[0].pColorAttachments		= subpass_attachments;
 	subpasses[0].pResolveAttachments	= NULL;
 	subpasses[0].pDepthStencilAttachment	= NULL;
@@ -288,7 +303,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	pass_info.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	pass_info.pNext			= NULL;
 	pass_info.flags			= 0;
-	pass_info.attachmentCount	= 1;
+	pass_info.attachmentCount	= 2;
 	pass_info.pAttachments		= attachments;
 	pass_info.subpassCount		= 1;
 	pass_info.pSubpasses		= subpasses;
@@ -386,10 +401,11 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 	else
 	{
 		// Colour pipeline:
-		num_layouts = 2;
+		num_layouts = 3;
 		layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 		layouts[0] = descriptors->scene_descriptor_layout;
 		layouts[1] = descriptors->g_buffer_descriptor_layout;
+		layouts[2] = descriptors->g_buffer_descriptor_layout;
 	}
 
 	// Create the pipeline layout info:
@@ -559,7 +575,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		num_blend_states = 1;
+		num_blend_states = 2;
 	}
 	else
 	{

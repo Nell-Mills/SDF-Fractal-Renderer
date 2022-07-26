@@ -7,6 +7,7 @@
 
 // Local includes:
 #include "Vulkan/00-Vulkan-API.h"
+#include "SDF/SDF.h"
 #include "Utility/Input.h"
 #include "Utility/Vectors.h"
 
@@ -17,14 +18,14 @@
 // Print title:
 void print_title();
 
-// Print keyboard and mouse controls:
+// Print keyboard controls:
 void print_controls();
 
 // Initialize Vulkan structs to default values:
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
+	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands, int u_sdf);
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
@@ -38,6 +39,37 @@ void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 
 int main(int argc, char **argv)
 {
+	int u_sdf = 1;	// 1 = no, 0 = yes.
+
+	if (argc > 1)
+	{
+		if (argv[1][0] == '0')
+		{
+			u_sdf = 0;
+			printf("----------------------------------------");
+			printf("----------------------------------------\n");
+			printf("Using Signed Distance Field.\n");
+			printf("----------------------------------------");
+			printf("----------------------------------------\n\n");
+		}
+		else
+		{
+			printf("----------------------------------------");
+			printf("----------------------------------------\n");
+			printf("Not using Signed Distance Field.\n");
+			printf("----------------------------------------");
+			printf("----------------------------------------\n\n");
+		}
+	}
+	else
+	{
+		printf("----------------------------------------");
+		printf("----------------------------------------\n");
+		printf("Not using Signed Distance Field.\n");
+		printf("----------------------------------------");
+		printf("----------------------------------------\n\n");
+	}
+
 	// Initialize Volk:
 	if (initialize_volk() != 0)
 	{
@@ -54,7 +86,7 @@ int main(int argc, char **argv)
 	FracRenderVulkanFramebuffers framebuffers;
 	FracRenderVulkanCommands commands;
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-									&framebuffers, &commands);
+								&framebuffers, &commands, u_sdf);
 
 	// Check the size of the scene UBO:
 	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
@@ -165,8 +197,25 @@ int main(int argc, char **argv)
 	glfwSetWindowUserPointer(base.window, &program_state);
 
 	// Print all Vulkan handles for debugging:
-//	print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-//								&framebuffers, &commands);
+	/*print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
+								&framebuffers, &commands);*/
+
+	// Calculate memory requirements of SDF:
+	uint32_t sdf_memory;
+	if (u_sdf == 0)
+	{
+		sdf_memory = calculate_memory(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+	}
+
+	// Create SDF:
+	FracRenderSDF sdf;
+	if (u_sdf == 0)
+	{
+		create_SDF(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f, &sdf, sdf_memory);
+
+		// Print some voxels for debugging:
+		print_voxels(&sdf);
+	}
 
 	// Print title:
 	print_title();
@@ -351,6 +400,9 @@ int main(int argc, char **argv)
 	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,
 											&commands);
 
+	// Free SDF memory:
+	destroy_SDF(&sdf);
+
 	return 0;
 }
 
@@ -372,7 +424,7 @@ void print_title()
 	printf("****************************************\n\n");
 }
 
-// Print keyboard and mouse controls:
+// Print keyboard controls:
 void print_controls()
 {
 	// Title:
@@ -383,8 +435,12 @@ void print_controls()
 	printf("----------------------------------------\n");
 
 	// Keyboard controls:
-	printf("Home:\tPrint controls\n");
-	printf("F11:\tSwitch SDF on and off\n");
+	printf("W:\tForward\n");
+	printf("A:\tLeft\n");
+	printf("S:\tBackward\n");
+	printf("D:\tRight\n");
+	printf("E:\tUp\n");
+	printf("Q:\tDown\n");
 
 	// End:
 	printf("----------------------------------------");
@@ -393,9 +449,9 @@ void print_controls()
 
 // Initialize Vulkan structs to default values:
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
+	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands, int u_sdf)
 {
 	// Vulkan base:
 	base->instance		= VK_NULL_HANDLE;
@@ -446,7 +502,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->scene_buffer			= VK_NULL_HANDLE;
 	descriptors->scene_memory			= VK_NULL_HANDLE;
 
-	descriptors->num_g_buffer_descriptors		= 1;
+	descriptors->num_g_buffer_descriptors		= 2;
 	descriptors->g_buffer_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->g_buffer_descriptors		= NULL;
 
@@ -466,7 +522,18 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	pipeline->colour_fragment_shader	= VK_NULL_HANDLE;
 
 	pipeline->geometry_vertex_shader_path	= "Assets/Shaders/Fractal-Geometry.vert.sprv";
-	pipeline->geometry_fragment_shader_path	= "Assets/Shaders/Fractal-Geometry.frag.sprv";
+
+	if (u_sdf == 0)
+	{
+		pipeline->geometry_fragment_shader_path	=
+			"Assets/Shaders/Fractal-Geometry-SDF.frag.sprv";
+	}
+	else
+	{
+		pipeline->geometry_fragment_shader_path	=
+			"Assets/Shaders/Fractal-Geometry.frag.sprv";
+	}
+
 	pipeline->colour_vertex_shader_path	= "Assets/Shaders/Fractal-Colour.vert.sprv";
 	pipeline->colour_fragment_shader_path	= "Assets/Shaders/Fractal-Colour.frag.sprv";
 
@@ -474,7 +541,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->framebuffers		= NULL;
 
 	framebuffers->g_buffer			= VK_NULL_HANDLE;
-	framebuffers->num_g_buffer_images	= 1;
+	framebuffers->num_g_buffer_images	= 2;
 	framebuffers->g_buffer_images		= NULL;
 	framebuffers->g_buffer_image_views	= NULL;
 
@@ -482,6 +549,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
 									sizeof(VkFormat));
 	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+	framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;
