@@ -259,7 +259,7 @@ int create_scene_buffer(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	// Allocate memory for the buffer:
+	// Allocate memory for buffer:
 	if (vkAllocateMemory(device->logical_device, &allocate_info, NULL,
 				&descriptors->scene_memory) != VK_SUCCESS)
 	{
@@ -267,7 +267,7 @@ int create_scene_buffer(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	// Bind the buffer memory:
+	// Bind buffer memory:
 	vkBindBufferMemory(device->logical_device, descriptors->scene_buffer,
 						descriptors->scene_memory, 0);
 
@@ -347,7 +347,7 @@ int create_scene_descriptor(FracRenderVulkanDevice *device,
 	descriptor_write[0].pBufferInfo		= &scene_UBO_info;
 	descriptor_write[0].pTexelBufferView	= NULL;
 
-	// Update the descriptor sets:
+	// Update descriptor sets:
 	vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
 
 	return 0;

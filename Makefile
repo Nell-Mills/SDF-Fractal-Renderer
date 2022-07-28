@@ -14,14 +14,11 @@ LFLAGS		:= -ldl -lglfw -lm
 SHADERS		:= ./Shader-Compile.sh
 DEBUG		:= -DFRACRENDER_DEBUG -g
 
-Debug: $(MAIN)
+debug: $(MAIN)
 	$(CC) $(MAIN) $(DEBUG) $(DEPS) $(THIRDPARTY) -o $(OUT) $(LFLAGS) && $(SHADERS)
 
-No-OpenMP: $(MAIN)
+release: $(MAIN)
 	$(CC) $(MAIN) $(DEPS) $(THIRDPARTY) -o $(OUT) $(LFLAGS) && $(SHADERS)
-
-With-OpenMP: $(MAIN)
-	$(CC) $(MAIN) $(DEPS) $(THIRDPARTY) -fopenmp -o $(OUT) $(LFLAGS) && $(SHADERS)
 
 # Explanation of links:
 # dl -> libdl, used for dlsym, dlopen, etc. Inside volk.c.

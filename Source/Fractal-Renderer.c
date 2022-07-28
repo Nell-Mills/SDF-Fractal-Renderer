@@ -25,13 +25,14 @@ void print_controls();
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands, int u_sdf);
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+	FracRenderVulkanSDF *sdf_vulkan, int u_sdf);
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-		FracRenderVulkanCommands *commands);
+		FracRenderVulkanCommands *commands, FracRenderVulkanSDF *sdf_vulkan);
 
 /********
  * Main *
@@ -39,8 +40,7 @@ void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 
 int main(int argc, char **argv)
 {
-	int u_sdf = 1;	// 1 = no, 0 = yes.
-
+	int u_sdf = 1;		// 1 = no, 0 = yes.
 	if (argc > 1)
 	{
 		if (argv[1][0] == '0')
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// Initialize the Vulkan structs:
+	// Initialize Vulkan structs:
 	FracRenderVulkanBase base;
 	FracRenderVulkanDevice device;
 	FracRenderVulkanValidation validation;
@@ -85,10 +85,13 @@ int main(int argc, char **argv)
 	FracRenderVulkanPipeline pipeline;
 	FracRenderVulkanFramebuffers framebuffers;
 	FracRenderVulkanCommands commands;
-	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands, u_sdf);
 
-	// Check the size of the scene UBO:
+	FracRenderVulkanSDF sdf_vulkan;
+
+	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
+						&framebuffers, &commands, &sdf_vulkan, u_sdf);
+
+	// Check size of scene UBO:
 	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
 	{
 		fprintf(stderr, "Error: Size of Scene Uniform must be 65536 bytes or less!\n");
@@ -100,21 +103,32 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-#ifdef FRACRENDER_DEBUG
-	// Check support for required validation layers:
-	if (check_validation_support(&validation) != 0)
-	{
-		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
-		return -1;
-	}
-#endif
+	// Initialize SDF information:
+	FracRenderSDF sdf;
+	sdf.num_voxels = 0;
+	sdf.min_x = -1.f;
+	sdf.max_x = 1.f;
+	sdf.min_y = -1.f;
+	sdf.max_y = 1.f;
+	sdf.min_z = -1.f;
+	sdf.max_z = 1.f;
+	sdf.voxels = NULL;
 
-	// Initialize the Vulkan base (instance, window, surface and debug messenger):
+	#ifdef FRACRENDER_DEBUG
+		// Check support for required validation layers:
+		if (check_validation_support(&validation) != 0)
+		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &sdf_vulkan);
+			return -1;
+		}
+	#endif
+
+	// Initialize Vulkan base (instance, window, surface and debug messenger):
 	if (initialize_vulkan_base(&base, &validation) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
@@ -122,57 +136,106 @@ int main(int argc, char **argv)
 	if (initalize_vulkan_device(&base, &device) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Create the swapchain:
+	// Create swapchain:
 	if (initialize_vulkan_swapchain(&base, &device, &swapchain) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Initialize the descriptor layouts and sampler:
+	// Initialize descriptor layouts and sampler:
 	if (initialize_vulkan_descriptor_layouts(&device, &descriptors) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Create the pipelines and render passes:
+	// SDF:
+	if (u_sdf == 0)
+	{
+		// Calculate memory requirements of SDF:
+		calculate_memory(&sdf);
+
+		// Create SDF:
+		create_sdf(&sdf);
+
+		// Initialize SDF Vulkan structure:
+		if (initialize_vulkan_sdf(&sdf, &sdf_vulkan, &device, &descriptors) != 0)
+		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &sdf_vulkan);
+			destroy_sdf(&sdf);
+			return -1;
+		}
+	}
+
+	// Create pipelines and render passes:
 	if (initialize_vulkan_pipeline(&device, &swapchain, &descriptors, &framebuffers,
-									&pipeline) != 0)
+							&pipeline, &sdf_vulkan, u_sdf) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Create the framebuffers and G-buffer:
+	// Create framebuffers and G-buffer:
 	if (initialize_vulkan_framebuffers(&device, &swapchain, &pipeline, &framebuffers) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Create the descriptors:
+	// Create descriptors:
 	if (initialize_vulkan_descriptors(&device, &framebuffers, &descriptors) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
 	}
 
-	// Create the command pool, fences and semaphores:
+	// Create command pool, fences and semaphores:
 	if (initialize_vulkan_commands(&device, &swapchain, &commands) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+							&framebuffers, &commands, &sdf_vulkan);
 		return -1;
+	}
+
+	if (u_sdf == 0)
+	{
+		// Copy SDF data into GPU buffer:
+		if (copy_sdf_data(&sdf, &sdf_vulkan, &device, &commands) != 0)
+		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &sdf_vulkan);
+			destroy_sdf(&sdf);
+			return -1;
+		}
+	}
+
+	#ifdef FRACRENDER_DEBUG
+		if (u_sdf == 0)
+		{
+			// Print some voxels for debugging:
+			print_voxels(&sdf);
+		}
+
+		// Print all Vulkan struct values for debugging:
+		print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
+					&pipeline, &framebuffers, &commands, &sdf_vulkan);
+	#endif
+
+	if (u_sdf == 0)
+	{
+		// Buffer has been copied to GPU memory so destroy CPU structure:
+		destroy_sdf(&sdf);
 	}
 
 	// Initialize the scene UBO:
@@ -195,27 +258,6 @@ int main(int argc, char **argv)
 
 	// Set GLFW user pointer to point to the program state:
 	glfwSetWindowUserPointer(base.window, &program_state);
-
-	// Print all Vulkan handles for debugging:
-	/*print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);*/
-
-	// Calculate memory requirements of SDF:
-	uint32_t sdf_memory;
-	if (u_sdf == 0)
-	{
-		sdf_memory = calculate_memory(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
-	}
-
-	// Create SDF:
-	FracRenderSDF sdf;
-	if (u_sdf == 0)
-	{
-		create_SDF(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f, &sdf, sdf_memory);
-
-		// Print some voxels for debugging:
-		print_voxels(&sdf);
-	}
 
 	// Print title:
 	print_title();
@@ -366,7 +408,7 @@ int main(int argc, char **argv)
 
 		// Record commands:
 		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers,
-					&commands, &scene_uniform, image_index) != 0)
+			&commands, &scene_uniform, &sdf_vulkan, u_sdf, image_index) != 0)
 		{
 			break;
 		}
@@ -398,10 +440,7 @@ int main(int argc, char **argv)
 
 	// Destroy Vulkan structs:
 	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,
-											&commands);
-
-	// Free SDF memory:
-	destroy_SDF(&sdf);
+									&commands, &sdf_vulkan);
 
 	return 0;
 }
@@ -451,7 +490,8 @@ void print_controls()
 void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands, int u_sdf)
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+	FracRenderVulkanSDF *sdf_vulkan, int u_sdf)
 {
 	// Vulkan base:
 	base->instance		= VK_NULL_HANDLE;
@@ -557,17 +597,26 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	commands->fences		= NULL;
 	commands->image_available	= VK_NULL_HANDLE;
 	commands->render_finished	= VK_NULL_HANDLE;
+
+	// SDF:
+	sdf_vulkan->descriptor_layout	= VK_NULL_HANDLE;
+	sdf_vulkan->descriptor_set	= VK_NULL_HANDLE;
+	sdf_vulkan->buffer		= VK_NULL_HANDLE;
+	sdf_vulkan->memory		= VK_NULL_HANDLE;
 }
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-		FracRenderVulkanCommands *commands)
+		FracRenderVulkanCommands *commands, FracRenderVulkanSDF *sdf_vulkan)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Cleaning up...\n");
+
+	// Destroy Vulkan SDF structure:
+	destroy_vulkan_sdf(device, sdf_vulkan);
 
 	// Destroy Vulkan command pool, fences and semaphores:
 	destroy_vulkan_commands(device, swapchain, commands);

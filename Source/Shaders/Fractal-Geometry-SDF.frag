@@ -11,12 +11,29 @@ layout (set = 0, binding = 0) uniform UScene
 	float aspect_ratio;
 } u_scene;
 
+struct SVoxel
+{
+	// Centre - xyz, Distance - w:
+	vec4 centre;
+
+	// Number of subvoxels - x, first subvoxel index - y:
+	uvec2 subvoxels;
+
+	// Size - x, padding - y:
+	vec2 size;
+};
+
+layout (set = 1, binding = 0) buffer BVoxels
+{
+	SVoxel voxels[];
+} b_voxels;
+
 layout (location = 0) out vec4 out_position;
 layout (location = 1) out vec4 out_normal;
 
 // Function prototypes:
-float distance_estimator(vec3 position);
 vec4 raymarch(vec3 origin, vec3 ray);
+float distance_estimator(vec3 position);
 
 // Main function:
 void main()
@@ -26,30 +43,8 @@ void main()
 	ray = normalize(ray);
 
 	// Find closest point on Mandelbulb and calculate normal:
-	out_position = raymarch(in_position.xyz, ray);
-}
-
-float distance_estimator(vec3 position)
-{
-	/* Distance estimation equation:
-	*/
-
-	vec3 w = position;
-	float m = dot(w, w);
-	float dz = 1.f;
-
-	for (int i = 0; i < 4; i++)
-	{
-		dz = (8.f * pow(sqrt(m), 7.f) * dz) + 1.f;
-		float r = length(w);
-		float b = 8.f * acos(w.y / r);
-		float a = 8.f * atan(w.z, w.x);
-		w = pow(r, 8) * vec3(sin(b) * sin(a), cos(b), sin(b) * cos(a)) + position;
-		m = dot(w, w);
-		if (m > 256.f) { break; }
-	}
-
-	return 0.25f * log(m) * sqrt(m) / dz;
+	//out_position = raymarch(in_position.xyz, ray);
+	out_position = vec4(b_voxels.voxels[0].centre.xyz, 1.f);
 }
 
 vec4 raymarch(vec3 origin, vec3 ray)
@@ -81,4 +76,44 @@ vec4 raymarch(vec3 origin, vec3 ray)
 
 	// Return current position along with iterations achieved:
 	return current_position;
+}
+
+float distance_estimator(vec3 position)
+{
+	uint index = 0;		// Current index.
+	uint parent = 0;	// Index of parent of current.
+	uint counter = 0;	// How many children of parent we have looked at.
+
+	// Find out which cube the point is in:
+	while (true)
+	{
+		if ((position.x > (b_voxels.voxels[index].centre.x - b_voxels.voxels[index].size.x)
+		&& (position.x < (b_voxels.voxels[index].centre.x + b_voxels.voxels[index].size.x))
+		&& (position.y > (b_voxels.voxels[index].centre.y - b_voxels.voxels[index].size.x))
+		&& (position.y < (b_voxels.voxels[index].centre.y + b_voxels.voxels[index].size.x))
+		&& (position.z > (b_voxels.voxels[index].centre.z - b_voxels.voxels[index].size.x))
+		&& (position.z < (b_voxels.voxels[index].centre.z +
+				b_voxels.voxels[index].size.x))))
+		{
+			if (b_voxels.voxels[index].subvoxels.x == 0)
+			{
+				// Lowest resolution voxel available, break:
+				break;
+			}
+			else
+			{
+				// Go to subvoxels:
+				index = b_voxels.voxels[index].subvoxels.y;
+				counter = 0;
+			}
+
+		}
+		else
+		{
+			index++;
+		}
+	}
+
+	// Distance is encoded in voxel centre w-coordinate:
+	return b_voxels.voxels[index].centre.w;
 }

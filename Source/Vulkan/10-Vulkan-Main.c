@@ -32,7 +32,7 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
 		FracRenderVulkanCommands *commands, FracRenderVulkanSceneUniform *scene_uniform,
-		uint32_t image_index)
+		FracRenderVulkanSDF *sdf_vulkan, int u_sdf, uint32_t image_index)
 {
 	// Create command buffer begin info:
 	VkCommandBufferBeginInfo begin_info;
@@ -130,6 +130,14 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 		VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
 		0, 1, &descriptors->scene_descriptor, 0, NULL);
+
+	// Bind SDF descriptor if applicable:
+	if (u_sdf == 0)
+	{
+		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
+			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
+			1, 1, &sdf_vulkan->descriptor_set, 0, NULL);
+	}
 
 	// Draw fullscreen triangle:
 	vkCmdDraw(commands->command_buffers[image_index], 3, 1, 0, 0);
@@ -294,8 +302,15 @@ int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+		FracRenderVulkanSDF *sdf_vulkan)
 {
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Structure contents:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Vulkan Base:\n");

@@ -156,6 +156,13 @@ typedef struct {
 } FracRenderVulkanSceneUniform;
 
 typedef struct {
+	VkDescriptorSetLayout descriptor_layout;
+	VkDescriptorSet descriptor_set;
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+} FracRenderVulkanSDF;
+
+typedef struct {
 	// Camera (eye):
 	FracRenderVector3 position;
 	FracRenderVector3 front;

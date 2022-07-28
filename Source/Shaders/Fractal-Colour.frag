@@ -21,4 +21,5 @@ void main()
 	float iterations_achieved = texture(u_position_sampler, in_tex_coord).a;
 
 	out_colour = vec4(vec3(iterations_achieved), 1.f);
+	//out_colour = texture(u_position_sampler, in_tex_coord).rgba;
 }

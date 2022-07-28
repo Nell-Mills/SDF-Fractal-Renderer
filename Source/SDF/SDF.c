@@ -1,27 +1,25 @@
 #include "SDF.h"
 
 // Calculate how many voxels are needed:
-uint32_t calculate_memory(float min_x, float max_x, float min_y,
-			float max_y, float min_z, float max_z)
+void calculate_memory(FracRenderSDF *sdf)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Calculating memory requirements of SDF...\n");
 
-	uint32_t result = calculate_memory_helper(min_x, max_x, min_y, max_y, min_z, max_z, 0);
+	sdf->num_voxels = calculate_memory_helper(sdf->min_x, sdf->max_x,
+			sdf->min_y, sdf->max_y, sdf->min_z, sdf->max_z, 0);
 
-	printf(" ---> Voxels needed: %d\n", result);
+	printf(" ---> Voxels needed: %d\n", sdf->num_voxels);
 
-	result += (uint32_t)((float)(result) * 0.25f);
+	sdf->num_voxels += (uint32_t)((float)(sdf->num_voxels) * 0.25f);
 
 	printf(" ---> Will allocate for %d to account for floating "
-					"point inaccuracy.\n", result);
+				"point inaccuracy.\n", sdf->num_voxels);
 
 	printf("... Done.\n");
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
-
-	return result;
 }
 
 // Recursion helper for memory requirement calculation:
@@ -119,8 +117,7 @@ uint32_t calculate_memory_helper(float min_x, float max_x, float min_y,
 }
 
 // Calculate SDF:
-void create_SDF(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z,
-					FracRenderSDF *sdf, uint32_t sdf_memory)
+void create_sdf(FracRenderSDF *sdf)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -128,7 +125,7 @@ void create_SDF(float min_x, float max_x, float min_y, float max_y, float min_z,
 
 	// Allocate memory for the SDF:
 	printf(" ---> Allocating memory.\n");
-	size_t memory_required = sdf_memory * sizeof(FracRenderVoxel);
+	size_t memory_required = sdf->num_voxels * sizeof(FracRenderVoxel);
 	sdf->voxels = malloc(memory_required);
 	printf("      - Memory allocated: %lu bytes (%lu MB).\n", memory_required,
 						memory_required / (1024 * 1024));
@@ -136,8 +133,8 @@ void create_SDF(float min_x, float max_x, float min_y, float max_y, float min_z,
 	// First voxel occupies index 0 so first safe index is 1:
 	printf(" ---> Calculating distance values.\n");
 	uint32_t safe_index = 1;
-	create_SDF_helper(min_x, max_x, min_y, max_y, min_z, max_z, sdf,
-				sdf_memory, 0, &safe_index, 0);
+	create_sdf_helper(sdf, sdf->min_x, sdf->max_x, sdf->min_y, sdf->max_y,
+				sdf->min_z, sdf->max_z, 0, &safe_index, 0);
 
 	printf("... Done.\n");
 	printf("----------------------------------------");
@@ -145,13 +142,11 @@ void create_SDF(float min_x, float max_x, float min_y, float max_y, float min_z,
 }
 
 // SDF recursion helper:
-void create_SDF_helper(float min_x, float max_x, float min_y,
-	float max_y, float min_z, float max_z, FracRenderSDF *sdf,
-	uint32_t sdf_memory, uint32_t current_index,
-	uint32_t *safe_index, uint32_t level)
+void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y, float max_y,
+	float min_z, float max_z, uint32_t current_index, uint32_t *safe_index, uint32_t level)
 {
 	// Check index:
-	if (current_index >= sdf_memory)
+	if (current_index >= sdf->num_voxels)
 	{
 		fprintf(stderr, "Warning: SDF tried to exceed memory allocation!\n");
 	}
@@ -167,6 +162,9 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 
 	// Calculate size of voxel:
 	sdf->voxels[current_index].size = fabs((max_x - min_x) / 2.f);
+
+	// Record max voxels:
+	sdf->voxels[current_index].max_index = (float)(sdf->num_voxels);
 
 	if (fabs(sdf->voxels[current_index].distance) > ((sqrt(3) * fabs(max_x - min_x) * 0.5f) + 0.01f))
 	{
@@ -195,12 +193,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Upper, top-left cube (looking top-down):
-		create_SDF_helper(
-				min_x, (max_x + min_x) / 2.f,
+		create_sdf_helper(
+				sdf, min_x, (max_x + min_x) / 2.f,
 				(max_y + min_y) / 2.f, max_y,
 				(max_z + min_z) / 2.f, max_z,
-				sdf, sdf_memory, current_index,
-				safe_index, level + 1
+				current_index, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -210,12 +207,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Upper, top-right cube:
-		create_SDF_helper(
-				(max_x + min_x) / 2.f, max_x,
+		create_sdf_helper(
+				sdf, (max_x + min_x) / 2.f, max_x,
 				(max_y + min_y) / 2.f, max_y,
 				(max_z + min_z) / 2.f, max_z,
-				sdf, sdf_memory, current_index + 1,
-				safe_index, level + 1
+				current_index + 1, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -225,12 +221,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Upper, bottom-left cube:
-		create_SDF_helper(
-				min_x, (max_x + min_x) / 2.f,
+		create_sdf_helper(
+				sdf, min_x, (max_x + min_x) / 2.f,
 				(max_y + min_y) / 2.f, max_y,
 				min_z, (max_z + min_z) / 2.f,
-				sdf, sdf_memory, current_index + 2,
-				safe_index, level + 1
+				current_index + 2, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -240,12 +235,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Upper, bottom-right cube:
-		create_SDF_helper(
-				(max_x + min_x) / 2.f, max_x,
+		create_sdf_helper(
+				sdf, (max_x + min_x) / 2.f, max_x,
 				(max_y + min_y) / 2.f, max_y,
 				min_z, (max_z + min_z) / 2.f,
-				sdf, sdf_memory, current_index + 3,
-				safe_index, level + 1
+				current_index + 3, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -255,12 +249,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Lower, top-left cube (looking top-down):
-		create_SDF_helper(
-				min_x, (max_x + min_x) / 2.f,
+		create_sdf_helper(
+				sdf, min_x, (max_x + min_x) / 2.f,
 				min_y, (max_y + min_y) / 2.f,
 				(max_z + min_z) / 2.f, max_z,
-				sdf, sdf_memory, current_index + 4,
-				safe_index, level + 1
+				current_index + 4, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -270,12 +263,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Lower, top-right cube:
-		create_SDF_helper(
-				(max_x + min_x) / 2.f, max_x,
+		create_sdf_helper(
+				sdf, (max_x + min_x) / 2.f, max_x,
 				min_y, (max_y + min_y) / 2.f,
 				(max_z + min_z) / 2.f, max_z,
-				sdf, sdf_memory, current_index + 5,
-				safe_index, level + 1
+				current_index + 5, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -285,12 +277,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Lower, bottom-left cube:
-		create_SDF_helper(
-				min_x, (max_x + min_x) / 2.f,
+		create_sdf_helper(
+				sdf, min_x, (max_x + min_x) / 2.f,
 				min_y, (max_y + min_y) / 2.f,
 				min_z, (max_z + min_z) / 2.f,
-				sdf, sdf_memory, current_index + 6,
-				safe_index, level + 1
+				current_index + 6, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -300,12 +291,11 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 		}
 
 		// Lower, bottom-right cube:
-		create_SDF_helper(
-				(max_x + min_x) / 2.f, max_x,
+		create_sdf_helper(
+				sdf, (max_x + min_x) / 2.f, max_x,
 				min_y, (max_y + min_y) / 2.f,
 				min_z, (max_z + min_z) / 2.f,
-				sdf, sdf_memory, current_index + 7,
-				safe_index, level + 1
+				current_index + 7, safe_index, level + 1
 		);
 
 		// Print progress:
@@ -317,13 +307,16 @@ void create_SDF_helper(float min_x, float max_x, float min_y,
 }
 
 // Free SDF memory:
-void destroy_SDF(FracRenderSDF *sdf)
+void destroy_sdf(FracRenderSDF *sdf)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
-	printf("Freeing memory for SDF...\n");
+	printf("Freeing memory for SDF (CPU-side)...\n");
 
-	free(sdf->voxels);
+	if (sdf->voxels)
+	{
+		free(sdf->voxels);
+	}
 
 	printf("... Done.\n");
 	printf("----------------------------------------");
@@ -370,10 +363,29 @@ float signed_distance_function(FracRenderVector3 centre)
 // Print out a few voxels for debugging:
 void print_voxels(FracRenderSDF *sdf)
 {
-	uint32_t index = 0;
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Voxel debugging data\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
 
+	printf("Max number of voxels:\t\t134217728.\n");
+	printf("Actual number of voxels:\t %d.\n\n", sdf->num_voxels);
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("Dimensions (min to max):\n");
+	printf("X: %f to %f.\n", sdf->min_x, sdf->max_x);
+	printf("Y: %f to %f.\n", sdf->min_y, sdf->max_y);
+	printf("Z: %f to %f.\n\n", sdf->min_z, sdf->max_z);
+
+	uint32_t index = 0;
 	for (int i = 0; i < 3; i++)
 	{
+		printf("----------------------------------------");
+		printf("----------------------------------------\n\n");
+
 		if (i > 0)
 		{
 			index = sdf->voxels[index].first_subvoxel_index;
@@ -388,4 +400,7 @@ void print_voxels(FracRenderSDF *sdf)
 		printf("First sub-voxel index: %d\n", sdf->voxels[index].first_subvoxel_index);
 		printf("Size: %f\n\n", sdf->voxels[index].size);
 	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
 }

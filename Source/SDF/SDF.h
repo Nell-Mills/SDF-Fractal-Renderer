@@ -14,17 +14,31 @@
  **************/
 
 typedef struct {
-	// (vec4) Location of centre of voxel and its distance value:
+	// (vec4, 4 bytes) Location of centre of voxel and its distance value:
 	FracRenderVector3 centre;
 	float distance;
 
-	// (uvec3) Subvoxels and size (centre to edge):
+	// (uvec2, 2 bytes) Subvoxels:
 	uint32_t num_subvoxels;
 	uint32_t first_subvoxel_index;
+
+	// (vec2, 2 bytes) Size (centre to edge) and max index:
 	float size;
+	float max_index; // Needed an extra value to pad so whole struct is 64 bits.
 } FracRenderVoxel;
 
 typedef struct {
+	// Number of voxels:
+	uint32_t num_voxels;
+
+	// Dimensions:
+	float min_x;
+	float max_x;
+	float min_y;
+	float max_y;
+	float min_z;
+	float max_z;
+
 	// Voxels:
 	FracRenderVoxel *voxels;
 } FracRenderSDF;
@@ -34,25 +48,21 @@ typedef struct {
  ***********************/
 
 // Calculate how many voxels are needed:
-uint32_t calculate_memory(float min_x, float max_x, float min_y,
-			float max_y, float min_z, float max_z);
+void calculate_memory(FracRenderSDF *sdf);
 
 // Recursion helper for memory requirement calculation:
 uint32_t calculate_memory_helper(float min_x, float max_x, float min_y,
 		float max_y, float min_z, float max_z, uint32_t level);
 
 // Calculate SDF:
-void create_SDF(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z,
-					FracRenderSDF *sdf, uint32_t sdf_memory_requirements);
+void create_sdf(FracRenderSDF *sdf);
 
 // SDF recursion helper:
-void create_SDF_helper(float min_x, float max_x, float min_y,
-	float max_y, float min_z, float max_z, FracRenderSDF *sdf,
-	uint32_t sdf_memory_requirements, uint32_t current_index,
-	uint32_t *safe_index, uint32_t level);
+void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y, float max_y,
+	float min_z, float max_z, uint32_t current_index, uint32_t *safe_index, uint32_t level);
 
 // Free SDF memory:
-void destroy_SDF(FracRenderSDF *sdf);
+void destroy_sdf(FracRenderSDF *sdf);
 
 // Signed distance function:
 float signed_distance_function(FracRenderVector3 centre);
