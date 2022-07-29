@@ -23,7 +23,7 @@ struct SVoxel
 	vec2 size;
 };
 
-layout (set = 1, binding = 0) buffer BVoxels
+layout (set = 1, binding = 0) readonly buffer BVoxels
 {
 	SVoxel voxels[];
 } b_voxels;
@@ -33,7 +33,8 @@ layout (location = 1) out vec4 out_normal;
 
 // Function prototypes:
 vec4 raymarch(vec3 origin, vec3 ray);
-float distance_estimator(vec3 position);
+vec2 distance_lookup(vec3 position);
+float ray_cube_intersect(vec3 origin, vec3 ray, float cube_size);
 
 // Main function:
 void main()
@@ -43,46 +44,70 @@ void main()
 	ray = normalize(ray);
 
 	// Find closest point on Mandelbulb and calculate normal:
-	//out_position = raymarch(in_position.xyz, ray);
-	out_position = vec4(b_voxels.voxels[0].centre.xyz, 1.f);
+	out_position = raymarch(in_position.xyz, ray);
 }
 
 vec4 raymarch(vec3 origin, vec3 ray)
 {
 	vec4 current_position;
-	int max_steps = 50;
+	int max_steps = 49;
 	float distance_travelled = 0.f;
-	float distance_threshold = 0.0001f;
+	float distance_threshold = 0.003f;
 
-	for (int steps_taken = 0; steps_taken < max_steps; steps_taken++)
+	{
+		// Get current position. Encode iterations in w-coordinate:
+		current_position = vec4(origin + (ray * distance_travelled), 1.f);
+
+		// Look up distance estimate and update total distance travelled:
+		vec2 distance_estimate = distance_lookup(current_position.xyz);
+
+		// If cube size is invalid, point is not in main cube. Move ray along:
+		if (distance_estimate.y < 0.f)
+		{
+			distance_estimate.x = ray_cube_intersect(origin, ray,
+						b_voxels.voxels[0].size.x);
+			if (distance_estimate.x < 0.f)
+			{
+				// Ray does not intersect main SDF cube:
+				return vec4(-1.f);
+			}
+			distance_travelled += distance_estimate.x * 1.01f;
+		}
+	}
+
+	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
 		// Get current position. Encode iterations in w-coordinate:
 		current_position = vec4(origin + (ray * distance_travelled),
 			1.f - (float(steps_taken) / float(max_steps)));
 
-		// Get distance (under)estimate and update total distance travelled:
-		float distance_estimate = distance_estimator(current_position.xyz);
-		distance_travelled += distance_estimate * 0.9f;
+		// Look up distance estimate and update total distance travelled:
+		vec2 distance_estimate = distance_lookup(current_position.xyz);
 
-		// Check how close the point is to the surface:
-		if (distance_estimate < distance_threshold)
+		// Update distance travelled:
+		distance_travelled += distance_estimate.x;
+
+		// If distance is less than cube size or threshold, point is close enough:
+		if ((distance_estimate.x < distance_estimate.y) ||
+			(abs(distance_estimate.x) < distance_threshold))
 		{
+			current_position = vec4(origin + (ray * distance_travelled),
+				1.f - (float(steps_taken) / float(max_steps)));
 			break;
 		}
 	}
 
 	// Calculate normal based on distance gradient:
-	out_normal = vec4(0.f, 1.f, 1.f, 1.f);
+	out_normal = vec4(0.f, 1.f, 0.f, 1.f);
 
 	// Return current position along with iterations achieved:
 	return current_position;
 }
 
-float distance_estimator(vec3 position)
+vec2 distance_lookup(vec3 position)
 {
 	uint index = 0;		// Current index.
-	uint parent = 0;	// Index of parent of current.
-	uint counter = 0;	// How many children of parent we have looked at.
+	uint counter = 0;	// How many children of parent have been looked at.
 
 	// Find out which cube the point is in:
 	while (true)
@@ -97,7 +122,9 @@ float distance_estimator(vec3 position)
 		{
 			if (b_voxels.voxels[index].subvoxels.x == 0)
 			{
-				// Lowest resolution voxel available, break:
+				// Lowest resolution voxel available, return:
+				return vec2(b_voxels.voxels[index].centre.w,
+						b_voxels.voxels[index].size.x);
 				break;
 			}
 			else
@@ -110,10 +137,26 @@ float distance_estimator(vec3 position)
 		}
 		else
 		{
+			counter++;
+			if ((counter > 7) || (index == 0)) {
+				// Point is not found, return invalid value:
+				return vec2(-1.f);
+			}
 			index++;
 		}
 	}
+}
 
-	// Distance is encoded in voxel centre w-coordinate:
-	return b_voxels.voxels[index].centre.w;
+float ray_cube_intersect(vec3 origin, vec3 ray, float cube_size)
+{
+	// Function from: https://iquilezles.org/articles/intersectors/
+	vec3 m = 1.f / ray;
+	vec3 n = m * origin;
+	vec3 k = abs(m) * vec3(cube_size);
+	vec3 t1 = -n - k;
+	vec3 t2 = -n + k;
+	float tN = max(max(t1.x, t1.y), t1.z);
+	float tF = min(min(t2.x, t2.y), t2.z);
+	if ((tN > tF) || (tF < 0.f)) { return -1.f; }	// Doesn't intersect.
+	return tN;	// Nearest intersection distance.
 }

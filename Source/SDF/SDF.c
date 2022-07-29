@@ -7,8 +7,7 @@ void calculate_memory(FracRenderSDF *sdf)
 	printf("----------------------------------------\n");
 	printf("Calculating memory requirements of SDF...\n");
 
-	sdf->num_voxels = calculate_memory_helper(sdf->min_x, sdf->max_x,
-			sdf->min_y, sdf->max_y, sdf->min_z, sdf->max_z, 0);
+	sdf->num_voxels = calculate_memory_helper(sdf->size, sdf->centre, 0);
 
 	printf(" ---> Voxels needed: %d\n", sdf->num_voxels);
 
@@ -23,22 +22,23 @@ void calculate_memory(FracRenderSDF *sdf)
 }
 
 // Recursion helper for memory requirement calculation:
-uint32_t calculate_memory_helper(float min_x, float max_x, float min_y,
-		float max_y, float min_z, float max_z, uint32_t level)
+uint32_t calculate_memory_helper(float size, FracRenderVector3 centre, uint32_t level)
 {
 	// Max resolution for SDF (9 levels for 2^9 = 512 voxels along each side):
 	if (level > 8) { return 1; }
 
-	// Calculate centre of voxel:
-	FracRenderVector3 centre;
-	centre.x = (max_x + min_x) / 2.f;
-	centre.y = (max_y + min_y) / 2.f;
-	centre.z = (max_z + min_z) / 2.f;
+	// Calculate boundaries of voxel:
+	float min_x = centre.x - size;
+	float max_x = centre.x + size;
+	float min_y = centre.y - size;
+	float max_y = centre.y + size;
+	float min_z = centre.z - size;
+	float max_z = centre.z + size;
 
 	// Calculate signed distance from surface:
 	float distance = signed_distance_function(centre);
 
-	if (fabs(distance) > ((sqrt(3) * fabs(max_x - min_x) * 0.5f) + 0.01f))
+	if (fabs(distance) > (sqrt(3) * size * 3.5f))
 	{
 		// If distance is larger than diagonal cube length, don't split:
 		return 1;
@@ -46,78 +46,63 @@ uint32_t calculate_memory_helper(float min_x, float max_x, float min_y,
 	else
 	{
 		// Split cube into 8 smaller cubes:
+		FracRenderVector3 new_centre;
 		uint32_t result = 0;
 
 		// Upper, top-left cube (looking top-down):
-		result += calculate_memory_helper(
-				min_x, (max_x + min_x) / 2.f,
-				(max_y + min_y) / 2.f, max_y,
-				(max_z + min_z) / 2.f, max_z,
-				level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Upper, top-right cube:
-		result += calculate_memory_helper(
-				(max_x + min_x) / 2.f, max_x,
-				(max_y + min_y) / 2.f, max_y,
-				(max_z + min_z) / 2.f, max_z,
-				level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Upper, bottom-left cube:
-		result += calculate_memory_helper(
-				min_x, (max_x + min_x) / 2.f,
-				(max_y + min_y) / 2.f, max_y,
-				min_z, (max_z + min_z) / 2.f,
-				level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Upper, bottom-right cube:
-		result += calculate_memory_helper(
-				(max_x + min_x) / 2.f, max_x,
-				(max_y + min_y) / 2.f, max_y,
-				min_z, (max_z + min_z) / 2.f,
-				level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Lower, top-left cube (looking top-down):
-		result += calculate_memory_helper(
-				min_x, (max_x + min_x) / 2.f,
-				min_y, (max_y + min_y) / 2.f,
-				(max_z + min_z) / 2.f, max_z,
-				level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Lower, top-right cube:
-		result += calculate_memory_helper(
-				(max_x + min_x) / 2.f, max_x,
-				min_y, (max_y + min_y) / 2.f,
-				(max_z + min_z) / 2.f, max_z,
-				level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Lower, bottom-left cube:
-		result += calculate_memory_helper(
-				min_x, (max_x + min_x) / 2.f,
-				min_y, (max_y + min_y) / 2.f,
-				min_z, (max_z + min_z) / 2.f,
-				level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		// Lower, bottom-right cube:
-		result += calculate_memory_helper(
-				(max_x + min_x) / 2.f, max_x,
-				min_y, (max_y + min_y) / 2.f,
-				min_z, (max_z + min_z) / 2.f,
-				level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		result += calculate_memory_helper(size / 2.f, new_centre, level + 1);
 
 		return result;
 	}
 }
 
 // Calculate SDF:
-void create_sdf(FracRenderSDF *sdf)
+int create_sdf(FracRenderSDF *sdf)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -125,7 +110,15 @@ void create_sdf(FracRenderSDF *sdf)
 
 	// Allocate memory for the SDF:
 	printf(" ---> Allocating memory.\n");
+	printf("      - Size of a voxel: %lu bytes.\n", sizeof(FracRenderVoxel));
 	size_t memory_required = sdf->num_voxels * sizeof(FracRenderVoxel);
+
+	if ((memory_required / (1024 * 1024)) > 2000)
+	{
+		fprintf(stderr, "Error: Tried to allocate more than 2GB!\n");
+		return -1;
+	}
+
 	sdf->voxels = malloc(memory_required);
 	printf("      - Memory allocated: %lu bytes (%lu MB).\n", memory_required,
 						memory_required / (1024 * 1024));
@@ -133,52 +126,53 @@ void create_sdf(FracRenderSDF *sdf)
 	// First voxel occupies index 0 so first safe index is 1:
 	printf(" ---> Calculating distance values.\n");
 	uint32_t safe_index = 1;
-	create_sdf_helper(sdf, sdf->min_x, sdf->max_x, sdf->min_y, sdf->max_y,
-				sdf->min_z, sdf->max_z, 0, &safe_index, 0);
+	if (create_sdf_helper(sdf, sdf->size, sdf->centre, 0, &safe_index, 0) != 0)
+	{
+		return -1;
+	}
 
 	printf("... Done.\n");
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
+
+	return 0;
 }
 
 // SDF recursion helper:
-void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y, float max_y,
-	float min_z, float max_z, uint32_t current_index, uint32_t *safe_index, uint32_t level)
+int create_sdf_helper(FracRenderSDF *sdf, float size, FracRenderVector3 centre,
+		uint32_t current_index, uint32_t *safe_index, uint32_t level)
 {
 	// Check index:
 	if (current_index >= sdf->num_voxels)
 	{
-		fprintf(stderr, "Warning: SDF tried to exceed memory allocation!\n");
+		fprintf(stderr, "Error: SDF tried to exceed memory allocation!\n");
+		return -1;
 	}
 
-	// Calculate centre of voxel:
-	sdf->voxels[current_index].centre.x = (max_x + min_x) / 2.f;
-	sdf->voxels[current_index].centre.y = (max_y + min_y) / 2.f;
-	sdf->voxels[current_index].centre.z = (max_z + min_z) / 2.f;
+	// Get centre of voxel:
+	sdf->voxels[current_index].centre = centre;
 
 	// Calculate signed distance from surface:
-	sdf->voxels[current_index].distance = signed_distance_function(
-					sdf->voxels[current_index].centre);
+	sdf->voxels[current_index].distance = signed_distance_function(centre);
 
-	// Calculate size of voxel:
-	sdf->voxels[current_index].size = fabs((max_x - min_x) / 2.f);
+	// Get size of voxel (inflate a little to account for floating point imprecision):
+	sdf->voxels[current_index].size = size + 0.00001f;
 
-	// Record max voxels:
-	sdf->voxels[current_index].max_index = (float)(sdf->num_voxels);
-
-	if (fabs(sdf->voxels[current_index].distance) > ((sqrt(3) * fabs(max_x - min_x) * 0.5f) + 0.01f))
+	if (fabs(sdf->voxels[current_index].distance) > (sqrt(3) * size * 3.5f))
 	{
 		// If distance is larger than diagonal cube length, don't split:
 		sdf->voxels[current_index].num_subvoxels = 0;
 		sdf->voxels[current_index].first_subvoxel_index = 0;
 	}
-	else if (level > 8) {
+	else if (level > 8)
+	{
 		// Max resolution for SDF (9 levels for 2^9 = 512 voxels along each side):
 		sdf->voxels[current_index].num_subvoxels = 0;
 		sdf->voxels[current_index].first_subvoxel_index = 0;
 	}
 	else
 	{
+		FracRenderVector3 new_centre;
 		sdf->voxels[current_index].num_subvoxels = 8;
 		sdf->voxels[current_index].first_subvoxel_index = *safe_index;
 
@@ -193,12 +187,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Upper, top-left cube (looking top-down):
-		create_sdf_helper(
-				sdf, min_x, (max_x + min_x) / 2.f,
-				(max_y + min_y) / 2.f, max_y,
-				(max_z + min_z) / 2.f, max_z,
-				current_index, safe_index, level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -207,12 +203,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Upper, top-right cube:
-		create_sdf_helper(
-				sdf, (max_x + min_x) / 2.f, max_x,
-				(max_y + min_y) / 2.f, max_y,
-				(max_z + min_z) / 2.f, max_z,
-				current_index + 1, safe_index, level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 1, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -221,12 +219,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Upper, bottom-left cube:
-		create_sdf_helper(
-				sdf, min_x, (max_x + min_x) / 2.f,
-				(max_y + min_y) / 2.f, max_y,
-				min_z, (max_z + min_z) / 2.f,
-				current_index + 2, safe_index, level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 2, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -235,12 +235,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Upper, bottom-right cube:
-		create_sdf_helper(
-				sdf, (max_x + min_x) / 2.f, max_x,
-				(max_y + min_y) / 2.f, max_y,
-				min_z, (max_z + min_z) / 2.f,
-				current_index + 3, safe_index, level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y + (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 3, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -249,12 +251,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Lower, top-left cube (looking top-down):
-		create_sdf_helper(
-				sdf, min_x, (max_x + min_x) / 2.f,
-				min_y, (max_y + min_y) / 2.f,
-				(max_z + min_z) / 2.f, max_z,
-				current_index + 4, safe_index, level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 4, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -263,12 +267,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Lower, top-right cube:
-		create_sdf_helper(
-				sdf, (max_x + min_x) / 2.f, max_x,
-				min_y, (max_y + min_y) / 2.f,
-				(max_z + min_z) / 2.f, max_z,
-				current_index + 5, safe_index, level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z + (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 5, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -277,12 +283,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Lower, bottom-left cube:
-		create_sdf_helper(
-				sdf, min_x, (max_x + min_x) / 2.f,
-				min_y, (max_y + min_y) / 2.f,
-				min_z, (max_z + min_z) / 2.f,
-				current_index + 6, safe_index, level + 1
-		);
+		new_centre.x = centre.x - (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 6, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -291,12 +299,14 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 		}
 
 		// Lower, bottom-right cube:
-		create_sdf_helper(
-				sdf, (max_x + min_x) / 2.f, max_x,
-				min_y, (max_y + min_y) / 2.f,
-				min_z, (max_z + min_z) / 2.f,
-				current_index + 7, safe_index, level + 1
-		);
+		new_centre.x = centre.x + (size / 2.f);
+		new_centre.y = centre.y - (size / 2.f);
+		new_centre.z = centre.z - (size / 2.f);
+		if (create_sdf_helper(sdf, size / 2.f, new_centre,
+			current_index + 7, safe_index, level + 1) != 0)
+		{
+			return -1;
+		}
 
 		// Print progress:
 		if (level == 0)
@@ -304,6 +314,8 @@ void create_sdf_helper(FracRenderSDF *sdf, float min_x, float max_x, float min_y
 			printf("      ---> 100.0%%.\n");
 		}
 	}
+
+	return 0;
 }
 
 // Free SDF memory:
@@ -324,9 +336,9 @@ void destroy_sdf(FracRenderSDF *sdf)
 }
 
 // Signed distance function:
-float signed_distance_function(FracRenderVector3 centre)
+float signed_distance_function(FracRenderVector3 position)
 {
-	FracRenderVector3 w = centre;
+	FracRenderVector3 w = position;
 	if ((w.x == 0.f) && (w.y == 0.f) && (w.z == 0.f))
 	{
 		w.x = 0.0001f;
@@ -345,7 +357,7 @@ float signed_distance_function(FracRenderVector3 centre)
 		float b;
 		if (r == 0.f) { b = 8.f * acos(0.f); }
 		else { b = 8.f * acos(w.y / r); }
-		float a = 8.f * atan2(w.x, w.z);
+		float a = 8.f * atan2(w.z, w.x);
 		float r_8 = pow(r, 8.f);
 
 		w.x = (sin(b) * sin(a) * r_8) + w.x;
@@ -376,9 +388,9 @@ void print_voxels(FracRenderSDF *sdf)
 	printf("----------------------------------------\n\n");
 
 	printf("Dimensions (min to max):\n");
-	printf("X: %f to %f.\n", sdf->min_x, sdf->max_x);
-	printf("Y: %f to %f.\n", sdf->min_y, sdf->max_y);
-	printf("Z: %f to %f.\n\n", sdf->min_z, sdf->max_z);
+	printf("X: %f to %f.\n", sdf->centre.x - sdf->size, sdf->centre.x + sdf->size);
+	printf("Y: %f to %f.\n", sdf->centre.y - sdf->size, sdf->centre.y + sdf->size);
+	printf("Z: %f to %f.\n", sdf->centre.z - sdf->size, sdf->centre.z + sdf->size);
 
 	uint32_t index = 0;
 	for (int i = 0; i < 3; i++)

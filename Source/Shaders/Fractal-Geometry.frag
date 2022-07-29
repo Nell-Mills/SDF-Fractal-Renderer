@@ -31,9 +31,6 @@ void main()
 
 float distance_estimator(vec3 position)
 {
-	/* Distance estimation equation:
-	*/
-
 	vec3 w = position;
 	float m = dot(w, w);
 	float dz = 1.f;
@@ -55,11 +52,11 @@ float distance_estimator(vec3 position)
 vec4 raymarch(vec3 origin, vec3 ray)
 {
 	vec4 current_position;
-	int max_steps = 50;
+	int max_steps = 49;
 	float distance_travelled = 0.f;
-	float distance_threshold = 0.0001f;
+	float distance_threshold = 0.003f;
 
-	for (int steps_taken = 0; steps_taken < max_steps; steps_taken++)
+	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
 		// Get current position. Encode iterations in w-coordinate:
 		current_position = vec4(origin + (ray * distance_travelled),
@@ -67,17 +64,19 @@ vec4 raymarch(vec3 origin, vec3 ray)
 
 		// Get distance (under)estimate and update total distance travelled:
 		float distance_estimate = distance_estimator(current_position.xyz);
-		distance_travelled += distance_estimate * 0.9f;
+		distance_travelled += distance_estimate;
 
 		// Check how close the point is to the surface:
 		if (distance_estimate < distance_threshold)
 		{
+			current_position = vec4(origin + (ray * distance_travelled),
+				1.f - (float(steps_taken) / float(max_steps)));
 			break;
 		}
 	}
 
 	// Calculate normal based on distance gradient:
-	out_normal = vec4(0.f, 1.f, 1.f, 1.f);
+	out_normal = vec4(0.f, 1.f, 0.f, 1.f);
 
 	// Return current position along with iterations achieved:
 	return current_position;
