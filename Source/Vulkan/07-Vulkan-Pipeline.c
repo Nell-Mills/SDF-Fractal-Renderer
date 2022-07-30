@@ -402,6 +402,13 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 			layouts[0] = descriptors->scene_descriptor_layout;
 			layouts[1] = descriptors->sdf_3d_descriptor_layout;
 		}
+		else if (sdf_type == 1)
+		{
+			num_layouts = 2;
+			layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
+			layouts[0] = descriptors->scene_descriptor_layout;
+			layouts[1] = descriptors->sdf_2d_descriptor_layout;
+		}
 		else
 		{
 			num_layouts = 1;

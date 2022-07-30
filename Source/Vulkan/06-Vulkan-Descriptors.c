@@ -63,6 +63,10 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 	{
 		// Create 2D SDF descriptor layout:
 		printf(" ---> Creating 2D SDF descriptor layout.\n");
+		if (create_sdf_2d_descriptor_layout(device, descriptors) != 0)
+		{
+			return -1;
+		}
 	}
 
 	printf("... Done.\n");
@@ -108,6 +112,10 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	{
 		// Create 2D SDF descriptor:
 		printf(" ---> Creating 2D SDF descriptor.\n");
+		if (create_sdf_2d_descriptor(device, descriptors) != 0)
+		{
+			return -1;
+		}
 	}
 
 	printf("... Done.\n");
@@ -666,7 +674,7 @@ int create_sdf_3d_descriptor(FracRenderVulkanDevice *device,
 	allocate_info.pSetLayouts		= &descriptors->sdf_3d_descriptor_layout;
 
 	if (vkAllocateDescriptorSets(device->logical_device, &allocate_info,
-			&descriptors->sdf_3d_descriptor_set) != VK_SUCCESS)
+			&descriptors->sdf_3d_descriptor) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Unable to allocate 3D SDF descriptor set!\n");
 		return -1;
@@ -683,7 +691,7 @@ int create_sdf_3d_descriptor(FracRenderVulkanDevice *device,
 	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	descriptor_write[0].pNext		= NULL;
-	descriptor_write[0].dstSet		= descriptors->sdf_3d_descriptor_set;
+	descriptor_write[0].dstSet		= descriptors->sdf_3d_descriptor;
 	descriptor_write[0].dstBinding		= 0;
 	descriptor_write[0].dstArrayElement	= 0;
 	descriptor_write[0].descriptorCount	= 1;
@@ -934,5 +942,19 @@ int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
 
+	return 0;
+}
+
+// Create 2D SDF descriptor set layout:
+int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
+			FracRenderVulkanDescriptors *descriptors)
+{
+	return 0;
+}
+
+// Create 2D SDF descriptor:
+int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+		FracRenderVulkanDescriptors *descriptors)
+{
 	return 0;
 }

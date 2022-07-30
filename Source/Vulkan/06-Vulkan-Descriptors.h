@@ -79,4 +79,12 @@ int create_sdf_3d_descriptor(FracRenderVulkanDevice *device,
 int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
 				FracRenderVulkanCommands *commands, FracRenderSDF3D *sdf_3d);
 
+// Create 2D SDF descriptor set layout:
+int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
+			FracRenderVulkanDescriptors *descriptors);
+
+// Create 2D SDF descriptor:
+int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+		FracRenderVulkanDescriptors *descriptors);
+
 #endif

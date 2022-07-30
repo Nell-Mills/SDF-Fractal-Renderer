@@ -89,7 +89,7 @@ typedef struct {
 
 	// 3D SDF descriptor:
 	VkDescriptorSetLayout sdf_3d_descriptor_layout;
-	VkDescriptorSet sdf_3d_descriptor_set;
+	VkDescriptorSet sdf_3d_descriptor;
 	VkBuffer sdf_3d_buffer;
 	VkDeviceMemory sdf_3d_memory;
 

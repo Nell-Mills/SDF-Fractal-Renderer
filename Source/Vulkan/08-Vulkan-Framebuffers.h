@@ -53,4 +53,12 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers);
 
+// Create 2D SDF image:
+int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanFramebuffers *framebuffers);
+
+// Create 2D SDF image view:
+int create_sdf_2d_image_view(FracRenderVulkanDevice *device,
+		FracRenderVulkanFramebuffers *framebuffers);
+
 #endif

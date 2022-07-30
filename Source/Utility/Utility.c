@@ -98,7 +98,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->g_buffer_descriptors		= NULL;
 
 	descriptors->sdf_3d_descriptor_layout		= VK_NULL_HANDLE;
-	descriptors->sdf_3d_descriptor_set		= VK_NULL_HANDLE;
+	descriptors->sdf_3d_descriptor		= VK_NULL_HANDLE;
 	descriptors->sdf_3d_buffer			= VK_NULL_HANDLE;
 	descriptors->sdf_3d_memory			= VK_NULL_HANDLE;
 

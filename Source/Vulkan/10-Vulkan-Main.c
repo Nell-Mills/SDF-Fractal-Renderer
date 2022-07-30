@@ -131,18 +131,19 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
 		0, 1, &descriptors->scene_descriptor, 0, NULL);
 
-	// Bind 3D SDF descriptor if applicable:
 	if (sdf_type == 0)
 	{
+		// Bind 3D SDF descriptor:
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
-			1, 1, &descriptors->sdf_3d_descriptor_set, 0, NULL);
+			1, 1, &descriptors->sdf_3d_descriptor, 0, NULL);
 	}
-
-	// Bind 2D SDF descriptor if applicable:
-	if (sdf_type == 1)
+	else if (sdf_type == 1)
 	{
-		// Nothing for now.
+		// Bind 2D SDF descriptor:
+		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
+			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
+			1, 1, &descriptors->sdf_2d_descriptor, 0, NULL);
 	}
 
 	// Draw fullscreen triangle:

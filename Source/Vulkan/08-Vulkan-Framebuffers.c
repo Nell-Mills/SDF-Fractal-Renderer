@@ -30,10 +30,19 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	// If 2D SDF is on, create image:
 	if (sdf_type == 1)
 	{
-		// Nothing for now.
+		// Create 2D SDF image:
+		if (create_sdf_2d_image(device, swapchain, framebuffers) != 0)
+		{
+			return -1;
+		}
+
+		// Create 2D SDF image view:
+		if (create_sdf_2d_image_view(device, framebuffers) != 0)
+		{
+			return -1;
+		}
 	}
 
 	printf("... Done.\n");
@@ -418,5 +427,19 @@ int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwa
 		return -1;
 	}
 
+	return 0;
+}
+
+// Create 2D SDF image:
+int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanFramebuffers *framebuffers)
+{
+	return 0;
+}
+
+// Create 2D SDF image view:
+int create_sdf_2d_image_view(FracRenderVulkanDevice *device,
+		FracRenderVulkanFramebuffers *framebuffers)
+{
 	return 0;
 }

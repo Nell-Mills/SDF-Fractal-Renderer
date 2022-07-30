@@ -1,29 +1,40 @@
 1. Finish handle printing function		-->
 2. Colour the fractal				-->
 
+-------------------------------------------------------------------------------
+
 3. Do background research on 2D fractals	-->
 4. Do background research on 3D fractals	-->
-5. Refresh knowledge of Mandelbulb		-->
-6. Write about implementation			-->
-
-7. Do background research on SDF		-->
-8. Implement SDF (get data into shaders)	-->
-9. Write about implementation			-->
+5. Do background research on SDF		-->
+6. Possibly research cone tracing		-->
 
 -------------------------------------------------------------------------------
 
-10. Implement performance measurements		-->
-11. Write about implementation			-->
-
-12. Collect data				-->
-13. Write about results				-->
+7. Implement 3D SDF				-->	Done
+8. Implement 2D SDF				-->
+9. Possibly implement cone tracing		-->
 
 -------------------------------------------------------------------------------
 
-14. Conclusion					-->
-
-15. Introduction				-->
+10. Write about implementation of fractal	-->
+11. Write about implementation of SDF		-->
+12. Write about implementation of new SDF	-->
+13. Write about implementation of cone tracing	-->
 
 -------------------------------------------------------------------------------
 
-16. Report proofreading				-->
+14. Implement performance measurements		-->
+15. Write about implementation			-->
+
+16. Collect data				-->
+17. Write about results				-->
+
+-------------------------------------------------------------------------------
+
+18. Conclusion					-->
+
+19. Introduction				-->
+
+-------------------------------------------------------------------------------
+
+20. Report proofreading				-->
