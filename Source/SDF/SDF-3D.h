@@ -1,5 +1,5 @@
-#ifndef FRACRENDER_SDF_H
-#define FRACRENDER_SDF_H
+#ifndef FRACRENDER_SDF_3D_H
+#define FRACRENDER_SDF_3D_H
 
 // Library includes:
 #include <stdint.h>
@@ -37,32 +37,32 @@ typedef struct {
 
 	// Voxels:
 	FracRenderVoxel *voxels;
-} FracRenderSDF;
+} FracRenderSDF3D;
 
 /***********************
  * Function Prototypes *
  ***********************/
 
 // Calculate how many voxels are needed:
-void calculate_memory(FracRenderSDF *sdf);
+void calculate_sdf_3d_voxels(FracRenderSDF3D *sdf_3d);
 
 // Recursion helper for memory requirement calculation:
-uint32_t calculate_memory_helper(float size, FracRenderVector3 centre, uint32_t level);
+uint32_t calculate_sdf_3d_voxels_helper(float size, FracRenderVector3 centre, uint32_t level);
 
-// Calculate SDF:
-int create_sdf(FracRenderSDF *sdf);
+// Calculate 3D SDF:
+int create_sdf_3d(FracRenderSDF3D *sdf_3d);
 
 // SDF recursion helper:
-int create_sdf_helper(FracRenderSDF *sdf, float size, FracRenderVector3 centre,
-		uint32_t current_index, uint32_t *safe_index, uint32_t level);
+int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 centre,
+			uint32_t current_index, uint32_t *safe_index, uint32_t level);
 
 // Free SDF memory:
-void destroy_sdf(FracRenderSDF *sdf);
+void destroy_sdf_3d(FracRenderSDF3D *sdf_3d);
 
 // Signed distance function:
 float signed_distance_function(FracRenderVector3 position);
 
 // Print out a few voxels for debugging:
-void print_voxels(FracRenderSDF *sdf);
+void print_sdf_3d_voxels(FracRenderSDF3D *sdf_3d);
 
 #endif

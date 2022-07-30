@@ -3,7 +3,7 @@
 // Create Vulkan framebuffers:
 int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers)
+	FracRenderVulkanFramebuffers *framebuffers, int sdf_type)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -28,6 +28,12 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	if (create_g_buffer(device, swapchain, pipeline, framebuffers) != 0)
 	{
 		return -1;
+	}
+
+	// If 2D SDF is on, create image:
+	if (sdf_type == 1)
+	{
+		// Nothing for now.
 	}
 
 	printf("... Done.\n");
@@ -86,6 +92,9 @@ void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
 			{
 				vkDestroyImage(device->logical_device,
 					framebuffers->g_buffer_images[i], NULL);
+			}
+			if (framebuffers->g_buffer_image_memory[i] != VK_NULL_HANDLE)
+			{
 				vkFreeMemory(device->logical_device,
 					framebuffers->g_buffer_image_memory[i], NULL);
 			}
@@ -98,6 +107,22 @@ void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	if (framebuffers->g_buffer_formats)
 	{
 		free(framebuffers->g_buffer_formats);
+	}
+
+	// Destroy 2D SDF image view:
+	if (framebuffers->sdf_2d_image_view != VK_NULL_HANDLE)
+	{
+		vkDestroyImageView(device->logical_device, framebuffers->sdf_2d_image_view, NULL);
+	}
+
+	// Destroy 2D SDF image and free memory:
+	if (framebuffers->sdf_2d_image != VK_NULL_HANDLE)
+	{
+		vkDestroyImage(device->logical_device, framebuffers->sdf_2d_image, NULL);
+	}
+	if (framebuffers->sdf_2d_memory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(device->logical_device, framebuffers->sdf_2d_memory, NULL);
 	}
 }
 

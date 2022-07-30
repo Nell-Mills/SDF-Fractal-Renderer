@@ -2,7 +2,7 @@
 
 // Create Vulkan descriptor layouts:
 int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
-				FracRenderVulkanDescriptors *descriptors)
+	FracRenderVulkanDescriptors *descriptors, FracRenderSDF3D *sdf_3d, int sdf_type)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -43,6 +43,28 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
+	if (sdf_type == 0)
+	{
+		// Create 3D SDF buffer:
+		printf(" ---> Creating 3D SDF buffer.\n");
+		if (create_sdf_3d_buffer(device, descriptors, sdf_3d) != 0)
+		{
+			return -1;
+		}
+
+		// Create 3D SDF descriptor layout:
+		printf(" ---> Creating 3D SDF descriptor layout.\n");
+		if (create_sdf_3d_descriptor_layout(device, descriptors) != 0)
+		{
+			return -1;
+		}
+	}
+	else if (sdf_type == 1)
+	{
+		// Create 2D SDF descriptor layout:
+		printf(" ---> Creating 2D SDF descriptor layout.\n");
+	}
+
 	printf("... Done.\n");
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -52,7 +74,8 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 
 // Create Vulkan descriptors (after creating the framebuffers):
 int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
-	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanDescriptors *descriptors)
+	FracRenderVulkanFramebuffers *framebuffers,
+	FracRenderVulkanDescriptors *descriptors, int sdf_type)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -70,6 +93,21 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	if (create_g_buffer_descriptors(device, framebuffers, descriptors) != 0)
 	{
 		return -1;
+	}
+
+	if (sdf_type == 0)
+	{
+		// Create 3D SDF descriptor:
+		printf(" ---> Creating 3D SDF descriptor.\n");
+		if (create_sdf_3d_descriptor(device, descriptors) != 0)
+		{
+			return -1;
+		}
+	}
+	else if (sdf_type == 1)
+	{
+		// Create 2D SDF descriptor:
+		printf(" ---> Creating 2D SDF descriptor.\n");
 	}
 
 	printf("... Done.\n");
@@ -113,6 +151,30 @@ void destroy_vulkan_descriptors(FracRenderVulkanDevice *device,
 	if (descriptors->g_buffer_descriptors)
 	{
 		free(descriptors->g_buffer_descriptors);
+	}
+
+	// Destroy 3D SDF descriptor layout:
+	if (descriptors->sdf_3d_descriptor_layout != VK_NULL_HANDLE)
+	{
+		vkDestroyDescriptorSetLayout(device->logical_device,
+			descriptors->sdf_3d_descriptor_layout, NULL);
+	}
+
+	// Destroy 3D SDF buffer and associated device memory:
+	if (descriptors->sdf_3d_buffer != VK_NULL_HANDLE)
+	{
+		vkDestroyBuffer(device->logical_device, descriptors->sdf_3d_buffer, NULL);
+	}
+	if (descriptors->sdf_3d_memory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(device->logical_device, descriptors->sdf_3d_memory, NULL);
+	}
+
+	// Destroy 2D SDF descriptor layout:
+	if (descriptors->sdf_2d_descriptor_layout != VK_NULL_HANDLE)
+	{
+		vkDestroyDescriptorSetLayout(device->logical_device,
+			descriptors->sdf_2d_descriptor_layout, NULL);
 	}
 
 	// Destroy sampler:
@@ -478,4 +540,399 @@ void update_vulkan_g_buffer_descriptors(FracRenderVulkanDevice *device,
 		// Update the descriptor sets:
 		vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
 	}
+}
+
+// Create buffer for 3D SDF:
+int create_sdf_3d_buffer(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
+									FracRenderSDF3D *sdf_3d)
+{
+	// Define buffer creation info:
+	size_t sdf_memory = sdf_3d->num_voxels * sizeof(FracRenderVoxel);
+	VkBufferCreateInfo buffer_info;
+	memset(&buffer_info, 0, sizeof(VkBufferCreateInfo));
+	buffer_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_info.pNext			= NULL;
+	buffer_info.flags			= 0;
+	buffer_info.size			= sdf_memory;
+	buffer_info.usage			= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+						VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	buffer_info.sharingMode			= VK_SHARING_MODE_EXCLUSIVE;
+	buffer_info.queueFamilyIndexCount	= 0;
+	buffer_info.pQueueFamilyIndices		= NULL;
+
+	// Create buffer:
+	if (vkCreateBuffer(device->logical_device, &buffer_info, NULL,
+			&descriptors->sdf_3d_buffer) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create 3D SDF buffer!\n");
+		return -1;
+	}
+
+	// Get buffer memory requirements:
+	VkMemoryRequirements memory_requirements;
+	vkGetBufferMemoryRequirements(device->logical_device,
+		descriptors->sdf_3d_buffer, &memory_requirements);
+
+	// Get memory allocation info:
+	VkMemoryAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+	allocate_info.sType		= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocate_info.pNext		= NULL;
+	allocate_info.allocationSize	= memory_requirements.size;
+
+	printf("      - Memory needed: %lu bytes.\n", memory_requirements.size);
+
+	// Find suitable memory type for buffer:
+	VkPhysicalDeviceMemoryProperties memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(device->physical_device, &memory_properties);
+
+	VkMemoryPropertyFlags required_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	int success_flag = -1;
+	for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
+	{
+		if ((memory_requirements.memoryTypeBits & (1 << i)) &&
+			((memory_properties.memoryTypes[i].propertyFlags &
+			required_properties) == required_properties))
+		{
+			allocate_info.memoryTypeIndex = i;
+			success_flag = 0;
+			break;
+		}
+	}
+	if (success_flag != 0)
+	{
+		fprintf(stderr, "Error: No suitable memory type found for 3D SDF buffer!\n");
+		return -1;
+	}
+
+	// Allocate memory for buffer:
+	if (vkAllocateMemory(device->logical_device, &allocate_info, NULL,
+				&descriptors->sdf_3d_memory) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to allocate memory for 3D SDF buffer!\n");
+		return -1;
+	}
+
+	// Bind buffer memory:
+	vkBindBufferMemory(device->logical_device, descriptors->sdf_3d_buffer,
+						descriptors->sdf_3d_memory, 0);
+
+	return 0;
+}
+
+// Create 3D SDF descriptor set layout:
+int create_sdf_3d_descriptor_layout(FracRenderVulkanDevice *device,
+			FracRenderVulkanDescriptors *descriptors)
+{
+	// Create array of descriptor set layout bindings:
+	VkDescriptorSetLayoutBinding bindings[1];
+	memset(bindings, 0, 1 * sizeof(VkDescriptorSetLayoutBinding));
+	bindings[0].binding		= 0;
+	bindings[0].descriptorType	= VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	bindings[0].descriptorCount	= 1;
+	bindings[0].stageFlags		= VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[0].pImmutableSamplers	= NULL;
+
+	// Create descriptor set layout:
+	VkDescriptorSetLayoutCreateInfo layout_info;
+	memset(&layout_info, 0, sizeof(VkDescriptorSetLayoutCreateInfo));
+	layout_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layout_info.pNext		= NULL;
+	layout_info.flags		= 0;
+	layout_info.bindingCount	= 1;
+	layout_info.pBindings		= bindings;
+
+	if (vkCreateDescriptorSetLayout(device->logical_device, &layout_info,
+		NULL, &descriptors->sdf_3d_descriptor_layout) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create 3D SDF descriptor set layout!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+// Create 3D SDF descriptor:
+int create_sdf_3d_descriptor(FracRenderVulkanDevice *device,
+		FracRenderVulkanDescriptors *descriptors)
+{
+	// Allocate descriptor set:
+	VkDescriptorSetAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
+	allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocate_info.pNext			= NULL;
+	allocate_info.descriptorPool		= descriptors->descriptor_pool;
+	allocate_info.descriptorSetCount	= 1;
+	allocate_info.pSetLayouts		= &descriptors->sdf_3d_descriptor_layout;
+
+	if (vkAllocateDescriptorSets(device->logical_device, &allocate_info,
+			&descriptors->sdf_3d_descriptor_set) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to allocate 3D SDF descriptor set!\n");
+		return -1;
+	}
+
+	// Create descriptor set:
+	VkDescriptorBufferInfo sdf_buffer_info;
+	memset(&sdf_buffer_info, 0, sizeof(VkDescriptorBufferInfo));
+	sdf_buffer_info.buffer	= descriptors->sdf_3d_buffer;
+	sdf_buffer_info.offset	= 0;
+	sdf_buffer_info.range	= VK_WHOLE_SIZE;
+
+	VkWriteDescriptorSet descriptor_write[1];
+	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
+	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptor_write[0].pNext		= NULL;
+	descriptor_write[0].dstSet		= descriptors->sdf_3d_descriptor_set;
+	descriptor_write[0].dstBinding		= 0;
+	descriptor_write[0].dstArrayElement	= 0;
+	descriptor_write[0].descriptorCount	= 1;
+	descriptor_write[0].descriptorType	= VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	descriptor_write[0].pImageInfo		= NULL;
+	descriptor_write[0].pBufferInfo		= &sdf_buffer_info;
+	descriptor_write[0].pTexelBufferView	= NULL;
+
+	// Update descriptor sets:
+	vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
+
+	return 0;
+}
+
+// Copy data into 3D SDF buffer:
+int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
+				FracRenderVulkanCommands *commands, FracRenderSDF3D *sdf_3d)
+{
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Copying 3D SDF data into GPU buffer...\n");
+
+	// Create staging buffer. First define buffer creation info:
+	size_t sdf_size = sdf_3d->num_voxels * sizeof(FracRenderVoxel);
+	VkBufferCreateInfo staging_buffer_info;
+	memset(&staging_buffer_info, 0, sizeof(VkBufferCreateInfo));
+	staging_buffer_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	staging_buffer_info.pNext			= NULL;
+	staging_buffer_info.flags			= 0;
+	staging_buffer_info.size			= sdf_size;
+	staging_buffer_info.usage			= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	staging_buffer_info.sharingMode			= VK_SHARING_MODE_EXCLUSIVE;
+	staging_buffer_info.queueFamilyIndexCount	= 0;
+	staging_buffer_info.pQueueFamilyIndices		= NULL;
+
+	// Create buffer:
+	VkBuffer staging_buffer = VK_NULL_HANDLE;
+	if (vkCreateBuffer(device->logical_device, &staging_buffer_info, NULL,
+						&staging_buffer) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create staging buffer for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Get buffer memory requirements:
+	VkMemoryRequirements staging_memory_requirements;
+	vkGetBufferMemoryRequirements(device->logical_device,
+		staging_buffer, &staging_memory_requirements);
+
+	// Get memory allocation info:
+	VkMemoryAllocateInfo staging_allocate_info;
+	memset(&staging_allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+	staging_allocate_info.sType		= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	staging_allocate_info.pNext		= NULL;
+	staging_allocate_info.allocationSize	= staging_memory_requirements.size;
+
+	// Find suitable memory type for buffer:
+	VkPhysicalDeviceMemoryProperties staging_memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(device->physical_device, &staging_memory_properties);
+
+	VkMemoryPropertyFlags required_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+						VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	int success_flag = -1;
+	for (uint32_t i = 0; i < staging_memory_properties.memoryTypeCount; i++)
+	{
+		if ((staging_memory_requirements.memoryTypeBits & (1 << i)) &&
+			((staging_memory_properties.memoryTypes[i].propertyFlags &
+			required_properties) == required_properties))
+		{
+			staging_allocate_info.memoryTypeIndex = i;
+			success_flag = 0;
+			break;
+		}
+	}
+	if (success_flag != 0)
+	{
+		// Destroy temporary objects:
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+
+		fprintf(stderr, "Error: No suitable memory type found for staging "
+						"buffer for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Allocate memory for buffer:
+	VkDeviceMemory staging_memory = VK_NULL_HANDLE;
+	if (vkAllocateMemory(device->logical_device, &staging_allocate_info, NULL,
+						&staging_memory) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+
+		fprintf(stderr, "Error: Unable to allocate memory for staging "
+						"buffer for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Bind buffer memory:
+	vkBindBufferMemory(device->logical_device, staging_buffer, staging_memory, 0);
+
+	// Map staging buffer memory:
+	void *staging_ptr;
+	if (vkMapMemory(device->logical_device, staging_memory, 0,
+		VK_WHOLE_SIZE, 0, &staging_ptr) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to map memory for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Copy data into staging buffer:
+	memcpy(staging_ptr, sdf_3d->voxels, sdf_size);
+
+	// Allocate command buffer:
+	VkCommandBufferAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkCommandBufferAllocateInfo));
+	allocate_info.sType			= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocate_info.pNext			= NULL;
+	allocate_info.commandPool		= commands->command_pool;
+	allocate_info.level			= VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocate_info.commandBufferCount	= 1;
+
+	VkCommandBuffer command_buffer = VK_NULL_HANDLE;
+	if (vkAllocateCommandBuffers(device->logical_device, &allocate_info,
+						&command_buffer) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to allocate command buffer for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Begin command recording:
+	VkCommandBufferBeginInfo begin_info;
+	memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
+	begin_info.sType		= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.pNext		= NULL;
+	begin_info.flags		= 0;
+	begin_info.pInheritanceInfo	= NULL;
+
+	if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to begin recording commands for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Copy data from staging buffer into GPU SDF buffer:
+	VkBufferCopy buffer_copy_info[1];
+	memset(buffer_copy_info, 0, 1 * sizeof(VkBufferCopy));
+	buffer_copy_info[0].srcOffset	= 0;
+	buffer_copy_info[0].dstOffset	= 0;
+	buffer_copy_info[0].size	= sdf_size;
+
+	vkCmdCopyBuffer(command_buffer, staging_buffer, descriptors->sdf_3d_buffer,
+								1, buffer_copy_info);
+
+	// Finish command recording:
+	if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to stop recording commands for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Create fence for submitting commands:
+	VkFenceCreateInfo fence_info;
+	memset(&fence_info, 0, sizeof(VkFenceCreateInfo));
+	fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_info.pNext = NULL;
+	fence_info.flags = 0;
+
+	VkFence fence = VK_NULL_HANDLE;
+	if (vkCreateFence(device->logical_device, &fence_info, NULL, &fence) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to create fence for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Submit commands:
+	VkSubmitInfo submit_info;
+	memset(&submit_info, 0, sizeof(VkSubmitInfo));
+	submit_info.sType			= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext			= NULL;
+	submit_info.waitSemaphoreCount		= 0;
+	submit_info.pWaitSemaphores		= NULL;
+	submit_info.pWaitDstStageMask		= NULL;
+	submit_info.commandBufferCount		= 1;
+	submit_info.pCommandBuffers		= &command_buffer;
+	submit_info.signalSemaphoreCount	= 0;
+	submit_info.pSignalSemaphores		= NULL;
+
+	if (vkQueueSubmit(device->graphics_queue, 1, &submit_info, fence) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyFence(device->logical_device, fence, NULL);
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Unable to submit commands for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Wait for fence:
+	if (vkWaitForFences(device->logical_device, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyFence(device->logical_device, fence, NULL);
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+		vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+		vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+		fprintf(stderr, "Error: Failed to wait for fence for 3D SDF copying!\n");
+		return -1;
+	}
+
+	// Destroy temporary objects:
+	vkDestroyFence(device->logical_device, fence, NULL);
+	vkFreeCommandBuffers(device->logical_device, commands->command_pool, 1, &command_buffer);
+	vkDestroyBuffer(device->logical_device, staging_buffer, NULL);
+	vkFreeMemory(device->logical_device, staging_memory, NULL);
+
+	printf("... done.\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	return 0;
 }

@@ -86,6 +86,16 @@ typedef struct {
 	uint32_t num_g_buffer_descriptors;
 	VkDescriptorSetLayout g_buffer_descriptor_layout;
 	VkDescriptorSet *g_buffer_descriptors;
+
+	// 3D SDF descriptor:
+	VkDescriptorSetLayout sdf_3d_descriptor_layout;
+	VkDescriptorSet sdf_3d_descriptor_set;
+	VkBuffer sdf_3d_buffer;
+	VkDeviceMemory sdf_3d_memory;
+
+	// 2D SDF descriptor:
+	VkDescriptorSetLayout sdf_2d_descriptor_layout;
+	VkDescriptorSet sdf_2d_descriptor;
 } FracRenderVulkanDescriptors;
 
 typedef struct {
@@ -125,6 +135,12 @@ typedef struct {
 	VkDeviceMemory *g_buffer_image_memory;
 	VkImageView *g_buffer_image_views;
 	VkFormat *g_buffer_formats;
+
+	// 2D SDF image:
+	VkFormat sdf_2d_format;
+	VkImageView sdf_2d_image_view;
+	VkImage sdf_2d_image;
+	VkDeviceMemory sdf_2d_memory;
 } FracRenderVulkanFramebuffers;
 
 typedef struct {
@@ -154,13 +170,6 @@ typedef struct {
 	// Screen aspect ratio:
 	float aspect_ratio;
 } FracRenderVulkanSceneUniform;
-
-typedef struct {
-	VkDescriptorSetLayout descriptor_layout;
-	VkDescriptorSet descriptor_set;
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-} FracRenderVulkanSDF;
 
 typedef struct {
 	// Camera (eye):

@@ -22,12 +22,12 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
-	FracRenderVulkanSDF *sdf_vulkan, int u_sdf);
+	int sdf_type);
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-		FracRenderVulkanCommands *commands, FracRenderVulkanSDF *sdf_vulkan);
+		FracRenderVulkanCommands *commands);
 
 #endif

@@ -42,7 +42,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
-	FracRenderVulkanSDF *sdf_vulkan, int u_sdf)
+	int sdf_type)
 {
 	// Vulkan base:
 	base->instance		= VK_NULL_HANDLE;
@@ -97,6 +97,14 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->g_buffer_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->g_buffer_descriptors		= NULL;
 
+	descriptors->sdf_3d_descriptor_layout		= VK_NULL_HANDLE;
+	descriptors->sdf_3d_descriptor_set		= VK_NULL_HANDLE;
+	descriptors->sdf_3d_buffer			= VK_NULL_HANDLE;
+	descriptors->sdf_3d_memory			= VK_NULL_HANDLE;
+
+	descriptors->sdf_2d_descriptor_layout		= VK_NULL_HANDLE;
+	descriptors->sdf_2d_descriptor			= VK_NULL_HANDLE;
+
 	// Pipeline:
 	pipeline->geometry_pipeline_layout	= VK_NULL_HANDLE;
 	pipeline->colour_pipeline_layout	= VK_NULL_HANDLE;
@@ -114,10 +122,15 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 
 	pipeline->geometry_vertex_shader_path	= "Assets/Shaders/Fractal-Geometry.vert.sprv";
 
-	if (u_sdf == 0)
+	if (sdf_type == 0)
 	{
 		pipeline->geometry_fragment_shader_path	=
-			"Assets/Shaders/Fractal-Geometry-SDF.frag.sprv";
+			"Assets/Shaders/Fractal-Geometry-SDF-3D.frag.sprv";
+	}
+	else if (sdf_type == 1)
+	{
+		pipeline->geometry_fragment_shader_path	=
+			"Assets/Shaders/Fractal-Geometry-SDF-2D.frag.sprv";
 	}
 	else
 	{
@@ -142,32 +155,28 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 	framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 
+	framebuffers->sdf_2d_format		= VK_FORMAT_R32_SFLOAT;
+	framebuffers->sdf_2d_image_view		= VK_NULL_HANDLE;
+	framebuffers->sdf_2d_image		= VK_NULL_HANDLE;
+	framebuffers->sdf_2d_memory		= VK_NULL_HANDLE;
+
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;
 	commands->command_buffers	= NULL;
 	commands->fences		= NULL;
 	commands->image_available	= VK_NULL_HANDLE;
 	commands->render_finished	= VK_NULL_HANDLE;
-
-	// SDF:
-	sdf_vulkan->descriptor_layout	= VK_NULL_HANDLE;
-	sdf_vulkan->descriptor_set	= VK_NULL_HANDLE;
-	sdf_vulkan->buffer		= VK_NULL_HANDLE;
-	sdf_vulkan->memory		= VK_NULL_HANDLE;
 }
 
 // Destroy contents of Vulkan structs:
 void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-		FracRenderVulkanCommands *commands, FracRenderVulkanSDF *sdf_vulkan)
+		FracRenderVulkanCommands *commands)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	printf("Cleaning up...\n");
-
-	// Destroy Vulkan SDF structure:
-	destroy_vulkan_sdf(device, sdf_vulkan);
 
 	// Destroy Vulkan command pool, fences and semaphores:
 	destroy_vulkan_commands(device, swapchain, commands);

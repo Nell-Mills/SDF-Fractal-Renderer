@@ -22,7 +22,7 @@
 int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanSDF *sdf_vulkan, int u_sdf);
+	int sdf_type);
 
 // Destroy Vulkan pipeline structure:
 void destroy_vulkan_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanPipeline *pipeline);
@@ -43,7 +43,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 // Create pipeline layout:
 int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanSDF *sdf_vulkan, int pipe, int u_sdf);
+				FracRenderVulkanPipeline *pipeline, int pipe, int sdf_type);
 
 // Create pipeline:
 int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,

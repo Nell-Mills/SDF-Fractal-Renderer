@@ -4,7 +4,7 @@
 int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanSDF *sdf_vulkan, int u_sdf)
+	int sdf_type)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -26,7 +26,7 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create geometry pipeline layout:
 	printf(" ---> Creating geometry pipeline layout.\n");
-	if (create_pipeline_layout(device, descriptors, pipeline, sdf_vulkan, 0, u_sdf) != 0)
+	if (create_pipeline_layout(device, descriptors, pipeline, 0, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -47,7 +47,7 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create colour pipeline layout:
 	printf(" ---> Creating colour pipeline layout.\n");
-	if (create_pipeline_layout(device, descriptors, pipeline, sdf_vulkan, 1, u_sdf) != 0)
+	if (create_pipeline_layout(device, descriptors, pipeline, 1, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -387,7 +387,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 // Create pipeline layout:
 int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanSDF *sdf_vulkan, int pipe, int u_sdf)
+	FracRenderVulkanPipeline *pipeline, int pipe, int sdf_type)
 {
 	// Create an array of descriptor set layouts:
 	uint32_t num_layouts;
@@ -395,12 +395,12 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		if (u_sdf == 0)
+		if (sdf_type == 0)
 		{
 			num_layouts = 2;
 			layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 			layouts[0] = descriptors->scene_descriptor_layout;
-			layouts[1] = sdf_vulkan->descriptor_layout;
+			layouts[1] = descriptors->sdf_3d_descriptor_layout;
 		}
 		else
 		{

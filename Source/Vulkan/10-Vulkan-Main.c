@@ -32,7 +32,7 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
 		FracRenderVulkanCommands *commands, FracRenderVulkanSceneUniform *scene_uniform,
-		FracRenderVulkanSDF *sdf_vulkan, int u_sdf, uint32_t image_index)
+		int sdf_type, uint32_t image_index)
 {
 	// Create command buffer begin info:
 	VkCommandBufferBeginInfo begin_info;
@@ -131,12 +131,18 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
 		0, 1, &descriptors->scene_descriptor, 0, NULL);
 
-	// Bind SDF descriptor if applicable:
-	if (u_sdf == 0)
+	// Bind 3D SDF descriptor if applicable:
+	if (sdf_type == 0)
 	{
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
-			1, 1, &sdf_vulkan->descriptor_set, 0, NULL);
+			1, 1, &descriptors->sdf_3d_descriptor_set, 0, NULL);
+	}
+
+	// Bind 2D SDF descriptor if applicable:
+	if (sdf_type == 1)
+	{
+		// Nothing for now.
 	}
 
 	// Draw fullscreen triangle:
@@ -302,8 +308,7 @@ int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
-		FracRenderVulkanSDF *sdf_vulkan)
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");

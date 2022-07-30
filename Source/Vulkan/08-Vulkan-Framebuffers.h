@@ -21,7 +21,7 @@
 // Create Vulkan framebuffers:
 int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers);
+	FracRenderVulkanFramebuffers *framebuffers, int sdf_type);
 
 // Destroy Vulkan framebuffer structure:
 void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
