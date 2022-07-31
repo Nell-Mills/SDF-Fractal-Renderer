@@ -1022,3 +1022,34 @@ int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
 
 	return 0;
 }
+
+// Update 2D SDF descriptor:
+int update_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers)
+{
+	// Define texture and sampler info:
+	VkDescriptorImageInfo image_info;
+	memset(&image_info, 0, sizeof(VkDescriptorImageInfo));
+	image_info.sampler	= descriptors->sampler;
+	image_info.imageView	= framebuffers->sdf_2d_image_view;
+	image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	// Create descriptor set writing info:
+	VkWriteDescriptorSet descriptor_write[1];
+	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
+	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptor_write[0].pNext		= NULL;
+	descriptor_write[0].dstSet		= descriptors->sdf_2d_descriptor;
+	descriptor_write[0].dstBinding		= 0;
+	descriptor_write[0].dstArrayElement	= 0;
+	descriptor_write[0].descriptorCount	= 1;
+	descriptor_write[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptor_write[0].pImageInfo		= &image_info;
+	descriptor_write[0].pBufferInfo		= NULL;
+	descriptor_write[0].pTexelBufferView	= NULL;
+
+	// Update the descriptor sets:
+	vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
+
+	return 0;
+}

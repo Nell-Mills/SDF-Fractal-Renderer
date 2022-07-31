@@ -489,6 +489,186 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 	return 0;
 }
 
+// Initialize 2D SDF image to zero:
+int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
+{
+	// Allocate command buffer:
+	VkCommandBufferAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkCommandBufferAllocateInfo));
+	allocate_info.sType			= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocate_info.pNext			= NULL;
+	allocate_info.commandPool		= commands->command_pool;
+	allocate_info.level			= VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocate_info.commandBufferCount	= 1;
+
+	VkCommandBuffer command_buffer = VK_NULL_HANDLE;
+	if (vkAllocateCommandBuffers(device->logical_device, &allocate_info,
+						&command_buffer) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to allocate command buffer for 2D SDF "
+								"initialization!\n");
+		return -1;
+	}
+
+	// Begin command recording:
+	VkCommandBufferBeginInfo begin_info;
+	memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
+	begin_info.sType		= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.pNext		= NULL;
+	begin_info.flags		= 0;
+	begin_info.pInheritanceInfo	= NULL;
+
+	if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+	{
+		// Free command buffer:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+
+		fprintf(stderr, "Error: Unable to begin recording commands for 2D SDF "
+								"initialization!\n");
+		return -1;
+	}
+
+	// Transition image layout:
+	VkImageMemoryBarrier image_barrier_1;
+	memset(&image_barrier_1, 0, sizeof(VkImageMemoryBarrier));
+	image_barrier_1.sType 			= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	image_barrier_1.pNext			= NULL;
+	image_barrier_1.srcAccessMask		= VK_ACCESS_NONE;
+	image_barrier_1.dstAccessMask		= VK_ACCESS_NONE;
+	image_barrier_1.oldLayout		= VK_IMAGE_LAYOUT_UNDEFINED;
+	image_barrier_1.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	image_barrier_1.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+	image_barrier_1.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+	image_barrier_1.image			= framebuffers->sdf_2d_image;
+
+	image_barrier_1.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+	image_barrier_1.subresourceRange.baseMipLevel	= 0;
+	image_barrier_1.subresourceRange.levelCount	= 1;
+	image_barrier_1.subresourceRange.baseArrayLayer	= 0;
+	image_barrier_1.subresourceRange.layerCount	= 1;
+
+	vkCmdPipelineBarrier(command_buffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0, 0, NULL, 0, NULL, 1, &image_barrier_1);
+
+	// Set image values to clear colour:
+	VkClearColorValue clear_colour;
+	memset(&clear_colour, 0, sizeof(VkClearColorValue));
+
+	VkImageSubresourceRange subresource_range;
+	memset(&subresource_range, 0, sizeof(VkImageSubresourceRange));
+	subresource_range.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+	subresource_range.baseMipLevel		= 0;
+	subresource_range.levelCount		= 1;
+	subresource_range.baseArrayLayer	= 0;
+	subresource_range.layerCount		= 1;
+
+	vkCmdClearColorImage(
+		command_buffer,
+		framebuffers->sdf_2d_image,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		&clear_colour,
+		1, &subresource_range
+	);
+
+	// Transition image layout:
+	VkImageMemoryBarrier image_barrier_2;
+	memset(&image_barrier_2, 0, sizeof(VkImageMemoryBarrier));
+	image_barrier_2.sType 			= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	image_barrier_2.pNext			= NULL;
+	image_barrier_2.srcAccessMask		= VK_ACCESS_NONE;
+	image_barrier_2.dstAccessMask		= VK_ACCESS_NONE;
+	image_barrier_2.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	image_barrier_2.newLayout		= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	image_barrier_2.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+	image_barrier_2.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+	image_barrier_2.image			= framebuffers->sdf_2d_image;
+
+	image_barrier_2.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+	image_barrier_2.subresourceRange.baseMipLevel	= 0;
+	image_barrier_2.subresourceRange.levelCount	= 1;
+	image_barrier_2.subresourceRange.baseArrayLayer	= 0;
+	image_barrier_2.subresourceRange.layerCount	= 1;
+
+	vkCmdPipelineBarrier(command_buffer,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		0, 0, NULL, 0, NULL, 1, &image_barrier_2);
+
+	// Finish command recording:
+	if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+	{
+		// Free command buffer:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+
+		fprintf(stderr, "Error: Unable to stop recording commands for 2D SDF "
+								"initialization!\n");
+		return -1;
+	}
+
+	// Create fence for submitting commands:
+	VkFenceCreateInfo fence_info;
+	memset(&fence_info, 0, sizeof(VkFenceCreateInfo));
+	fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_info.pNext = NULL;
+	fence_info.flags = 0;
+
+	VkFence fence = VK_NULL_HANDLE;
+	if (vkCreateFence(device->logical_device, &fence_info, NULL, &fence) != VK_SUCCESS)
+	{
+		// Free command buffer:
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+
+		fprintf(stderr, "Error: Unable to create fence for 2d SDF initialization!\n");
+		return -1;
+	}
+
+	// Submit commands:
+	VkSubmitInfo submit_info;
+	memset(&submit_info, 0, sizeof(VkSubmitInfo));
+	submit_info.sType			= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext			= NULL;
+	submit_info.waitSemaphoreCount		= 0;
+	submit_info.pWaitSemaphores		= NULL;
+	submit_info.pWaitDstStageMask		= NULL;
+	submit_info.commandBufferCount		= 1;
+	submit_info.pCommandBuffers		= &command_buffer;
+	submit_info.signalSemaphoreCount	= 0;
+	submit_info.pSignalSemaphores		= NULL;
+
+	if (vkQueueSubmit(device->graphics_queue, 1, &submit_info, fence) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyFence(device->logical_device, fence, NULL);
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+
+		fprintf(stderr, "Error: Unable to submit commands for 2D SDF initialization!\n");
+		return -1;
+	}
+
+	// Wait for fence:
+	if (vkWaitForFences(device->logical_device, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+	{
+		// Destroy temporary objects:
+		vkDestroyFence(device->logical_device, fence, NULL);
+		vkFreeCommandBuffers(device->logical_device,
+			commands->command_pool, 1, &command_buffer);
+
+		fprintf(stderr, "Error: Failed to wait for fence for 2D SDF initialization!\n");
+		return -1;
+	}
+
+	// Destroy temporary objects:
+	vkDestroyFence(device->logical_device, fence, NULL);
+	vkFreeCommandBuffers(device->logical_device, commands->command_pool, 1, &command_buffer);
+
+	return 0;
+}
+
 // Recreate swapchain framebuffers:
 int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,

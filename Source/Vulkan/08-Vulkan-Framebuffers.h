@@ -43,7 +43,11 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 
 // Create 2D SDF image and image view:
 int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers);
+		FracRenderVulkanFramebuffers *framebuffers);
+
+// Initialize 2D SDF image to zero:
+int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
 
 // Recreate swapchain framebuffers:
 int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,

@@ -120,7 +120,10 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	pipeline->colour_vertex_shader		= VK_NULL_HANDLE;
 	pipeline->colour_fragment_shader	= VK_NULL_HANDLE;
 
-	pipeline->geometry_vertex_shader_path	= "Assets/Shaders/Fractal-Geometry.vert.sprv";
+	if (sdf_type != 1)
+	{
+		pipeline->geometry_vertex_shader_path = "Assets/Shaders/Fractal-Geometry.vert.sprv";
+	}
 
 	if (sdf_type == 0)
 	{
@@ -129,6 +132,8 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	}
 	else if (sdf_type == 1)
 	{
+		pipeline->geometry_vertex_shader_path =
+			"Assets/Shaders/Fractal-Geometry-SDF-2D.vert.sprv";
 		pipeline->geometry_fragment_shader_path	=
 			"Assets/Shaders/Fractal-Geometry-SDF-2D.frag.sprv";
 	}

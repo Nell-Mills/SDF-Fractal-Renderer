@@ -87,4 +87,8 @@ int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
 int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers);
 
+// Update 2D SDF descriptor:
+int update_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers);
+
 #endif

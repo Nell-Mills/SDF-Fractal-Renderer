@@ -203,6 +203,14 @@ int main(int argc, char **argv)
 		// Buffer has been copied to GPU memory so destroy CPU structure:
 		destroy_sdf_3d(&sdf_3d);
 	}
+	else if (sdf_type == 1)
+	{
+		// Initialize 2D SDF image to zero values:
+		if (initialize_sdf_2d_image(&device, &swapchain, &framebuffers, &commands) != 0)
+		{
+			return -1;
+		}
+	}
 
 	#ifdef FRACRENDER_DEBUG
 		// Print all Vulkan struct values for debugging:
@@ -292,7 +300,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			// If extent changed, recreate G-buffer images and views:
+			// If extent changed, recreate G-buffer and 2D SDF images and views:
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_g_buffer_images(&device,
@@ -304,6 +312,30 @@ int main(int argc, char **argv)
 				// Update G-buffer descriptors:
 				update_vulkan_g_buffer_descriptors(&device,
 						&framebuffers, &descriptors);
+
+				if (sdf_type == 1)
+				{
+					// Recreate 2D SDF image:
+					if (recreate_sdf_2d_image(&device, &swapchain,
+								&framebuffers) != 0)
+					{
+						break;
+					}
+
+					// Re-initialize image to 0:
+					if (initialize_sdf_2d_image(&device, &swapchain,
+							&framebuffers, &commands) != 0)
+					{
+						break;
+					}
+
+					// Update 2D SDF descriptor:
+					if (update_sdf_2d_descriptor(&device, &descriptors,
+									&framebuffers) != 0)
+					{
+						break;
+					}
+				}
 			}
 
 			// Recreate swapchain framebuffers:
