@@ -31,7 +31,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 	static double last_y = 0.0;
 
 	static double pitch = 0.0;
-	static double yaw = 90.0;
+	static double yaw = 89.0;
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 	{
@@ -51,8 +51,8 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 
 		// Update pitch and clamp:
 		pitch += dy * program_state->delta_t * program_state->mouse_sensitivity;
-		if (pitch > 89.f) { pitch = 89.f; }
-		if (pitch < -89.f) { pitch = -89.f; }
+		if (pitch > 89.0) { pitch = 89.0; }
+		if (pitch < -89.0) { pitch = -89.0; }
 
 		// Update yaw:
 		yaw += (dx * program_state->delta_t * program_state->mouse_sensitivity) / aspect;

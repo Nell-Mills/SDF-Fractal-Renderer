@@ -2,7 +2,8 @@
 
 // Update scene uniform:
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform)
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform,
+	int *mandelbulb_animation)
 {
 	// Get program state:
 	FracRenderProgramState *program_state = (FracRenderProgramState *)
@@ -19,13 +20,27 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	get_axes(program_state->position, program_state->front, program_state->up,
 				&scene_uniform->x_axis, &scene_uniform->y_axis);
 
-	// Get screen aspect ratio:
-	scene_uniform->aspect_ratio = (float)(swapchain->swapchain_extent.width)
-				/ (float)(swapchain->swapchain_extent.height);
-
 	// Scale x-axis by aspect ratio:
 	scene_uniform->x_axis = multiply_vector_3_scalar(scene_uniform->x_axis,
-						scene_uniform->aspect_ratio);
+				(float)(swapchain->swapchain_extent.width) /
+				(float)(swapchain->swapchain_extent.height));
+
+	// Get Mandelbulb parameter if animation is on:
+	if (*mandelbulb_animation == 0) { return; }
+	scene_uniform->mandelbulb_parameter += program_state->delta_t *
+				0.1f * (float)(*mandelbulb_animation);
+
+	// Check Mandelbulb parameter limits:
+	if (scene_uniform->mandelbulb_parameter <= program_state->mandelbulb_parameter_min)
+	{
+		scene_uniform->mandelbulb_parameter = program_state->mandelbulb_parameter_min;
+		*mandelbulb_animation = 1;
+	}
+	else if (scene_uniform->mandelbulb_parameter >= program_state->mandelbulb_parameter_max)
+	{
+		scene_uniform->mandelbulb_parameter = program_state->mandelbulb_parameter_max;
+		*mandelbulb_animation = -1;
+	}
 }
 
 // Record commands:

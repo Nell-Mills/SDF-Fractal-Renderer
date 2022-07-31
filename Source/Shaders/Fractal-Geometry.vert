@@ -6,7 +6,7 @@ layout (set = 0, binding = 0) uniform UScene
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
-	float aspect_ratio;
+	float mandelbulb_parameter;
 } u_scene;
 
 layout (location = 0) out vec4 out_position;

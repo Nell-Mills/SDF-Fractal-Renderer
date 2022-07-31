@@ -220,6 +220,7 @@ int main(int argc, char **argv)
 
 	// Initialize the scene UBO:
 	FracRenderVulkanSceneUniform scene_uniform;
+	scene_uniform.mandelbulb_parameter = 8.f;
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
@@ -231,6 +232,8 @@ int main(int argc, char **argv)
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 2.5f;
+	program_state.mandelbulb_parameter_min	= 4.f;
+	program_state.mandelbulb_parameter_max	= 16.f;
 
 	// Set GLFW callback functions:
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
@@ -247,6 +250,7 @@ int main(int argc, char **argv)
 
 	// Tracking program state:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
+	int mandelbulb_animation = 1;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
 
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
@@ -392,7 +396,8 @@ int main(int argc, char **argv)
 		}
 
 		// Update scene uniform:
-		update_scene_uniform(&base, &device, &swapchain, &scene_uniform);
+		update_scene_uniform(&base, &device, &swapchain, &scene_uniform,
+							&mandelbulb_animation);
 
 		// Wait for a command buffer to be available:
 		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],
