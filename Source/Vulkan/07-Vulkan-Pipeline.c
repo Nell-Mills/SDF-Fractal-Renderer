@@ -19,7 +19,7 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create geometry render pass:
 	printf(" ---> Creating geometry render pass.\n");
-	if (create_geometry_render_pass(device, framebuffers, pipeline) != 0)
+	if (create_geometry_render_pass(device, framebuffers, pipeline, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -33,7 +33,7 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create geometry pipeline:
 	printf(" ---> Creating geometry pipeline.\n");
-	if (create_pipeline(device, swapchain, pipeline, 0) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 0, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -54,7 +54,7 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create colour pipeline:
 	printf(" ---> Creating colour pipeline.\n");
-	if (create_pipeline(device, swapchain, pipeline, 1) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 1, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -244,11 +244,13 @@ VkShaderModule load_shader_module(FracRenderVulkanDevice *device, const char *sh
 
 // Create geometry render pass:
 int create_geometry_render_pass(FracRenderVulkanDevice *device,
-	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline)
+	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline,
+	int sdf_type)
 {
 	// Create attachment descriptions:
-	VkAttachmentDescription attachments[2];
-	memset(attachments, 0, 2 * sizeof(VkAttachmentDescription));
+	VkAttachmentDescription *attachments;
+	attachments = malloc(framebuffers->num_g_buffer_images * sizeof(VkAttachmentDescription));
+	memset(attachments, 0, framebuffers->num_g_buffer_images * sizeof(VkAttachmentDescription));
 
 	// Position/iteration attachment:
 	attachments[0].flags		= 0;
@@ -272,17 +274,41 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	attachments[1].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[1].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	if (sdf_type == 1)
+	{
+		// Distance write attachment:
+		attachments[2].flags		= 0;
+		attachments[2].format		= framebuffers->g_buffer_formats[2];
+		attachments[2].samples		= VK_SAMPLE_COUNT_1_BIT;
+		attachments[2].loadOp		= VK_ATTACHMENT_LOAD_OP_CLEAR;
+		attachments[2].storeOp		= VK_ATTACHMENT_STORE_OP_STORE;
+		attachments[2].stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_LOAD;
+		attachments[2].stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
+		attachments[2].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
+		attachments[2].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
+
 	// Create subpass attachments:
-	VkAttachmentReference subpass_attachments[2];
-	memset(subpass_attachments, 0, 2 * sizeof(VkAttachmentReference));
+	VkAttachmentReference *subpass_attachments;
+	subpass_attachments = malloc(framebuffers->num_g_buffer_images *
+					sizeof(VkAttachmentReference));
+	memset(subpass_attachments, 0, framebuffers->num_g_buffer_images *
+					sizeof(VkAttachmentReference));
 
 	// Position/iteration attachment:
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
 	subpass_attachments[0].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	// Normal attachment:
-	subpass_attachments[1].attachment	= 1;	// Attachments[0].
+	subpass_attachments[1].attachment	= 1;	// Attachments[1].
 	subpass_attachments[1].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	if (sdf_type == 1)
+	{
+		// Distance write attachment:
+		subpass_attachments[2].attachment	= 2;	// Attachments[2].
+		subpass_attachments[2].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
 
 	// Create subpass:
 	VkSubpassDescription subpasses[1];
@@ -291,7 +317,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	subpasses[0].pipelineBindPoint		= VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].inputAttachmentCount	= 0;
 	subpasses[0].pInputAttachments		= NULL;
-	subpasses[0].colorAttachmentCount	= 2;
+	subpasses[0].colorAttachmentCount	= framebuffers->num_g_buffer_images;
 	subpasses[0].pColorAttachments		= subpass_attachments;
 	subpasses[0].pResolveAttachments	= NULL;
 	subpasses[0].pDepthStencilAttachment	= NULL;
@@ -304,7 +330,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	pass_info.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	pass_info.pNext			= NULL;
 	pass_info.flags			= 0;
-	pass_info.attachmentCount	= 2;
+	pass_info.attachmentCount	= framebuffers->num_g_buffer_images;
 	pass_info.pAttachments		= attachments;
 	pass_info.subpassCount		= 1;
 	pass_info.pSubpasses		= subpasses;
@@ -315,9 +341,17 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	if (vkCreateRenderPass(device->logical_device, &pass_info, NULL,
 			&pipeline->geometry_render_pass) != VK_SUCCESS)
 	{
+		// Free memory:
+		free(attachments);
+		free(subpass_attachments);
+
 		fprintf(stderr, "Error: Unable to create geometry render pass!\n");
 		return -1;
 	}
+
+	// Free memory:
+	free(attachments);
+	free(subpass_attachments);
 
 	return 0;
 }
@@ -473,7 +507,7 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 
 // Create pipeline:
 int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-					FracRenderVulkanPipeline *pipeline, int pipe)
+				FracRenderVulkanPipeline *pipeline, int pipe, int sdf_type)
 {
 	// Define shader stages:
 	VkPipelineShaderStageCreateInfo shader_stages[2];
@@ -593,7 +627,14 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		num_blend_states = 2;
+		if (sdf_type == 1)
+		{
+			num_blend_states = 3;
+		}
+		else
+		{
+			num_blend_states = 2;
+		}
 	}
 	else
 	{
@@ -708,7 +749,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 // Recreate render passes:
 int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
-	FracRenderVulkanPipeline *pipeline)
+	FracRenderVulkanPipeline *pipeline, int sdf_type)
 {
 	// Destroy old render passes:
 	vkDestroyRenderPass(device->logical_device, pipeline->geometry_render_pass, NULL);
@@ -718,7 +759,7 @@ int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 	pipeline->colour_render_pass = VK_NULL_HANDLE;
 
 	// Create new ones:
-	if (create_geometry_render_pass(device, framebuffers, pipeline) != 0)
+	if (create_geometry_render_pass(device, framebuffers, pipeline, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -732,7 +773,7 @@ int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 
 // Recreate pipelines:
 int recreate_vulkan_pipelines(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-								FracRenderVulkanPipeline *pipeline)
+						FracRenderVulkanPipeline *pipeline, int sdf_type)
 {
 	// Destroy current pipelines:
 	vkDestroyPipeline(device->logical_device, pipeline->geometry_pipeline, NULL);
@@ -742,11 +783,11 @@ int recreate_vulkan_pipelines(FracRenderVulkanDevice *device, FracRenderVulkanSw
 	pipeline->colour_pipeline = VK_NULL_HANDLE;
 
 	// Create new ones:
-	if (create_pipeline(device, swapchain, pipeline, 0) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 0, sdf_type) != 0)
 	{
 		return -1;
 	}
-	if (create_pipeline(device, swapchain, pipeline, 1) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 1, sdf_type) != 0)
 	{
 		return -1;
 	}

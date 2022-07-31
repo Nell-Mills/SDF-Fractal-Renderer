@@ -19,7 +19,5 @@ layout (location = 0) out vec4 out_colour;
 void main()
 {
 	float iterations_achieved = texture(u_position_sampler, in_tex_coord).a;
-
-	if (iterations_achieved < 0.f) { out_colour = vec4(0.f, 0.f, 0.f, 1.f); }
-	else { out_colour = vec4(vec3(iterations_achieved), 1.f); }
+	out_colour = vec4(vec3(iterations_achieved), 1.f);
 }

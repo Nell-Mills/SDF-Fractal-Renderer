@@ -18,28 +18,23 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 
 	// Create G-buffer image and image views:
 	printf(" ---> Creating G-buffer images and image views.\n");
-	if (create_g_buffer_images(device, swapchain, framebuffers) != 0)
+	if (create_g_buffer_images(device, swapchain, framebuffers, sdf_type) != 0)
 	{
 		return -1;
 	}
 
 	// Create G-buffer:
 	printf(" ---> Creating G-buffer.\n");
-	if (create_g_buffer(device, swapchain, pipeline, framebuffers) != 0)
+	if (create_g_buffer(device, swapchain, pipeline, framebuffers, sdf_type) != 0)
 	{
 		return -1;
 	}
 
 	if (sdf_type == 1)
 	{
-		// Create 2D SDF image:
+		// Create 2D SDF image and image view:
+		printf(" ---> Creating 2D SDF image and image view.\n");
 		if (create_sdf_2d_image(device, swapchain, framebuffers) != 0)
-		{
-			return -1;
-		}
-
-		// Create 2D SDF image view:
-		if (create_sdf_2d_image_view(device, framebuffers) != 0)
 		{
 			return -1;
 		}
@@ -185,7 +180,7 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Create G-buffer images and image views:
 int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers)
+					FracRenderVulkanFramebuffers *framebuffers, int sdf_type)
 {
 	// Allocate memory for images and image views (free in destroy_vulkan_framebuffers):
 	framebuffers->g_buffer_images = malloc(framebuffers->num_g_buffer_images *
@@ -221,12 +216,23 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 		image_info.arrayLayers			= 1;
 		image_info.samples			= VK_SAMPLE_COUNT_1_BIT;
 		image_info.tiling			= VK_IMAGE_TILING_OPTIMAL;
-		image_info.usage			= VK_IMAGE_USAGE_SAMPLED_BIT |
-							VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		if (i == 2)
+		{
+			image_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT |
+				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		}
+		else
+		{
+			image_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT |
+				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
+
 		image_info.sharingMode			= VK_SHARING_MODE_EXCLUSIVE;
 		image_info.queueFamilyIndexCount	= 0;
 		image_info.pQueueFamilyIndices		= NULL;
-		image_info.initialLayout		= VK_IMAGE_LAYOUT_UNDEFINED;
+		image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		// Create image:
 		if (vkCreateImage(device->logical_device, &image_info, NULL,
@@ -321,7 +327,8 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 
 // Create G-buffer:
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers)
+	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type)
 {
 	/* Adding new attachments:
 	 * Add here.
@@ -332,10 +339,19 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	 * Attachments in geometry render pass. */
 
 	// Create attachments:
-	VkImageView attachments[2] = {
-		framebuffers->g_buffer_image_views[0],
-		framebuffers->g_buffer_image_views[1]
-	};
+	VkImageView *attachments;
+	attachments = malloc(framebuffers->num_g_buffer_images * sizeof(VkImageView));
+	if (sdf_type == 1)
+	{
+		attachments[0] = framebuffers->g_buffer_image_views[0];
+		attachments[1] = framebuffers->g_buffer_image_views[1];
+		attachments[2] = framebuffers->g_buffer_image_views[2];
+	}
+	else
+	{
+		attachments[0] = framebuffers->g_buffer_image_views[0];
+		attachments[1] = framebuffers->g_buffer_image_views[1];
+	}
 
 	// Define G-buffer creation info:
 	VkFramebufferCreateInfo g_buffer_info;
@@ -344,7 +360,7 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	g_buffer_info.pNext		= NULL;
 	g_buffer_info.flags		= 0;
 	g_buffer_info.renderPass	= pipeline->geometry_render_pass;
-	g_buffer_info.attachmentCount	= 2;
+	g_buffer_info.attachmentCount	= framebuffers->num_g_buffer_images;
 	g_buffer_info.pAttachments	= attachments;
 	g_buffer_info.width		= swapchain->swapchain_extent.width;
 	g_buffer_info.height		= swapchain->swapchain_extent.height;
@@ -355,6 +371,118 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 					&framebuffers->g_buffer) != VK_SUCCESS)
 	{
 		fprintf(stderr, "Error: Unable to create G-buffer!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+// Create 2D SDF image and image view:
+int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanFramebuffers *framebuffers)
+{
+	// Define image creation info:
+	VkImageCreateInfo image_info;
+	memset(&image_info, 0, sizeof(VkImageCreateInfo));
+	image_info.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	image_info.pNext			= NULL;
+	image_info.flags			= 0;
+	image_info.imageType			= VK_IMAGE_TYPE_2D;
+	image_info.format			= framebuffers->sdf_2d_format;
+	image_info.extent.width			= swapchain->swapchain_extent.width;
+	image_info.extent.height		= swapchain->swapchain_extent.height;
+	image_info.extent.depth			= 1;
+	image_info.mipLevels			= 1;
+	image_info.arrayLayers			= 1;
+	image_info.samples			= VK_SAMPLE_COUNT_1_BIT;
+	image_info.tiling			= VK_IMAGE_TILING_OPTIMAL;
+	image_info.usage			= VK_IMAGE_USAGE_SAMPLED_BIT |
+						VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	image_info.sharingMode			= VK_SHARING_MODE_EXCLUSIVE;
+	image_info.queueFamilyIndexCount	= 0;
+	image_info.pQueueFamilyIndices		= NULL;
+
+	// Create image:
+	if (vkCreateImage(device->logical_device, &image_info, NULL,
+			&framebuffers->sdf_2d_image) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create image for 2D SDF!\n");
+		return -1;
+	}
+
+	// Get memory requirements of image:
+	VkMemoryRequirements memory_requirements;
+	vkGetImageMemoryRequirements(device->logical_device,
+		framebuffers->sdf_2d_image, &memory_requirements);
+
+	// Allocate memory for image:
+	VkMemoryAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+	allocate_info.sType		= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocate_info.pNext		= NULL;
+	allocate_info.allocationSize	= memory_requirements.size;
+
+	// Find suitable memory type for image:
+	VkPhysicalDeviceMemoryProperties memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(device->physical_device, &memory_properties);
+
+	VkMemoryPropertyFlags required_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	int success_flag = -1;
+	for (uint32_t j = 0; j < memory_properties.memoryTypeCount; j++)
+	{
+		if ((memory_requirements.memoryTypeBits & (1 << j)) &&
+			((memory_properties.memoryTypes[j].propertyFlags &
+			required_properties) == required_properties))
+		{
+			allocate_info.memoryTypeIndex = j;
+			success_flag = 0;
+			break;
+		}
+	}
+	if (success_flag != 0)
+	{
+		fprintf(stderr, "Error: No suitable memory type found for 2D SDF image!\n");
+		return -1;
+	}
+
+	// Allocate memory for image:
+	if (vkAllocateMemory(device->logical_device, &allocate_info, NULL,
+				&framebuffers->sdf_2d_memory) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to allocate memory for 2D SDF image!\n");
+		return -1;
+	}
+
+	// Bind image memory:
+	vkBindImageMemory(device->logical_device, framebuffers->sdf_2d_image,
+					framebuffers->sdf_2d_memory, 0);
+
+	// Define image view creation info:
+	VkImageViewCreateInfo view_info;
+	memset(&view_info, 0, sizeof(VkImageViewCreateInfo));
+	view_info.sType			= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	view_info.pNext			= NULL;
+	view_info.flags			= 0;
+	view_info.image			= framebuffers->sdf_2d_image;
+	view_info.viewType		= VK_IMAGE_VIEW_TYPE_2D;
+	view_info.format		= framebuffers->sdf_2d_format;
+
+	view_info.components.r	= VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_info.components.g	= VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_info.components.b	= VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_info.components.a	= VK_COMPONENT_SWIZZLE_IDENTITY;
+
+	view_info.subresourceRange.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+	view_info.subresourceRange.baseMipLevel		= 0;
+	view_info.subresourceRange.levelCount		= 1;
+	view_info.subresourceRange.baseArrayLayer	= 0;
+	view_info.subresourceRange.layerCount		= 1;
+
+	// Create image view:
+	if (vkCreateImageView(device->logical_device, &view_info, NULL,
+			&framebuffers->sdf_2d_image_view) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create image view for 2D SDF image!\n");
 		return -1;
 	}
 
@@ -385,7 +513,8 @@ int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Recreate G-buffer images and views:
 int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
-	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers)
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type)
 {
 	// Destroy G-buffer views and free memory:
 	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
@@ -407,7 +536,7 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 	free(framebuffers->g_buffer_image_memory);
 
 	// Create new images and views:
-	if (create_g_buffer_images(device, swapchain, framebuffers) != 0)
+	if (create_g_buffer_images(device, swapchain, framebuffers, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -417,12 +546,15 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 
 // Recreate G-buffer:
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers)
+	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type)
 {
 	// Destroy current G-buffer:
 	vkDestroyFramebuffer(device->logical_device, framebuffers->g_buffer, NULL);
+	framebuffers->g_buffer = VK_NULL_HANDLE;
 
-	if (create_g_buffer(device, swapchain, pipeline, framebuffers) != 0)
+	// Create new one:
+	if (create_g_buffer(device, swapchain, pipeline, framebuffers, sdf_type) != 0)
 	{
 		return -1;
 	}
@@ -430,16 +562,24 @@ int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwa
 	return 0;
 }
 
-// Create 2D SDF image:
-int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+// Recreate 2D SDF image and image view:
+int recreate_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 						FracRenderVulkanFramebuffers *framebuffers)
 {
-	return 0;
-}
+	// Destroy image and image view:
+	vkDestroyImageView(device->logical_device, framebuffers->sdf_2d_image_view, NULL);
+	vkDestroyImage(device->logical_device, framebuffers->sdf_2d_image, NULL);
+	vkFreeMemory(device->logical_device, framebuffers->sdf_2d_memory, NULL);
 
-// Create 2D SDF image view:
-int create_sdf_2d_image_view(FracRenderVulkanDevice *device,
-		FracRenderVulkanFramebuffers *framebuffers)
-{
+	framebuffers->sdf_2d_image_view = VK_NULL_HANDLE;
+	framebuffers->sdf_2d_image = VK_NULL_HANDLE;
+	framebuffers->sdf_2d_memory = VK_NULL_HANDLE;
+
+	// Create new ones:
+	if (create_sdf_2d_image(device, swapchain, framebuffers) != 0)
+	{
+		return -1;
+	}
+
 	return 0;
 }

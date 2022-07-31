@@ -136,11 +136,11 @@ typedef struct {
 	VkImageView *g_buffer_image_views;
 	VkFormat *g_buffer_formats;
 
-	// 2D SDF image:
-	VkFormat sdf_2d_format;
-	VkImageView sdf_2d_image_view;
+	// 2D SDF:
 	VkImage sdf_2d_image;
 	VkDeviceMemory sdf_2d_memory;
+	VkImageView sdf_2d_image_view;
+	VkFormat sdf_2d_format;
 } FracRenderVulkanFramebuffers;
 
 typedef struct {

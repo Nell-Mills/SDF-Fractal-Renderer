@@ -112,7 +112,7 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	{
 		// Create 2D SDF descriptor:
 		printf(" ---> Creating 2D SDF descriptor.\n");
-		if (create_sdf_2d_descriptor(device, descriptors) != 0)
+		if (create_sdf_2d_descriptor(device, descriptors, framebuffers) != 0)
 		{
 			return -1;
 		}
@@ -475,7 +475,7 @@ int create_g_buffer_descriptors(FracRenderVulkanDevice *device,
 		// Allocate descriptor set:
 		VkDescriptorSetAllocateInfo allocate_info;
 		memset(&allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
-		allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocate_info.pNext			= NULL;
 		allocate_info.descriptorPool		= descriptors->descriptor_pool;
 		allocate_info.descriptorSetCount	= 1;
@@ -949,12 +949,76 @@ int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors
 int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
 			FracRenderVulkanDescriptors *descriptors)
 {
+	// Create array of descriptor set layout bindings:
+	VkDescriptorSetLayoutBinding bindings[1];
+	memset(bindings, 0, 1 * sizeof(VkDescriptorSetLayoutBinding));
+	bindings[0].binding		= 0;
+	bindings[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[0].descriptorCount	= 1;
+	bindings[0].stageFlags		= VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[0].pImmutableSamplers	= NULL;
+
+	// Create descriptor set layout:
+	VkDescriptorSetLayoutCreateInfo layout_info;
+	memset(&layout_info, 0, sizeof(VkDescriptorSetLayoutCreateInfo));
+	layout_info.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layout_info.pNext		= NULL;
+	layout_info.flags		= 0;
+	layout_info.bindingCount	= 1;
+	layout_info.pBindings		= bindings;
+
+	if (vkCreateDescriptorSetLayout(device->logical_device, &layout_info,
+		NULL, &descriptors->sdf_2d_descriptor_layout) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to create 2D SDF descriptor set layout!\n");
+		return -1;
+	}
+
 	return 0;
 }
 
 // Create 2D SDF descriptor:
 int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
-		FracRenderVulkanDescriptors *descriptors)
+	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers)
 {
+	// Allocate descriptor set:
+	VkDescriptorSetAllocateInfo allocate_info;
+	memset(&allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
+	allocate_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocate_info.pNext			= NULL;
+	allocate_info.descriptorPool		= descriptors->descriptor_pool;
+	allocate_info.descriptorSetCount	= 1;
+	allocate_info.pSetLayouts		= &descriptors->sdf_2d_descriptor_layout;
+
+	if (vkAllocateDescriptorSets(device->logical_device, &allocate_info,
+				&descriptors->sdf_2d_descriptor) != VK_SUCCESS)
+	{
+		fprintf(stderr, "Error: Unable to allocate 2D SDF descriptor set!\n");
+		return -1;
+	}
+
+	// Create descriptor set:
+	VkDescriptorImageInfo sdf_2d_image_info;
+	memset(&sdf_2d_image_info, 0, sizeof(VkDescriptorImageInfo));
+	sdf_2d_image_info.sampler	= descriptors->sampler;
+	sdf_2d_image_info.imageView	= framebuffers->sdf_2d_image_view;
+	sdf_2d_image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	VkWriteDescriptorSet descriptor_write[1];
+	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
+	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptor_write[0].pNext		= NULL;
+	descriptor_write[0].dstSet		= descriptors->sdf_2d_descriptor;
+	descriptor_write[0].dstBinding		= 0;
+	descriptor_write[0].dstArrayElement	= 0;
+	descriptor_write[0].descriptorCount	= 1;
+	descriptor_write[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptor_write[0].pImageInfo		= &sdf_2d_image_info;
+	descriptor_write[0].pBufferInfo		= NULL;
+	descriptor_write[0].pTexelBufferView	= NULL;
+
+	// Update descriptor sets:
+	vkUpdateDescriptorSets(device->logical_device, 1, descriptor_write, 0, NULL);
+
 	return 0;
 }

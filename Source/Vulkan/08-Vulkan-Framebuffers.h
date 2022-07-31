@@ -34,11 +34,16 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Create G-buffer images and image views:
 int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers);
+					FracRenderVulkanFramebuffers *framebuffers, int sdf_type);
 
 // Create G-buffer:
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers);
+	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type);
+
+// Create 2D SDF image and image view:
+int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanFramebuffers *framebuffers);
 
 // Recreate swapchain framebuffers:
 int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
@@ -47,18 +52,16 @@ int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Recreate G-buffer images and views:
 int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
-	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers);
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type);
 
 // Recreate G-buffer:
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers);
+	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
+	int sdf_type);
 
-// Create 2D SDF image:
-int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+// Recreate 2D SDF image and image view:
+int recreate_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 						FracRenderVulkanFramebuffers *framebuffers);
-
-// Create 2D SDF image view:
-int create_sdf_2d_image_view(FracRenderVulkanDevice *device,
-		FracRenderVulkanFramebuffers *framebuffers);
 
 #endif

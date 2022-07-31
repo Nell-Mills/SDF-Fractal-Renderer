@@ -89,8 +89,13 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 1, &buffer_barrier_2, 0, NULL);
 
 	// Set G-buffer clear colour:
-	VkClearValue geometry_clear_values[2];
-	memset(&geometry_clear_values, 0, 2 * sizeof(VkClearValue));
+	int num_clear_values;
+	if (sdf_type == 1) { num_clear_values = 3; }
+	else { num_clear_values = 2; }
+
+	VkClearValue *geometry_clear_values;
+	geometry_clear_values = malloc(num_clear_values * sizeof(VkClearValue));
+	memset(geometry_clear_values, 0, num_clear_values * sizeof(VkClearValue));
 
 	// Position/iteration:
 	geometry_clear_values[0].color.float32[0] = 0.f;
@@ -104,6 +109,15 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_clear_values[1].color.float32[2] = 0.f;
 	geometry_clear_values[1].color.float32[3] = 1.f;
 
+	if (sdf_type == 1)
+	{
+		// Distance write:
+		geometry_clear_values[2].color.float32[0] = 0.f;
+		geometry_clear_values[2].color.float32[1] = 0.f;
+		geometry_clear_values[2].color.float32[2] = 0.f;
+		geometry_clear_values[2].color.float32[3] = 1.f;
+	}
+
 	// Define render pass begin info:
 	VkRenderPassBeginInfo geometry_pass_info;
 	memset(&geometry_pass_info, 0, sizeof(VkRenderPassBeginInfo));
@@ -115,8 +129,11 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_pass_info.renderArea.offset.y		= 0;
 	geometry_pass_info.renderArea.extent.width	= swapchain->swapchain_extent.width;
 	geometry_pass_info.renderArea.extent.height	= swapchain->swapchain_extent.height;
-	geometry_pass_info.clearValueCount		= 2;
+	geometry_pass_info.clearValueCount		= num_clear_values;
 	geometry_pass_info.pClearValues			= geometry_clear_values;
+
+	// Free memory for geometry clear values:
+	free(geometry_clear_values);
 
 	// Begin render pass:
 	vkCmdBeginRenderPass(commands->command_buffers[image_index],
@@ -152,8 +169,20 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	// End the render pass:
 	vkCmdEndRenderPass(commands->command_buffers[image_index]);
 
-	// Wait here:
-	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
+	uint32_t max_images;
+	if (sdf_type == 1)
+	{
+		// Copy data from third G-Buffer image to 2D SDF and transition layouts:
+		max_images = framebuffers->num_g_buffer_images - 1;
+		if (copy_g_buffer_image(swapchain, framebuffers,
+			commands->command_buffers[image_index]) != 0)
+		{
+			return -1;
+		}
+	}
+	else { max_images = framebuffers->num_g_buffer_images; }
+
+	for (uint32_t i = 0; i < max_images; i++)
 	{
 		VkImageMemoryBarrier image_barrier;
 		memset(&image_barrier, 0, sizeof(VkImageMemoryBarrier));
@@ -216,7 +245,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		0, 1, &descriptors->scene_descriptor, 0, NULL);
 
 	// Bind G-buffer descriptors:
-	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
+	for (uint32_t i = 0; i < descriptors->num_g_buffer_descriptors; i++)
 	{
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->colour_pipeline_layout,
@@ -433,4 +462,109 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
+}
+
+// Copy contents of G-Buffer distance image to texture:
+int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
+	FracRenderVulkanFramebuffers *framebuffers, VkCommandBuffer command_buffer)
+{
+	// Transition image layouts:
+	VkImage images[2] = {
+		framebuffers->g_buffer_images[2],
+		framebuffers->sdf_2d_image
+	};
+	VkImageLayout src_image_layouts_1[2] = {
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_UNDEFINED
+	};
+	VkImageLayout dst_image_layouts_1[2] = {
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+	};
+
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		VkImageMemoryBarrier image_barrier;
+		memset(&image_barrier, 0, sizeof(VkImageMemoryBarrier));
+		image_barrier.sType 			= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		image_barrier.pNext			= NULL;
+		image_barrier.srcAccessMask		= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		image_barrier.dstAccessMask		= VK_ACCESS_TRANSFER_WRITE_BIT;
+		image_barrier.oldLayout			= src_image_layouts_1[i];
+		image_barrier.newLayout			= dst_image_layouts_1[i];
+		image_barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.image			= images[i];
+
+		image_barrier.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+		image_barrier.subresourceRange.baseMipLevel	= 0;
+		image_barrier.subresourceRange.levelCount	= 1;
+		image_barrier.subresourceRange.baseArrayLayer	= 0;
+		image_barrier.subresourceRange.layerCount	= 1;
+
+		vkCmdPipelineBarrier(command_buffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
+			0, NULL, 1, &image_barrier);
+	}
+
+	// Copy the image over:
+	VkImageCopy image_copy_info;
+	memset(&image_copy_info, 0, sizeof(VkImageCopy));
+	image_copy_info.srcSubresource.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+	image_copy_info.srcSubresource.mipLevel		= 0;
+	image_copy_info.srcSubresource.baseArrayLayer	= 0;
+	image_copy_info.srcSubresource.layerCount	= 1;
+
+	image_copy_info.srcOffset.x			= 0;
+	image_copy_info.srcOffset.y			= 0;
+
+	image_copy_info.dstSubresource.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+	image_copy_info.dstSubresource.mipLevel		= 0;
+	image_copy_info.dstSubresource.baseArrayLayer	= 0;
+	image_copy_info.dstSubresource.layerCount	= 1;
+
+	image_copy_info.dstOffset.x			= 0;
+	image_copy_info.dstOffset.y			= 0;
+	image_copy_info.extent.width			= swapchain->swapchain_extent.width;
+	image_copy_info.extent.height			= swapchain->swapchain_extent.height;
+	image_copy_info.extent.depth			= 1;
+
+	vkCmdCopyImage(command_buffer,
+		framebuffers->g_buffer_images[2], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		framebuffers->sdf_2d_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1, &image_copy_info);
+
+	// Transition the image layouts to shader read-only optimal:
+	VkImageLayout src_image_layouts_2[2] = {
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+	};
+
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		VkImageMemoryBarrier image_barrier;
+		memset(&image_barrier, 0, sizeof(VkImageMemoryBarrier));
+		image_barrier.sType 			= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		image_barrier.pNext			= NULL;
+		image_barrier.srcAccessMask		= VK_ACCESS_TRANSFER_WRITE_BIT;
+		image_barrier.dstAccessMask		= VK_ACCESS_SHADER_READ_BIT;
+		image_barrier.oldLayout			= src_image_layouts_2[i];
+		image_barrier.newLayout			= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		image_barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.image			= images[i];
+
+		image_barrier.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
+		image_barrier.subresourceRange.baseMipLevel	= 0;
+		image_barrier.subresourceRange.levelCount	= 1;
+		image_barrier.subresourceRange.baseArrayLayer	= 0;
+		image_barrier.subresourceRange.layerCount	= 1;
+
+		vkCmdPipelineBarrier(command_buffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0, 0, NULL, 0, NULL, 1, &image_barrier);
+	}
+
+	return 0;
 }

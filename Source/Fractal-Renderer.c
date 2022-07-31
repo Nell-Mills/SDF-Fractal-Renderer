@@ -286,7 +286,7 @@ int main(int argc, char **argv)
 			if (changed_format == 0)
 			{
 				if (recreate_vulkan_render_passes(&device, &swapchain,
-							&framebuffers, &pipeline) != 0)
+						&framebuffers, &pipeline, sdf_type) != 0)
 				{
 					break;
 				}
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_g_buffer_images(&device,
-					&swapchain, &framebuffers) != 0)
+					&swapchain, &framebuffers, sdf_type) != 0)
 				{
 					break;
 				}
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 
 			// Recreate G-buffer:
 			if (recreate_vulkan_g_buffer(&device, &swapchain,
-					&pipeline, &framebuffers) != 0)
+				&pipeline, &framebuffers, sdf_type) != 0)
 			{
 				break;
 			}
@@ -323,7 +323,8 @@ int main(int argc, char **argv)
 			// If extent changed, recreate pipelines:
 			if (changed_extent == 0)
 			{
-				if (recreate_vulkan_pipelines(&device, &swapchain, &pipeline) != 0)
+				if (recreate_vulkan_pipelines(&device, &swapchain,
+							&pipeline, sdf_type) != 0)
 				{
 					break;
 				}

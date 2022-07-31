@@ -7,6 +7,7 @@
 
 // Library includes:
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Local includes:
@@ -34,6 +35,10 @@ int submit_commands(FracRenderVulkanDevice *device, FracRenderVulkanCommands *co
 // Present results:
 int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 				FracRenderVulkanCommands *commands, uint32_t image_index);
+
+// Copy contents of G-Buffer distance image to texture:
+int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
+	FracRenderVulkanFramebuffers *framebuffers, VkCommandBuffer command_buffer);
 
 // Print all Vulkan handles for debugging:
 void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,

@@ -93,12 +93,12 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->scene_buffer			= VK_NULL_HANDLE;
 	descriptors->scene_memory			= VK_NULL_HANDLE;
 
-	descriptors->num_g_buffer_descriptors		= 2;
+	descriptors->num_g_buffer_descriptors = 2;
 	descriptors->g_buffer_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->g_buffer_descriptors		= NULL;
 
 	descriptors->sdf_3d_descriptor_layout		= VK_NULL_HANDLE;
-	descriptors->sdf_3d_descriptor		= VK_NULL_HANDLE;
+	descriptors->sdf_3d_descriptor			= VK_NULL_HANDLE;
 	descriptors->sdf_3d_buffer			= VK_NULL_HANDLE;
 	descriptors->sdf_3d_memory			= VK_NULL_HANDLE;
 
@@ -145,20 +145,39 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->framebuffers		= NULL;
 
 	framebuffers->g_buffer			= VK_NULL_HANDLE;
-	framebuffers->num_g_buffer_images	= 2;
+
+	if (sdf_type == 1)
+	{
+		framebuffers->num_g_buffer_images = 3;
+	}
+	else
+	{
+		framebuffers->num_g_buffer_images = 2;
+	}
 	framebuffers->g_buffer_images		= NULL;
 	framebuffers->g_buffer_image_views	= NULL;
 
 	// Allocate memory for G-buffer formats (free in destroy_vulkan_framebuffers):
 	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
 									sizeof(VkFormat));
-	framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
-	framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+	if (sdf_type == 1)
+	{
+		// Positions + iterations, normals and distance write:
+		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+		framebuffers->g_buffer_formats[2]	= VK_FORMAT_R32_SFLOAT;
+	}
+	else
+	{
+		// Positions + iterations and normals:
+		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
+	}
 
-	framebuffers->sdf_2d_format		= VK_FORMAT_R32_SFLOAT;
-	framebuffers->sdf_2d_image_view		= VK_NULL_HANDLE;
 	framebuffers->sdf_2d_image		= VK_NULL_HANDLE;
 	framebuffers->sdf_2d_memory		= VK_NULL_HANDLE;
+	framebuffers->sdf_2d_image_view		= VK_NULL_HANDLE;
+	framebuffers->sdf_2d_format		= VK_FORMAT_R32_SFLOAT;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;
