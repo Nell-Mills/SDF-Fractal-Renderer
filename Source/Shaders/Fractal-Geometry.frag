@@ -15,8 +15,9 @@ layout (location = 0) out vec4 out_position;
 layout (location = 1) out vec4 out_normal;
 
 // Function prototypes:
-float distance_estimator(vec3 position);
 vec4 raymarch(vec3 origin, vec3 ray);
+float distance_estimator(vec3 position);
+float distance_estimator2(vec3 position);
 
 // Main function:
 void main()
@@ -26,41 +27,22 @@ void main()
 	ray = normalize(ray);
 
 	// Find closest point on Mandelbulb and calculate normal:
-	out_position = raymarch(in_position.xyz, ray);
-}
-
-float distance_estimator(vec3 position)
-{
-	vec3 w = position;
-	float m = dot(w, w);
-	float dz = 1.f;
-
-	for (int i = 0; i < 4; i++)
-	{
-		dz = (8.f * pow(sqrt(m), 7.f) * dz) + 1.f;
-		float r = length(w);
-		float b = u_scene.mandelbulb_parameter * acos(w.y / r);
-		float a = u_scene.mandelbulb_parameter * atan(w.z, w.x);
-		w = pow(r, 8) * vec3(sin(b) * sin(a), cos(b), sin(b) * cos(a)) + position;
-		m = dot(w, w);
-		if (m > 256.f) { break; }
-	}
-
-	return 0.25f * log(m) * sqrt(m) / dz;
+	out_position = raymarch(u_scene.eye_position, ray);
 }
 
 vec4 raymarch(vec3 origin, vec3 ray)
 {
-	vec3 mandelbulb_positions[] = {
+/*	vec3 mandelbulb_positions[] = {
 		vec3( 0.f, 0.f,  0.f),
 		vec3(-1.f, 0.f,  1.f),
 		vec3( 1.f, 0.f,  1.f),
 		vec3(-1.f, 0.f, -1.f),
 		vec3( 1.f, 0.f, -1.f)
 	};
-
+*/
 	vec4 current_position;
 	int max_steps = 49;
+	float distance_estimate;
 	float distance_travelled = 0.f;
 	float distance_threshold = 0.0001f;
 
@@ -71,18 +53,18 @@ vec4 raymarch(vec3 origin, vec3 ray)
 			1.f - (float(steps_taken) / float(max_steps)));
 
 		// Get distance estimate and update total distance travelled:
-		float distance_estimates[5];
+/*		float distance_estimates[5];
 		for (int i = 0; i < 5; i++)
 		{
 			distance_estimates[i] = distance_estimator(current_position.xyz +
 								mandelbulb_positions[i]);
 		}
 
-		float distance_estimate = min(min(min(min(distance_estimates[3],
+		distance_estimate = min(min(min(min(distance_estimates[3],
 				distance_estimates[4]), distance_estimates[2]),
 				distance_estimates[1]), distance_estimates[0]);
-
-		//float distance_estimate = distance_estimator(current_position.xyz);
+*/
+		distance_estimate = distance_estimator(current_position.xyz);
 		distance_travelled += distance_estimate;
 
 		// Check how close the point is to the surface:
@@ -100,3 +82,60 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	// Return current position along with iterations achieved:
 	return current_position;
 }
+
+float distance_estimator(vec3 position)
+{
+	int max_iterations = 4;
+	float escape_radius = 2.f;
+	float parameter = u_scene.mandelbulb_parameter;
+
+	vec3 z = position;	// Z = Z^2 + C.
+	float dr = 1.f;
+	float r = 0.0;		// Radius.
+
+	for (int i = 0; i < max_iterations; i++)
+	{
+		r = length(z);
+		if (r > escape_radius) { break; }
+
+		// Convert position to polar coordinates:
+		float theta = acos(z.z / r);
+		float phi = atan(z.y, z.x);
+		dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
+
+		// Scale and rotate position:
+		float zr = pow(r, parameter);
+		theta *= parameter;
+		phi *= parameter;
+
+		// Convert position back to Cartesian coordinates:
+		z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
+						cos(theta))) + position;
+	}
+
+	// Calculate distance:
+	return 0.5f * log(r) * (r / dr);
+}
+
+float distance_estimator2(vec3 position)                                                            
+{                                                                                                   
+        vec3 z = position.xzy;                                                                      
+        float scale = 1.f;                                                                          
+        vec3 size_clamp = vec3(1.f, 1.f, 1.3f);                                                     
+                                                                                                    
+        for (int i = 0; i < 12; i++)                                                                
+        {                                                                                           
+                z = 2.f * clamp(z, -size_clamp, size_clamp) - z;                                    
+                float r2 = dot(z, z);                                                               
+                float k = max(2.f / r2, 0.027f);                                                    
+                z *= k;                                                                             
+                scale *- k;                                                                         
+        }                                                                                           
+                                                                                                    
+        float l = length(z.xy);                                                                     
+        float rxy = l - 4.f;                                                                        
+        float n = l * z.z;                                                                          
+        rxy = max(rxy, -n / 4.f);                                                                   
+                                                                                                    
+        return rxy / abs(scale);                                                                    
+} 

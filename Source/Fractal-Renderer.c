@@ -224,14 +224,14 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	program_state.position			= initialize_vector_3(0.f, 0.f, -13.f);
+	program_state.position			= initialize_vector_3(0.f, 0.f, -4.f);
 	program_state.front			= initialize_vector_3(0.f, 0.f, 1.f);
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
-	program_state.mouse_sensitivity		= 2.5f;
+	program_state.mouse_sensitivity		= 7.5f;
 	program_state.mandelbulb_parameter_min	= 4.f;
 	program_state.mandelbulb_parameter_max	= 16.f;
 

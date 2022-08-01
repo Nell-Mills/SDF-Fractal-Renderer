@@ -12,9 +12,9 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	// Get eye position:
 	scene_uniform->eye_position = program_state->position;
 
-	// Get plane centre position (10.f in front of eye):
+	// Get plane centre position (2.f in front of eye):
 	scene_uniform->plane_centre = add_vector_3(program_state->position,
-			multiply_vector_3_scalar(program_state->front, 10.f));
+			multiply_vector_3_scalar(program_state->front, 2.f));
 
 	// Get axes in eye coordinate system:
 	get_axes(program_state->position, program_state->front, program_state->up,

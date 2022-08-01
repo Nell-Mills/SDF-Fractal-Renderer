@@ -18,37 +18,73 @@ layout (location = 0) out vec4 out_colour;
 
 // Function prototypes:
 vec4 colour_function(vec3 position);
+vec4 colour_function2(vec3 position);
 
 void main()
 {
-	//float iterations_achieved = texture(u_position_sampler, in_tex_coord).a;
-	//out_colour = vec4(vec3(iterations_achieved), 1.f);
-
-	//float distance = texture(u_normal_sampler, in_tex_coord).a;
-	//out_colour = vec4(vec3(distance), 1.f);
-
 	vec3 position = texture(u_position_sampler, in_tex_coord).rgb;
 	out_colour = colour_function(position);
 }
 
 vec4 colour_function(vec3 position)
 {
-	vec3 w = position;
-	float m = dot(w, w);
-	vec4 colour_parameters = vec4(abs(w), m);
-	float dz = 1.f;
+        int max_iterations = 4;
+        float escape_radius = 2.f;
+        float parameter = u_scene.mandelbulb_parameter;
 
-	for (int i = 0; i < 4; i++)
-	{
-		dz = (8.f * pow(sqrt(m), 7.f) * dz) + 1.f;
-		float r = length(w);
-		float b = u_scene.mandelbulb_parameter * acos(w.y / r);
-		float a = u_scene.mandelbulb_parameter * atan(w.z, w.x);
-		w = pow(r, 8.f) * vec3(sin(b) * sin(a), cos(b), sin(b) * cos(a)) + position;
-		colour_parameters = min(colour_parameters, vec4(abs(w), m));
-		m = dot(w, w);
-		if (m > 256.f) { break; }
-	}
+        vec3 z = position;      // Z = Z^2 + C.
+        float dr = 1.f;
+        float r = 0.0;          // Radius.
+
+	float m = dot(z, z);
+	vec4 colour_parameters = vec4(abs(z), m);
+
+        for (int i = 0; i < max_iterations; i++)
+        {
+                r = length(z);
+                if (r > escape_radius) { break; }
+
+                // Convert position to polar coordinates:
+                float theta = acos(z.z / r);
+                float phi = atan(z.y, z.x);
+                dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
+
+                // Scale and rotate position:
+                float zr = pow(r, parameter);
+                theta *= parameter;
+                phi *= parameter;
+
+		// Get colour:
+		colour_parameters = min(colour_parameters, vec4(abs(z), m));
+
+                // Convert position back to Cartesian coordinates:
+                z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
+                                                cos(theta))) + position;
+
+		m = dot(z, z);
+        }
 
 	return vec4(m, colour_parameters.yzw);
+}
+
+vec4 colour_function2(vec3 position)
+{
+	vec3 z = position.xzy;
+	float col = 0.f;
+	float r2 = dot(z, z);
+	vec3 size_clamp = vec3(1.f, 1.f, 1.3f);
+
+	for (int i = 0; i < 5; i++)
+	{
+		vec3 z1 = 2.f * clamp(z, -size_clamp, size_clamp) - z;
+		col += abs(z.x - z1.z);
+		z = z1;
+		r2 = dot(z, z);
+		float k = max(2.f / r2, 0.027f);
+		z *= k;
+	}
+
+	z = clamp(z + 1.f, vec3(0.f), vec3(1.f));
+
+	return vec4(z.x * col, z.y * col, z.z * col, 1.f);
 }

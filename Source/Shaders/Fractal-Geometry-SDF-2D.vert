@@ -19,7 +19,7 @@ void main()
 		(gl_VertexIndex << 1) & 2,
 		gl_VertexIndex & 2
 	);
-	out_tex_coord = coord_2d;
+	out_tex_coord = coord_2d;	// At this point, coordinates in range 0 to 1.
 	coord_2d = (coord_2d * 2.f) - 1.f;
 
 	// Get position according to current plane transform:
