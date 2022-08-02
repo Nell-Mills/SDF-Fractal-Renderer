@@ -30,7 +30,7 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 	static double last_x = 0.0;
 	static double last_y = 0.0;
 
-	static double pitch = 0.0;
+	static double pitch = 20.5;
 	static double yaw = 89.0;
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)

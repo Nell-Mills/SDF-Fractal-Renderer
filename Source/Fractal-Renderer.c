@@ -59,16 +59,13 @@ int main(int argc, char **argv)
 
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
-	sdf_3d.num_voxels	= 0;
-	sdf_3d.size		= 1.1f;
+	sdf_3d.num_voxels	= (64 * 64 * 64) + 1;
+	sdf_3d.size		= 2.f;
 	sdf_3d.centre		= initialize_vector_3(0.f, 0.f, 0.f);
 	sdf_3d.voxels		= NULL;
 
 	if (sdf_type == 0)
 	{
-		// Calculate how many voxels are required in the 3D SDF:
-		calculate_sdf_3d_voxels(&sdf_3d);
-
 		// Create 3D SDF:
 		if (create_sdf_3d(&sdf_3d) != 0)
 		{
@@ -224,15 +221,19 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	program_state.position			= initialize_vector_3(0.f, 0.f, -4.f);
-	program_state.front			= initialize_vector_3(0.f, 0.f, 1.f);
+	program_state.position			= initialize_vector_3(0.f, -2.f, -4.f);
+	program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+//	program_state.position			= initialize_vector_3(25.f, 20.f, 9.f);
+//	program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
-	program_state.mandelbulb_parameter_min	= 4.f;
+	program_state.mandelbulb_parameter_min	= 2.f;
 	program_state.mandelbulb_parameter_max	= 16.f;
 
 	// Set GLFW callback functions:

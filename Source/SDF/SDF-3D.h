@@ -43,12 +43,6 @@ typedef struct {
  * Function Prototypes *
  ***********************/
 
-// Calculate how many voxels are needed:
-void calculate_sdf_3d_voxels(FracRenderSDF3D *sdf_3d);
-
-// Recursion helper for memory requirement calculation:
-uint32_t calculate_sdf_3d_voxels_helper(float size, FracRenderVector3 centre, uint32_t level);
-
 // Calculate 3D SDF:
 int create_sdf_3d(FracRenderSDF3D *sdf_3d);
 

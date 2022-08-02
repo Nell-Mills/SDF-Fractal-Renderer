@@ -16,8 +16,9 @@ layout (location = 1) out vec4 out_normal;
 
 // Function prototypes:
 vec4 raymarch(vec3 origin, vec3 ray);
-float distance_estimator(vec3 position);
-float distance_estimator2(vec3 position);
+float distance_estimator_mandelbulb(vec3 position);
+float distance_estimator_hall_of_pillars(vec3 position);
+float distance_estimator_cubes(vec3 position);
 
 // Main function:
 void main()
@@ -41,7 +42,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	};
 */
 	vec4 current_position;
-	int max_steps = 49;
+	int max_steps = 999;
 	float distance_estimate;
 	float distance_travelled = 0.f;
 	float distance_threshold = 0.0001f;
@@ -56,15 +57,18 @@ vec4 raymarch(vec3 origin, vec3 ray)
 /*		float distance_estimates[5];
 		for (int i = 0; i < 5; i++)
 		{
-			distance_estimates[i] = distance_estimator(current_position.xyz +
-								mandelbulb_positions[i]);
+			distance_estimates[i] = distance_estimator_mandelbulb_vertical(
+					current_position.xyz + mandelbulb_positions[i]);
 		}
 
 		distance_estimate = min(min(min(min(distance_estimates[3],
 				distance_estimates[4]), distance_estimates[2]),
 				distance_estimates[1]), distance_estimates[0]);
 */
-		distance_estimate = distance_estimator(current_position.xyz);
+		distance_estimate = distance_estimator_mandelbulb(current_position.xyz);
+		//distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);
+		//distance_estimate = distance_estimator_cubes(current_position.xyz);
+
 		distance_travelled += distance_estimate;
 
 		// Check how close the point is to the surface:
@@ -83,7 +87,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	return current_position;
 }
 
-float distance_estimator(vec3 position)
+float distance_estimator_mandelbulb(vec3 position)
 {
 	int max_iterations = 4;
 	float escape_radius = 2.f;
@@ -117,25 +121,46 @@ float distance_estimator(vec3 position)
 	return 0.5f * log(r) * (r / dr);
 }
 
-float distance_estimator2(vec3 position)                                                            
+float distance_estimator_hall_of_pillars(vec3 position)
+{
+        vec3 z = position.xzy;
+        float scale = 1.f;
+        vec3 size_clamp = vec3(1.f, 1.f, 1.3f);
+
+        for (int i = 0; i < 12; i++)
+        {
+                z = 2.f * clamp(z, -size_clamp, size_clamp) - z;
+                float r2 = dot(z, z);
+                float k = max(2.f / r2, 0.027f);
+                z *= k;
+                scale *- k;
+        }
+
+        float l = length(z.xy);
+        float rxy = l - 4.f;
+        float n = l * z.z;
+        rxy = max(rxy, -n / 4.f);
+
+        return rxy / abs(scale);
+}
+
+float distance_estimator_cubes(vec3 position)                                                       
 {                                                                                                   
-        vec3 z = position.xzy;                                                                      
-        float scale = 1.f;                                                                          
-        vec3 size_clamp = vec3(1.f, 1.f, 1.3f);                                                     
+        vec4 z = vec4(position, 1.f);                                                               
+        vec4 z0 = z;                                                                                
+        float min_radius = 0.25f;                                                                   
+        vec4 scale = vec4(0.28f, 0.28f, 0.28f, 0.28f) / min_radius;                                 
+        float scale_power = pow(0.28f, float(1-10));                                                
                                                                                                     
-        for (int i = 0; i < 12; i++)                                                                
+        for (int i = 0; i < 9; i++)                                                                 
         {                                                                                           
-                z = 2.f * clamp(z, -size_clamp, size_clamp) - z;                                    
-                float r2 = dot(z, z);                                                               
-                float k = max(2.f / r2, 0.027f);                                                    
-                z *= k;                                                                             
-                scale *- k;                                                                         
+                z.xyz = clamp(z.xyz, -1.f, 1.f) * 2.f - z.xyz;                                      
+                                                                                                    
+                float r2 = dot(z.xyz, z.xyz);                                                       
+                z *= clamp(max(min_radius / r2, min_radius), 0.f, 1.f);                             
+                                                                                                    
+                z = z * scale + z0;                                                                 
         }                                                                                           
                                                                                                     
-        float l = length(z.xy);                                                                     
-        float rxy = l - 4.f;                                                                        
-        float n = l * z.z;                                                                          
-        rxy = max(rxy, -n / 4.f);                                                                   
-                                                                                                    
-        return rxy / abs(scale);                                                                    
-} 
+        return ((length(z.xyz) - 0.18f) / z.w) - scale_power;                                       
+}

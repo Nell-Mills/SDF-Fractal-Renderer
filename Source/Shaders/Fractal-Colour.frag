@@ -17,16 +17,20 @@ layout (set = 2, binding = 0) uniform sampler2D u_normal_sampler;
 layout (location = 0) out vec4 out_colour;
 
 // Function prototypes:
-vec4 colour_function(vec3 position);
-vec4 colour_function2(vec3 position);
+vec4 colour_function_mandelbulb(vec3 position);
+vec4 colour_function_hall_of_pillars(vec3 position);
 
 void main()
 {
 	vec3 position = texture(u_position_sampler, in_tex_coord).rgb;
-	out_colour = colour_function(position);
+	out_colour = colour_function_mandelbulb(position);
+	//out_colour = colour_function_hall_of_pillars(position);
+
+	//float iterations = texture(u_position_sampler, in_tex_coord).a;
+	//out_colour = vec4(vec3(iterations), 1.f);
 }
 
-vec4 colour_function(vec3 position)
+vec4 colour_function_mandelbulb(vec3 position)
 {
         int max_iterations = 4;
         float escape_radius = 2.f;
@@ -67,7 +71,7 @@ vec4 colour_function(vec3 position)
 	return vec4(m, colour_parameters.yzw);
 }
 
-vec4 colour_function2(vec3 position)
+vec4 colour_function_hall_of_pillars(vec3 position)
 {
 	vec3 z = position.xzy;
 	float col = 0.f;
@@ -86,5 +90,5 @@ vec4 colour_function2(vec3 position)
 
 	z = clamp(z + 1.f, vec3(0.f), vec3(1.f));
 
-	return vec4(z.x * col, z.y * col, z.z * col, 1.f);
+	return vec4(z.x * 0.1f * col, z.y * 0.5f * col, z.z * col, 1.f);
 }

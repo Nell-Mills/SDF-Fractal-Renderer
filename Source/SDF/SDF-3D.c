@@ -1,106 +1,5 @@
 #include "SDF-3D.h"
 
-// Calculate how many voxels are needed:
-void calculate_sdf_3d_voxels(FracRenderSDF3D *sdf_3d)
-{
-	printf("----------------------------------------");
-	printf("----------------------------------------\n");
-	printf("Calculating memory requirements of 3D SDF...\n");
-
-	sdf_3d->num_voxels = calculate_sdf_3d_voxels_helper(sdf_3d->size, sdf_3d->centre, 0);
-
-	printf(" ---> Voxels needed: %d\n", sdf_3d->num_voxels);
-
-	sdf_3d->num_voxels += (uint32_t)((float)(sdf_3d->num_voxels) * 0.25f);
-
-	printf(" ---> Will allocate for %d to account for floating "
-				"point inaccuracy.\n", sdf_3d->num_voxels);
-
-	printf("... Done.\n");
-	printf("----------------------------------------");
-	printf("----------------------------------------\n\n");
-}
-
-// Recursion helper for memory requirement calculation:
-uint32_t calculate_sdf_3d_voxels_helper(float size, FracRenderVector3 centre, uint32_t level)
-{
-	// Max resolution for SDF (9 levels for 2^9 = 512 voxels along each side):
-	if (level > 8) { return 1; }
-
-	// Calculate boundaries of voxel:
-	float min_x = centre.x - size;
-	float max_x = centre.x + size;
-	float min_y = centre.y - size;
-	float max_y = centre.y + size;
-	float min_z = centre.z - size;
-	float max_z = centre.z + size;
-
-	// Calculate signed distance from surface:
-	float distance = signed_distance_function(centre);
-
-	if (fabs(distance) > (sqrt(3) * size * 3.5f))
-	{
-		// If distance is larger than diagonal cube length, don't split:
-		return 1;
-	}
-	else
-	{
-		// Split cube into 8 smaller cubes:
-		FracRenderVector3 new_centre;
-		uint32_t result = 0;
-
-		// Upper, top-left cube (looking top-down):
-		new_centre.x = centre.x - (size / 2.f);
-		new_centre.y = centre.y + (size / 2.f);
-		new_centre.z = centre.z + (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Upper, top-right cube:
-		new_centre.x = centre.x + (size / 2.f);
-		new_centre.y = centre.y + (size / 2.f);
-		new_centre.z = centre.z + (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Upper, bottom-left cube:
-		new_centre.x = centre.x - (size / 2.f);
-		new_centre.y = centre.y + (size / 2.f);
-		new_centre.z = centre.z - (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Upper, bottom-right cube:
-		new_centre.x = centre.x + (size / 2.f);
-		new_centre.y = centre.y + (size / 2.f);
-		new_centre.z = centre.z - (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Lower, top-left cube (looking top-down):
-		new_centre.x = centre.x - (size / 2.f);
-		new_centre.y = centre.y - (size / 2.f);
-		new_centre.z = centre.z + (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Lower, top-right cube:
-		new_centre.x = centre.x + (size / 2.f);
-		new_centre.y = centre.y - (size / 2.f);
-		new_centre.z = centre.z + (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Lower, bottom-left cube:
-		new_centre.x = centre.x - (size / 2.f);
-		new_centre.y = centre.y - (size / 2.f);
-		new_centre.z = centre.z - (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		// Lower, bottom-right cube:
-		new_centre.x = centre.x + (size / 2.f);
-		new_centre.y = centre.y - (size / 2.f);
-		new_centre.z = centre.z - (size / 2.f);
-		result += calculate_sdf_3d_voxels_helper(size / 2.f, new_centre, level + 1);
-
-		return result;
-	}
-}
-
 // Calculate 3D SDF:
 int create_sdf_3d(FracRenderSDF3D *sdf_3d)
 {
@@ -158,15 +57,9 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 	// Get size of voxel (inflate a little to account for floating point imprecision):
 	sdf_3d->voxels[current_index].size = size + 0.00001f;
 
-	if (fabs(sdf_3d->voxels[current_index].distance) > (sqrt(3) * size * 3.5f))
+	if (level > 2)
 	{
-		// If distance is larger than diagonal cube length, don't split:
-		sdf_3d->voxels[current_index].num_subvoxels = 0;
-		sdf_3d->voxels[current_index].first_subvoxel_index = 0;
-	}
-	else if (level > 8)
-	{
-		// Max resolution for SDF (9 levels for 2^9 = 512 voxels along each side):
+		// Max resolution for SDF (2 levels for 8^2 = 64 voxels along each side):
 		sdf_3d->voxels[current_index].num_subvoxels = 0;
 		sdf_3d->voxels[current_index].first_subvoxel_index = 0;
 	}
