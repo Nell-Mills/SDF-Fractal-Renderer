@@ -93,7 +93,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->scene_buffer			= VK_NULL_HANDLE;
 	descriptors->scene_memory			= VK_NULL_HANDLE;
 
-	descriptors->num_g_buffer_descriptors = 2;
+	descriptors->num_g_buffer_descriptors		= 1;
 	descriptors->g_buffer_descriptor_layout		= VK_NULL_HANDLE;
 	descriptors->g_buffer_descriptors		= NULL;
 
@@ -120,13 +120,10 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	pipeline->colour_vertex_shader		= VK_NULL_HANDLE;
 	pipeline->colour_fragment_shader	= VK_NULL_HANDLE;
 
-	if (sdf_type != 1)
-	{
-		pipeline->geometry_vertex_shader_path = "Assets/Shaders/Fractal-Geometry.vert.sprv";
-	}
-
 	if (sdf_type == 0)
 	{
+		pipeline->geometry_vertex_shader_path =
+			"Assets/Shaders/Fractal-Geometry.vert.sprv";
 		pipeline->geometry_fragment_shader_path	=
 			"Assets/Shaders/Fractal-Geometry-SDF-3D.frag.sprv";
 	}
@@ -137,8 +134,17 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 		pipeline->geometry_fragment_shader_path	=
 			"Assets/Shaders/Fractal-Geometry-SDF-2D.frag.sprv";
 	}
+	else if (sdf_type == 2)
+	{
+		pipeline->geometry_vertex_shader_path =
+			"Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.vert.sprv";
+		pipeline->geometry_fragment_shader_path	=
+			"Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.frag.sprv";
+	}
 	else
 	{
+		pipeline->geometry_vertex_shader_path =
+			"Assets/Shaders/Fractal-Geometry.vert.sprv";
 		pipeline->geometry_fragment_shader_path	=
 			"Assets/Shaders/Fractal-Geometry.frag.sprv";
 	}
@@ -153,11 +159,11 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 
 	if (sdf_type == 1)
 	{
-		framebuffers->num_g_buffer_images = 3;
+		framebuffers->num_g_buffer_images = 2;
 	}
 	else
 	{
-		framebuffers->num_g_buffer_images = 2;
+		framebuffers->num_g_buffer_images = 1;
 	}
 	framebuffers->g_buffer_images		= NULL;
 	framebuffers->g_buffer_image_views	= NULL;
@@ -167,16 +173,14 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 									sizeof(VkFormat));
 	if (sdf_type == 1)
 	{
-		// Positions + iterations, normals and distance write:
+		// Positions + iterations, and distance write:
 		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
-		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
-		framebuffers->g_buffer_formats[2]	= VK_FORMAT_R32_SFLOAT;
+		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32_SFLOAT;
 	}
 	else
 	{
-		// Positions + iterations and normals:
+		// Positions + iterations:
 		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
-		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 	}
 
 	framebuffers->sdf_2d_image		= VK_NULL_HANDLE;

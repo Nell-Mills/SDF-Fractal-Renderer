@@ -167,6 +167,9 @@ typedef struct {
 	// Eye position:
 	FracRenderVector3 eye_position;
 
+	// Aspect ratio:
+	float aspect_ratio;
+
 	// Mandelbulb parameter:
 	float mandelbulb_parameter;
 } FracRenderVulkanSceneUniform;
@@ -185,6 +188,9 @@ typedef struct {
 	// Controls:
 	float base_movement_speed;
 	float mouse_sensitivity;
+
+	// SDF and fractal type:
+	int sdf_type;
 
 	// Mandelbulb:
 	float mandelbulb_parameter_min;

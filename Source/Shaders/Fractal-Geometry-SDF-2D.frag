@@ -9,14 +9,14 @@ layout (set = 0, binding = 0) uniform UScene
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
+	float aspect_ratio;
 	float mandelbulb_parameter;
 } u_scene;
 
 layout (set = 1, binding = 0) uniform sampler2D u_distance_sampler;
 
 layout (location = 0) out vec4 out_position;
-layout (location = 1) out vec4 out_normal;
-layout (location = 2) out float out_distance;
+layout (location = 1) out float out_distance;
 
 // Function prototypes:
 vec4 raymarch(vec3 origin, vec3 ray);
@@ -96,9 +96,6 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	// Write out absolute value of distance travelled:
 	if (current_position.w < 0.01f) { out_distance = 0.f; }
 	else { out_distance = abs(distance_travelled); }
-
-	// Calculate normal based on distance gradient:
-	out_normal = vec4(0.f, 1.f, 0.f, out_distance);
 
 	// Return current position along with iterations achieved:
 	return current_position;

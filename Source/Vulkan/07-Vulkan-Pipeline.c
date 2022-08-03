@@ -263,29 +263,18 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	attachments[0].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[0].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	// Normal attachment:
-	attachments[1].flags		= 0;
-	attachments[1].format		= framebuffers->g_buffer_formats[1];
-	attachments[1].samples		= VK_SAMPLE_COUNT_1_BIT;
-	attachments[1].loadOp		= VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachments[1].storeOp		= VK_ATTACHMENT_STORE_OP_STORE;
-	attachments[1].stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_LOAD;
-	attachments[1].stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
-	attachments[1].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
-	attachments[1].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
 	if (sdf_type == 1)
 	{
 		// Distance write attachment:
-		attachments[2].flags		= 0;
-		attachments[2].format		= framebuffers->g_buffer_formats[2];
-		attachments[2].samples		= VK_SAMPLE_COUNT_1_BIT;
-		attachments[2].loadOp		= VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachments[2].storeOp		= VK_ATTACHMENT_STORE_OP_STORE;
-		attachments[2].stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_LOAD;
-		attachments[2].stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
-		attachments[2].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
-		attachments[2].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		attachments[1].flags		= 0;
+		attachments[1].format		= framebuffers->g_buffer_formats[1];
+		attachments[1].samples		= VK_SAMPLE_COUNT_1_BIT;
+		attachments[1].loadOp		= VK_ATTACHMENT_LOAD_OP_CLEAR;
+		attachments[1].storeOp		= VK_ATTACHMENT_STORE_OP_STORE;
+		attachments[1].stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_LOAD;
+		attachments[1].stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
+		attachments[1].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
+		attachments[1].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 
 	// Create subpass attachments:
@@ -299,15 +288,11 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
 	subpass_attachments[0].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	// Normal attachment:
-	subpass_attachments[1].attachment	= 1;	// Attachments[1].
-	subpass_attachments[1].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
 	if (sdf_type == 1)
 	{
 		// Distance write attachment:
-		subpass_attachments[2].attachment	= 2;	// Attachments[2].
-		subpass_attachments[2].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		subpass_attachments[1].attachment	= 1;	// Attachments[1].
+		subpass_attachments[1].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 
 	// Create subpass:
@@ -453,11 +438,10 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 	else
 	{
 		// Colour pipeline:
-		num_layouts = 3;
+		num_layouts = 2;
 		layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 		layouts[0] = descriptors->scene_descriptor_layout;
 		layouts[1] = descriptors->g_buffer_descriptor_layout;
-		layouts[2] = descriptors->g_buffer_descriptor_layout;
 	}
 
 	// Create the pipeline layout info:
@@ -629,11 +613,11 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 		// Geometry pipeline:
 		if (sdf_type == 1)
 		{
-			num_blend_states = 3;
+			num_blend_states = 2;
 		}
 		else
 		{
-			num_blend_states = 2;
+			num_blend_states = 1;
 		}
 	}
 	else

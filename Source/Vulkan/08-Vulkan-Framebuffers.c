@@ -217,7 +217,7 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 		image_info.samples			= VK_SAMPLE_COUNT_1_BIT;
 		image_info.tiling			= VK_IMAGE_TILING_OPTIMAL;
 
-		if (i == 2)
+		if (i == 1)
 		{
 			image_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT |
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -345,12 +345,10 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	{
 		attachments[0] = framebuffers->g_buffer_image_views[0];
 		attachments[1] = framebuffers->g_buffer_image_views[1];
-		attachments[2] = framebuffers->g_buffer_image_views[2];
 	}
 	else
 	{
 		attachments[0] = framebuffers->g_buffer_image_views[0];
-		attachments[1] = framebuffers->g_buffer_image_views[1];
 	}
 
 	// Define G-buffer creation info:

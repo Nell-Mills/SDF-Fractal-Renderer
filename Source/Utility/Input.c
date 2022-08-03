@@ -82,6 +82,18 @@ void poll_movement_keys(GLFWwindow *window)
 	FracRenderProgramState *program_state = (FracRenderProgramState *)
 					glfwGetWindowUserPointer(window);
 
+	// Get speed multipliers:
+	float speed_multiplier_x_y = 1.f;
+	float speed_multiplier_z = 1.f;
+	if (program_state->sdf_type == 2)
+	{
+		// Move slower in x and y with more zoom:
+		speed_multiplier_x_y /= fmax(1.f, program_state->position.z);
+
+		// Move faster in z with more zoom:
+		speed_multiplier_z *= fmax(1.f, program_state->position.z);
+	}
+
 	// Get screen aspect ratio:
 	int screen_width;
 	int screen_height;
@@ -92,20 +104,20 @@ void poll_movement_keys(GLFWwindow *window)
 	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_W))
 	{
 		program_state->position.x += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.x;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.x;
 		program_state->position.y += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.y;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.y;
 		program_state->position.z += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.z;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.z;
 	}
 	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_S))
 	{
 		program_state->position.x -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.x;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.x;
 		program_state->position.y -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.y;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.y;
 		program_state->position.z -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->front.z;
+			speed_multiplier_z * program_state->delta_t) * program_state->front.z;
 	}
 
 	// Left and right. Left takes priority:
@@ -115,11 +127,11 @@ void poll_movement_keys(GLFWwindow *window)
 		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.x / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.x / aspect;
 		program_state->position.y -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.y / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.y / aspect;
 		program_state->position.z -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.z / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.z / aspect;
 	}
 	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_D))
 	{
@@ -127,30 +139,30 @@ void poll_movement_keys(GLFWwindow *window)
 		cross_f_u = normalize(cross_f_u);
 
 		program_state->position.x += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.x / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.x / aspect;
 		program_state->position.y += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.y / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.y / aspect;
 		program_state->position.z += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * cross_f_u.z / aspect;
+			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.z / aspect;
 	}
 
 	// Up and down. Up takes priority:
 	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_E))
 	{
 		program_state->position.x -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.x;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.x;
 		program_state->position.y -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.y;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.y;
 		program_state->position.z -= (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.z;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.z;
 	}
 	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_Q))
 	{
 		program_state->position.x += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.x;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.x;
 		program_state->position.y += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.y;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.y;
 		program_state->position.z += (float)(program_state->base_movement_speed *
-					program_state->delta_t) * program_state->up.z;
+			speed_multiplier_x_y * program_state->delta_t) * program_state->up.z;
 	}
 }

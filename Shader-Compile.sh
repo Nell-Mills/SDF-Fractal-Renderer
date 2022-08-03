@@ -4,6 +4,12 @@ echo "GLSLC: Compiling Fractal-Geometry.vert"
 echo "GLSLC: Compiling Fractal-Geometry.frag"
 ./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Fractal-Geometry.frag -o ./Assets/Shaders/Fractal-Geometry.frag.sprv
 
+echo "GLSLC: Compiling Fractal-Geometry-2D-Mandelbrot.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Fractal-Geometry-2D-Mandelbrot.vert -o ./Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.vert.sprv
+
+echo "GLSLC: Compiling Fractal-Geometry-2D-Mandelbrot.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Fractal-Geometry-2D-Mandelbrot.frag -o ./Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.frag.sprv
+
 echo "GLSLC: Compiling Fractal-Geometry-SDF-2D.vert"
 ./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Fractal-Geometry-SDF-2D.vert -o ./Assets/Shaders/Fractal-Geometry-SDF-2D.vert.sprv
 

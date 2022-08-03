@@ -9,6 +9,7 @@
 #include "Vulkan/00-Vulkan-API.h"
 #include "SDF/SDF-3D.h"
 #include "Utility/Input.h"
+#include "Utility/Mandelbrot-Iterations.h"
 #include "Utility/Utility.h"
 #include "Utility/Vectors.h"
 
@@ -18,7 +19,7 @@
 
 int main(int argc, char **argv)
 {
-	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D.
+	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D, 2 = Mandelbrot (2D, no SDF).
 	if (argc > 1)
 	{
 		if (argv[1][0] == '0')
@@ -39,6 +40,15 @@ int main(int argc, char **argv)
 			printf("----------------------------------------");
 			printf("----------------------------------------\n\n");
 		}
+		else if (argv[1][0] == '2')
+		{
+			sdf_type = 2;
+			printf("----------------------------------------");
+			printf("----------------------------------------\n");
+			printf("Not using Signed Distance Field.\n");
+			printf("----------------------------------------");
+			printf("----------------------------------------\n\n");
+		}
 		else
 		{
 			printf("----------------------------------------");
@@ -56,6 +66,9 @@ int main(int argc, char **argv)
 		printf("----------------------------------------");
 		printf("----------------------------------------\n\n");
 	}
+
+	// Print iterations of the Mandelbrot set:
+	//print_mandelbrot_2d_iterations(0.3f, 0.047f, -1);
 
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
@@ -221,11 +234,23 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	program_state.position			= initialize_vector_3(0.f, -2.f, -4.f);
-	program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 
-//	program_state.position			= initialize_vector_3(25.f, 20.f, 9.f);
-//	program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	if (sdf_type == 2)
+	{
+		// 2D Mandelbrot set:
+		program_state.position	= initialize_vector_3(0.25f, 0.f, 0.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
+	}
+	else
+	{
+		// Mandelbulb:
+		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	}
+
+	// Room of pillars:
+	//program_state.position		= initialize_vector_3(25.f, 20.f, 9.f);
+	//program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
@@ -233,12 +258,13 @@ int main(int argc, char **argv)
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
+	program_state.sdf_type			= sdf_type;
 	program_state.mandelbulb_parameter_min	= 2.f;
 	program_state.mandelbulb_parameter_max	= 16.f;
 
 	// Set GLFW callback functions:
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
-	glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position);
+	if (sdf_type != 2) { glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position); }
 
 	// Set GLFW user pointer to point to the program state:
 	glfwSetWindowUserPointer(base.window, &program_state);

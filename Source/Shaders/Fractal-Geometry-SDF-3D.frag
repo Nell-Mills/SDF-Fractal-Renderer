@@ -8,6 +8,7 @@ layout (set = 0, binding = 0) uniform UScene
 	vec3 x_axis;
 	vec3 y_axis;
 	vec3 eye_position;
+	float aspect_ratio;
 	float mandelbulb_parameter;
 } u_scene;
 
@@ -29,7 +30,6 @@ layout (set = 1, binding = 0) readonly buffer BVoxels
 } b_voxels;
 
 layout (location = 0) out vec4 out_position;
-layout (location = 1) out vec4 out_normal;
 
 // Function prototypes:
 vec4 raymarch(vec3 origin, vec3 ray);
@@ -96,9 +96,6 @@ vec4 raymarch(vec3 origin, vec3 ray)
 			break;
 		}
 	}
-
-	// Calculate normal based on distance gradient:
-	out_normal = vec4(0.f, 1.f, 0.f, 1.f);
 
 	// Return current position along with iterations achieved:
 	return current_position;

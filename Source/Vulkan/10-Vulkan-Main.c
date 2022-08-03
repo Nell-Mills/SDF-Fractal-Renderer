@@ -20,10 +20,13 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	get_axes(program_state->position, program_state->front, program_state->up,
 				&scene_uniform->x_axis, &scene_uniform->y_axis);
 
+	// Get aspect ratio:
+	scene_uniform->aspect_ratio = (float)(swapchain->swapchain_extent.width) /
+					(float)(swapchain->swapchain_extent.height);
+
 	// Scale x-axis by aspect ratio:
 	scene_uniform->x_axis = multiply_vector_3_scalar(scene_uniform->x_axis,
-				(float)(swapchain->swapchain_extent.width) /
-				(float)(swapchain->swapchain_extent.height));
+						scene_uniform->aspect_ratio);
 
 	// Get Mandelbulb parameter if animation is on:
 	if (*mandelbulb_animation == 0) { return; }
@@ -105,8 +108,8 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Set G-buffer clear colour:
 	int num_clear_values;
-	if (sdf_type == 1) { num_clear_values = 3; }
-	else { num_clear_values = 2; }
+	if (sdf_type == 1) { num_clear_values = 2; }
+	else { num_clear_values = 1; }
 
 	VkClearValue *geometry_clear_values;
 	geometry_clear_values = malloc(num_clear_values * sizeof(VkClearValue));
@@ -118,19 +121,13 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_clear_values[0].color.float32[2] = 0.f;
 	geometry_clear_values[0].color.float32[3] = 1.f;
 
-	// Normal:
-	geometry_clear_values[1].color.float32[0] = 0.f;
-	geometry_clear_values[1].color.float32[1] = 0.f;
-	geometry_clear_values[1].color.float32[2] = 0.f;
-	geometry_clear_values[1].color.float32[3] = 1.f;
-
 	if (sdf_type == 1)
 	{
 		// Distance write:
-		geometry_clear_values[2].color.float32[0] = 0.f;
-		geometry_clear_values[2].color.float32[1] = 0.f;
-		geometry_clear_values[2].color.float32[2] = 0.f;
-		geometry_clear_values[2].color.float32[3] = 1.f;
+		geometry_clear_values[1].color.float32[0] = 0.f;
+		geometry_clear_values[1].color.float32[1] = 0.f;
+		geometry_clear_values[1].color.float32[2] = 0.f;
+		geometry_clear_values[1].color.float32[3] = 1.f;
 	}
 
 	// Define render pass begin info:
@@ -485,7 +482,7 @@ int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
 {
 	// Transition image layouts:
 	VkImage images[2] = {
-		framebuffers->g_buffer_images[2],
+		framebuffers->g_buffer_images[1],
 		framebuffers->sdf_2d_image
 	};
 	VkImageLayout src_image_layouts_1[2] = {
@@ -546,8 +543,8 @@ int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
 	image_copy_info.extent.depth			= 1;
 
 	vkCmdCopyImage(command_buffer,
-		framebuffers->g_buffer_images[2], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		framebuffers->sdf_2d_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		images[0], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		images[1], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1, &image_copy_info);
 
 	// Transition the image layouts to shader read-only optimal:
