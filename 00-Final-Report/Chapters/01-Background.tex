@@ -5,10 +5,11 @@ This project aims to improve the efficiency of real-time rendering of 3D fractal
 
 \section{2D Fractals - The Mandelbrot Set}
 
-\begin{figure} \label{figure:mandelbrot-2d-full}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=0.75\linewidth]{Images/Mandelbrot-2D-Full.png}
+	\includegraphics[width=0.75\linewidth, frame]{Images/Mandelbrot-2D-Full.png}
 	\caption{The Mandelbrot set. The white points in the centre are inside the set.}
+	\label{figure:mandelbrot-2d-full}
 \end{figure}
 
 The Mandelbrot set is the set of two-dimensional points that satisfy a certain constraint on the following complex quadratic equation:
@@ -19,24 +20,31 @@ The Mandelbrot set is the set of two-dimensional points that satisfy a certain c
 
 where Z and C are complex numbers. The constraint on the points is that their orbit must be bounded. The value of Z is initialized to 0 and equation \ref{equation:mandelbrot-2d} is iterated over, each new value of Z being placed back in to the equation in the next iteration. If the length of the point Z does not exceed a threshold, then the point (represented by C) is in the Mandelbrot set \cite{devaney1999mandelbrot}.
 
-Figure \ref{figure:mandelbrot-2d-full} shows a generated Mandelbrot set. In this case, the real part of the point C is represented by the x-axis, and the imaginary part by the y-axis. Equation \ref{equation:mandelbrot-2d} is iterated over a maximum of five hundred times, and the threshold value is two. The pixels are coloured according to how many iterations are achieved before the length of Z exceeds the threshold.
+Figure \ref{figure:mandelbrot-2d-full} shows a generated Mandelbrot set. The real part of the point C is represented by the x-axis, and the imaginary part by the y-axis. Equation \ref{equation:mandelbrot-2d} is iterated over a maximum of five hundred times, and the threshold value is two. The pixels are coloured according to how many iterations are achieved before the length of Z exceeds the threshold.
 
-The image presented in figure \ref{figure:mandelbrot-2d-full} ranges from negative one to one on the y-axis (and is proportional in the x-axis), but the Mandelbrot set has infinite detail, so if one decreases the range of the axes, new patterns will emerge. Figure \ref{figure:mandelbrot-2d-zoom} shows two zoomed-in views of the edge of the original shape. New patterns can be seen, as well as repeated ones, and even new instances of the original shape.
-
-\begin{figure} \label{figure:mandelbrot-2d-zoom}
+\begin{figure} [h]
 	\centering
-	\includegraphics[width=\linewidth]{Images/Mandelbrot-2D-Zoom.png}
-	\caption{The Mandelbrot set}
+	\includegraphics[width=\linewidth, frame]{Images/Mandelbrot-2D-Iterations.png}
+	\caption{Visualization of the first one hundred iterations of equation \ref{equation:mandelbrot-2d} on the initial points [0.3, 0.05] (left) and [0.5, 0.04] (right). The initial points are shown in blue.}
+	\label{figure:mandelbrot-2d-iterations}
 \end{figure}
 
-Papers:
-\begin{itemize}
-	\item Similarity between the Mandelbrot set and Julia sets \cite{lei1990similarity}.
-	\item Evolutionary exploration of the mandelbrot set \cite{ashlock2006evolutionary}.
-	\item The Mandelbrot set, the Farey tree, and the Fibonacci sequence \cite{devaney1999mandelbrot}.
-\end{itemize}
+\begin{figure} [h]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Mandelbrot-2D-Zoom.png}
+	\caption{Two different views of the Mandelbrot set, zoomed in.}
+	\label{figure:mandelbrot-2d-zoom}
+\end{figure}
+
+Figure \ref{figure:mandelbrot-2d-iterations} illustrates the first one hundred iterations on two different points. For the first point, the iterations converge in a spiral shape and the length of Z never exceeds the threshold of two, therefore the point is in the Mandelbrot set and is coloured white. For the second point, the iterations diverge and exceed the threshold of two within a few iterations, so this point is not in the Mandelbrot set and is coloured dark.
+
+Figure \ref{figure:mandelbrot-2d-zoom} shows two zoomed-in views at the edge of the original shape. New patterns can be seen, as well as repeated ones, and even new instances of the original shape. This is because the Mandelbrot set has infinite detail, so if one decreases the range of the axes, new patterns will emerge \cite{ashlock2006evolutionary}.
+
+\newpage
 
 \section{3D Fractals - The Mandelbulb}
+
+Since the Mandelbrot set is in two dimensions, and since complex numbers have only two components (real and imaginary), obtaining a true three-dimensional Mandelbrot set is a challenging task.
 
 Papers:
 \begin{itemize}

@@ -170,7 +170,7 @@ bool is_iteration(vec2 pixel_location)
 		vec2( 0.403506f,  0.243539f),
 		vec2( 0.403506f,  0.243539f),
 		vec2( 0.403506f,  0.243539f),
-		vec2( 0.403506f,  0.243539f),
+		vec2( 0.403506f,  0.243539f)
 	};
 
 	for (int i = 0; i < 100; i++)
