@@ -34,7 +34,7 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Create G-buffer images and image views:
 int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-					FracRenderVulkanFramebuffers *framebuffers, int sdf_type);
+						FracRenderVulkanFramebuffers *framebuffers);
 
 // Create G-buffer:
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
@@ -56,8 +56,7 @@ int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Recreate G-buffer images and views:
 int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
-	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type);
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers);
 
 // Recreate G-buffer:
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,

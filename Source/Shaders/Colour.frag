@@ -4,12 +4,24 @@ layout (location = 0) in vec2 in_tex_coord;
 
 layout (set = 0, binding = 0) uniform UScene
 {
+	// Axes in eye coordinate system:
 	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
+
+	// Eye position:
 	vec3 eye_position;
+
+	// 3D SDF information:
+	vec3 sdf_3d_centre;
+	float sdf_3d_size;
+	uint sdf_3d_levels;
+
+	// Aspect ratio:
 	float aspect_ratio;
-	float mandelbulb_parameter;
+
+	// Fractal parameter:
+	float fractal_parameter;
 } u_scene;
 
 layout (set = 1, binding = 0) uniform sampler2D u_position_sampler;
@@ -18,7 +30,7 @@ layout (location = 0) out vec4 out_colour;
 
 // Function prototypes:
 vec4 colour_function_mandelbulb(vec3 position);
-vec4 colour_function_hall_of_pillars(vec3 position);
+vec4 colour_function_room_of_pillars(vec3 position);
 
 void main()
 {
@@ -33,7 +45,8 @@ void main()
 
 	// Colour using colour function:
 	vec3 position = texture(u_position_sampler, in_tex_coord).rgb;
-	out_colour = colour_function_mandelbulb(position);
+	//out_colour = colour_function_mandelbulb(position);
+	out_colour = colour_function_room_of_pillars(position);
 
 	// Colour based on iterations achieved:
 /*	float iterations = texture(u_position_sampler, in_tex_coord).a;
@@ -44,7 +57,7 @@ vec4 colour_function_mandelbulb(vec3 position)
 {
         int max_iterations = 4;
         float escape_radius = 2.f;
-        float parameter = u_scene.mandelbulb_parameter;
+        float parameter = u_scene.fractal_parameter;
 
         vec3 z = position;      // Z = Z^2 + C.
         float dr = 1.f;
@@ -58,7 +71,7 @@ vec4 colour_function_mandelbulb(vec3 position)
                 r = length(z);
                 if (r > escape_radius) { break; }
 
-                // Convert position to polar coordinates:
+                // Convert position to spherical coordinates:
                 float theta = acos(z.z / r);
                 float phi = atan(z.y, z.x);
                 dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
@@ -81,7 +94,7 @@ vec4 colour_function_mandelbulb(vec3 position)
 	return vec4(m, colour_parameters.yzw);
 }
 
-vec4 colour_function_hall_of_pillars(vec3 position)
+vec4 colour_function_room_of_pillars(vec3 position)
 {
 	vec3 z = position.xzy;
 	float col = 0.f;

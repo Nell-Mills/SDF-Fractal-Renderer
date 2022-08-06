@@ -2,16 +2,27 @@
 
 layout (set = 0, binding = 0) uniform UScene
 {
+	// Axes in eye coordinate system:
 	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
+
+	// Eye position:
 	vec3 eye_position;
+
+	// 3D SDF information:
+	vec3 sdf_3d_centre;
+	float sdf_3d_size;
+	uint sdf_3d_levels;
+
+	// Aspect ratio:
 	float aspect_ratio;
-	float mandelbulb_parameter;
+
+	// Fractal parameter:
+	float fractal_parameter;
 } u_scene;
 
 layout (location = 0) out vec4 out_position;
-layout (location = 1) out vec2 out_tex_coord;
 
 void main()
 {
@@ -20,7 +31,6 @@ void main()
 		(gl_VertexIndex << 1) & 2,
 		gl_VertexIndex & 2
 	);
-	out_tex_coord = coord_2d;	// At this point, coordinates in range 0 to 1.
 	coord_2d = (coord_2d * 2.f) - 1.f;
 
 	// Get position according to current plane transform:

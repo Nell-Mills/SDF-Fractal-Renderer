@@ -555,7 +555,7 @@ int create_sdf_3d_buffer(FracRenderVulkanDevice *device, FracRenderVulkanDescrip
 									FracRenderSDF3D *sdf_3d)
 {
 	// Define buffer creation info:
-	size_t sdf_memory = sdf_3d->num_voxels * sizeof(FracRenderVoxel);
+	size_t sdf_memory = sdf_3d->num_voxels * sizeof(float);
 	VkBufferCreateInfo buffer_info;
 	memset(&buffer_info, 0, sizeof(VkBufferCreateInfo));
 	buffer_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -715,7 +715,7 @@ int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors
 	printf("Copying 3D SDF data into GPU buffer...\n");
 
 	// Create staging buffer. First define buffer creation info:
-	size_t sdf_size = sdf_3d->num_voxels * sizeof(FracRenderVoxel);
+	size_t sdf_size = sdf_3d->num_voxels * sizeof(float);
 	VkBufferCreateInfo staging_buffer_info;
 	memset(&staging_buffer_info, 0, sizeof(VkBufferCreateInfo));
 	staging_buffer_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

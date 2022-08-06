@@ -165,13 +165,18 @@ typedef struct {
 	FracRenderVector3 y_axis; float pad_2;
 
 	// Eye position:
-	FracRenderVector3 eye_position;
+	FracRenderVector3 eye_position; float pad_3;
+
+	// 3D SDF information:
+	FracRenderVector3 sdf_3d_centre;
+	float sdf_3d_size;
+	uint32_t sdf_3d_levels;
 
 	// Aspect ratio:
 	float aspect_ratio;
 
-	// Mandelbulb parameter:
-	float mandelbulb_parameter;
+	// Fractal parameter:
+	float fractal_parameter;
 } FracRenderVulkanSceneUniform;
 
 typedef struct {
@@ -189,12 +194,12 @@ typedef struct {
 	float base_movement_speed;
 	float mouse_sensitivity;
 
-	// SDF and fractal type:
-	int sdf_type;
+	// Fractal type:
+	int fractal_type;
 
-	// Mandelbulb:
-	float mandelbulb_parameter_min;
-	float mandelbulb_parameter_max;
+	// Fractal parameter:
+	float fractal_parameter_min;
+	float fractal_parameter_max;
 } FracRenderProgramState;
 
 #endif

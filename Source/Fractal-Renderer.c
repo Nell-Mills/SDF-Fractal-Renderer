@@ -19,66 +19,62 @@
 
 int main(int argc, char **argv)
 {
-	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D, 2 = Mandelbrot (2D, no SDF).
+	// Check size of scene UBO:
+	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
+	{
+		fprintf(stderr, "Error: Size of Scene Uniform must be 65536 bytes or less!\n");
+		return -1;
+	}
+	if (sizeof(FracRenderVulkanSceneUniform) % 4 != 0)
+	{
+		fprintf(stderr, "Error: Size of Scene Uniform must be a multiple of 4 bytes!\n");
+		return -1;
+	}
+
+	int fractal_type = -1;	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = "Room of Pillars".
+	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D.
+	int animation = 0;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
 	if (argc > 1)
 	{
-		if (argv[1][0] == '0')
-		{
-			sdf_type = 0;
-			printf("----------------------------------------");
-			printf("----------------------------------------\n");
-			printf("Using 3D Signed Distance Field.\n");
-			printf("----------------------------------------");
-			printf("----------------------------------------\n\n");
-		}
-		else if (argv[1][0] == '1')
-		{
-			sdf_type = 1;
-			printf("----------------------------------------");
-			printf("----------------------------------------\n");
-			printf("Using 2D Texture Signed Distance Field.\n");
-			printf("----------------------------------------");
-			printf("----------------------------------------\n\n");
-		}
-		else if (argv[1][0] == '2')
-		{
-			sdf_type = 2;
-			printf("----------------------------------------");
-			printf("----------------------------------------\n");
-			printf("Not using Signed Distance Field.\n");
-			printf("----------------------------------------");
-			printf("----------------------------------------\n\n");
-		}
-		else
-		{
-			printf("----------------------------------------");
-			printf("----------------------------------------\n");
-			printf("Not using Signed Distance Field.\n");
-			printf("----------------------------------------");
-			printf("----------------------------------------\n\n");
-		}
+		if (argv[1][0] == '0') { fractal_type = 0; }
+		else if (argv[1][0] == '1') { fractal_type = 1; }
 	}
-	else
+	if ((argc > 2) && (fractal_type != -1))
 	{
-		printf("----------------------------------------");
-		printf("----------------------------------------\n");
-		printf("Not using Signed Distance Field.\n");
-		printf("----------------------------------------");
-		printf("----------------------------------------\n\n");
+		if (argv[2][0] == '0') { sdf_type = 0; }
+		else if (argv[2][0] == '1') { sdf_type = 1; }
+	}
+	if (argc > 3)
+	{
+		if (argv[3][0] == '0') { animation = 0; }
+		else if (argv[3][0] == '1') { animation = 1; }
+		else { animation = -1; }
 	}
 
 	// Print iterations of the Mandelbrot set:
-	//print_mandelbrot_2d_iterations(0.3f, 0.047f, -1);
+	//print_mandelbrot_2d_iterations(0.3f, 0.05f, -1);
 
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
-	sdf_3d.num_voxels	= (64 * 64 * 64) + 1;
-	sdf_3d.size		= 2.f;
-	sdf_3d.centre		= initialize_vector_3(0.f, 0.f, 0.f);
-	sdf_3d.voxels		= NULL;
-
 	if (sdf_type == 0)
 	{
+		if (fractal_type == 0)
+		{
+			sdf_3d.levels		= 8;
+			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
+			sdf_3d.size		= 2.f;
+			sdf_3d.centre		= initialize_vector_3(0.f, 0.f, 0.f);
+			sdf_3d.voxels		= NULL;
+		}
+		else
+		{
+			sdf_3d.levels		= 8;
+			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
+			sdf_3d.size		= 5.f;
+			sdf_3d.centre		= initialize_vector_3(25.f, 20.f, 9.f);
+			sdf_3d.voxels		= NULL;
+		}
+
 		// Create 3D SDF:
 		if (create_sdf_3d(&sdf_3d) != 0)
 		{
@@ -104,19 +100,7 @@ int main(int argc, char **argv)
 	FracRenderVulkanCommands commands;
 
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands, sdf_type);
-
-	// Check size of scene UBO:
-	if (sizeof(FracRenderVulkanSceneUniform) > 65536)
-	{
-		fprintf(stderr, "Error: Size of Scene Uniform must be 65536 bytes or less!\n");
-		return -1;
-	}
-	if (sizeof(FracRenderVulkanSceneUniform) % 4 != 0)
-	{
-		fprintf(stderr, "Error: Size of Scene Uniform must be a multiple of 4 bytes!\n");
-		return -1;
-	}
+						&framebuffers, &commands, fractal_type, sdf_type);
 
 	#ifdef FRACRENDER_DEBUG
 		// Check support for required validation layers:
@@ -230,39 +214,69 @@ int main(int argc, char **argv)
 
 	// Initialize the scene UBO:
 	FracRenderVulkanSceneUniform scene_uniform;
-	scene_uniform.mandelbulb_parameter = 8.f;
+	if (sdf_type == 0)
+	{
+		scene_uniform.sdf_3d_centre		= sdf_3d.centre;
+		scene_uniform.sdf_3d_size		= sdf_3d.size;
+		scene_uniform.sdf_3d_levels		= sdf_3d.levels;
+	}
+	else
+	{
+		scene_uniform.sdf_3d_centre		= initialize_vector_3(0.f, 0.f, 0.f);
+		scene_uniform.sdf_3d_size		= 0.f;
+		scene_uniform.sdf_3d_levels		= 0;
+	}
+	if (fractal_type == 0) { scene_uniform.fractal_parameter = 8.f; }
+	else if (fractal_type == 1) { scene_uniform.fractal_parameter = 8.f; }
+	else { scene_uniform.fractal_parameter = 2.f; }
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-
-	if (sdf_type == 2)
-	{
-		// 2D Mandelbrot set:
-		program_state.position	= initialize_vector_3(0.25f, 0.f, 0.f);
-		program_state.front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
-	}
-	else
+	if (fractal_type == 0)
 	{
 		// Mandelbulb:
 		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 	}
-
-	// Room of pillars:
-	//program_state.position		= initialize_vector_3(25.f, 20.f, 9.f);
-	//program_state.front			= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
-
+	else if (fractal_type == 1)
+	{
+		// Room of pillars:
+		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		program_state.position	= initialize_vector_3(0.25f, 0.f, 0.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
+	}
 	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
-	program_state.sdf_type			= sdf_type;
-	program_state.mandelbulb_parameter_min	= 2.f;
-	program_state.mandelbulb_parameter_max	= 16.f;
+	program_state.fractal_type		= fractal_type;
+	if (fractal_type == 0)
+	{
+		// Mandelbulb:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
+	else if (fractal_type == 1)
+	{
+		// Room of pillars:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
 
-	// Set GLFW callback functions:
+	// Set GLFW callback functions (no mouse movement for 2D Mandelbrot):
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
 	if (sdf_type != 2) { glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position); }
 
@@ -272,12 +286,14 @@ int main(int argc, char **argv)
 	// Print title:
 	print_title();
 
+	// Print which type of fractal and SDF are being used:
+	print_fractal_and_sdf_type(fractal_type, sdf_type);
+
 	// Print keyboard controls:
 	print_controls();
 
 	// Tracking program state:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
-	int mandelbulb_animation = 1;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
 
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
@@ -335,7 +351,7 @@ int main(int argc, char **argv)
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_g_buffer_images(&device,
-					&swapchain, &framebuffers, sdf_type) != 0)
+					&swapchain, &framebuffers) != 0)
 				{
 					break;
 				}
@@ -424,7 +440,7 @@ int main(int argc, char **argv)
 
 		// Update scene uniform:
 		update_scene_uniform(&base, &device, &swapchain, &scene_uniform,
-							&mandelbulb_animation);
+							&animation);
 
 		// Wait for a command buffer to be available:
 		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],

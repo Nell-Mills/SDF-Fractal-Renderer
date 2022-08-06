@@ -21,7 +21,7 @@
 
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform,
-	int *mandelbulb_animation);
+	int *animation);
 
 // Record commands:
 int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,

@@ -18,7 +18,7 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 
 	// Create G-buffer image and image views:
 	printf(" ---> Creating G-buffer images and image views.\n");
-	if (create_g_buffer_images(device, swapchain, framebuffers, sdf_type) != 0)
+	if (create_g_buffer_images(device, swapchain, framebuffers) != 0)
 	{
 		return -1;
 	}
@@ -180,7 +180,7 @@ int create_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Create G-buffer images and image views:
 int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-					FracRenderVulkanFramebuffers *framebuffers, int sdf_type)
+						FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Allocate memory for images and image views (free in destroy_vulkan_framebuffers):
 	framebuffers->g_buffer_images = malloc(framebuffers->num_g_buffer_images *
@@ -691,8 +691,7 @@ int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
 
 // Recreate G-buffer images and views:
 int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
-	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type)
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Destroy G-buffer views and free memory:
 	for (uint32_t i = 0; i < framebuffers->num_g_buffer_images; i++)
@@ -714,7 +713,7 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 	free(framebuffers->g_buffer_image_memory);
 
 	// Create new images and views:
-	if (create_g_buffer_images(device, swapchain, framebuffers, sdf_type) != 0)
+	if (create_g_buffer_images(device, swapchain, framebuffers) != 0)
 	{
 		return -1;
 	}

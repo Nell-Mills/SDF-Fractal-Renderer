@@ -85,7 +85,7 @@ void poll_movement_keys(GLFWwindow *window)
 	// Get speed multipliers:
 	float speed_multiplier_x_y = 1.f;
 	float speed_multiplier_z = 1.f;
-	if (program_state->sdf_type == 2)
+	if (program_state->fractal_type == -1)
 	{
 		// Move slower in x and y with more zoom:
 		speed_multiplier_x_y /= fmax(1.f, program_state->position.z);

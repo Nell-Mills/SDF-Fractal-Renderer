@@ -9,8 +9,7 @@ int create_sdf_3d(FracRenderSDF3D *sdf_3d)
 
 	// Allocate memory for the SDF:
 	printf(" ---> Allocating memory.\n");
-	printf("      - Size of a voxel: %lu bytes.\n", sizeof(FracRenderVoxel));
-	size_t memory_required = sdf_3d->num_voxels * sizeof(FracRenderVoxel);
+	size_t memory_required = sdf_3d->num_voxels * sizeof(float);
 
 	if ((memory_required / (1024 * 1024)) > 2000)
 	{
@@ -22,10 +21,9 @@ int create_sdf_3d(FracRenderSDF3D *sdf_3d)
 	printf("      - Memory allocated: %lu bytes (%lu MB).\n", memory_required,
 						memory_required / (1024 * 1024));
 
-	// First voxel occupies index 0 so first safe index is 1:
 	printf(" ---> Calculating distance values.\n");
-	uint32_t safe_index = 1;
-	if (create_sdf_3d_helper(sdf_3d, sdf_3d->size, sdf_3d->centre, 0, &safe_index, 0) != 0)
+	uint32_t current_index = 0;
+	if (create_sdf_3d_helper(sdf_3d, sdf_3d->size, sdf_3d->centre, &current_index, 0) != 0)
 	{
 		return -1;
 	}
@@ -39,39 +37,25 @@ int create_sdf_3d(FracRenderSDF3D *sdf_3d)
 
 // SDF recursion helper:
 int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 centre,
-			uint32_t current_index, uint32_t *safe_index, uint32_t level)
+						uint32_t *current_index, uint32_t level)
 {
 	// Check index:
-	if (current_index >= sdf_3d->num_voxels)
+	if (*current_index >= sdf_3d->num_voxels)
 	{
 		fprintf(stderr, "Error: 3D SDF tried to exceed memory allocation!\n");
 		return -1;
 	}
 
-	// Get centre of voxel:
-	sdf_3d->voxels[current_index].centre = centre;
-
-	// Calculate signed distance from surface:
-	sdf_3d->voxels[current_index].distance = signed_distance_function(centre);
-
-	// Get size of voxel (inflate a little to account for floating point imprecision):
-	sdf_3d->voxels[current_index].size = size + 0.00001f;
-
-	if (level > 2)
+	if (level == sdf_3d->levels)
 	{
-		// Max resolution for SDF (2 levels for 8^2 = 64 voxels along each side):
-		sdf_3d->voxels[current_index].num_subvoxels = 0;
-		sdf_3d->voxels[current_index].first_subvoxel_index = 0;
+		// Max resolution. Calculate signed distance from surface:
+		sdf_3d->voxels[*current_index] = signed_distance_function(centre);
+		*current_index += 1;
 	}
 	else
 	{
+		// Split cube into 8 smaller cubes:
 		FracRenderVector3 new_centre;
-		sdf_3d->voxels[current_index].num_subvoxels = 8;
-		sdf_3d->voxels[current_index].first_subvoxel_index = *safe_index;
-
-		// Split cube into 8 smaller cubes and increment safe index by 8:
-		current_index = *safe_index;
-		*safe_index += 8;
 
 		// Print progress:
 		if (level == 0)
@@ -84,7 +68,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y + (size / 2.f);
 		new_centre.z = centre.z + (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -100,7 +84,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y + (size / 2.f);
 		new_centre.z = centre.z + (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 1, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -116,7 +100,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y + (size / 2.f);
 		new_centre.z = centre.z - (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 2, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -132,7 +116,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y + (size / 2.f);
 		new_centre.z = centre.z - (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 3, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -148,7 +132,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y - (size / 2.f);
 		new_centre.z = centre.z + (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 4, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -164,7 +148,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y - (size / 2.f);
 		new_centre.z = centre.z + (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 5, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -180,7 +164,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y - (size / 2.f);
 		new_centre.z = centre.z - (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 6, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -196,7 +180,7 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		new_centre.y = centre.y - (size / 2.f);
 		new_centre.z = centre.z - (size / 2.f);
 		if (create_sdf_3d_helper(sdf_3d, size / 2.f, new_centre,
-			current_index + 7, safe_index, level + 1) != 0)
+					current_index, level + 1) != 0)
 		{
 			return -1;
 		}
@@ -231,38 +215,36 @@ void destroy_sdf_3d(FracRenderSDF3D *sdf_3d)
 // Signed distance function:
 float signed_distance_function(FracRenderVector3 position)
 {
-	FracRenderVector3 w = position;
-	if ((w.x == 0.f) && (w.y == 0.f) && (w.z == 0.f))
-	{
-		w.x = 0.0001f;
-		w.y = 0.0001f;
-		w.z = 0.0001f;
-	}
-	float m = dot(w, w);
-	float dz = 1.f;
+	int max_iterations = 4;
+	float escape_radius = 2.f;
+	float parameter = 8.f;
+
+	FracRenderVector3 z = position;
+	float dr = 1.f;
+	float r = 0.f;
 
 	for (int i = 0; i < 4; i++)
 	{
-		float root_m = sqrt(m);
-		dz = (8.f * pow(root_m, 7.f) * dz) + 1.f;
+		r = length(z);
+		if (r > escape_radius) { break; }
 
-		float r = length(w);
-		float b;
-		if (r == 0.f) { b = 8.f * acos(0.f); }
-		else { b = 8.f * acos(w.y / r); }
-		float a = 8.f * atan2(w.z, w.x);
-		float r_8 = pow(r, 8.f);
+		// Convert position to spherical coordinates:
+		float theta = acos(z.z / r);
+		float phi = atan2(z.y, z.x);
+		dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
 
-		w.x = (sin(b) * sin(a) * r_8) + w.x;
-		w.y = (cos(b) * r_8) + w.y;
-		w.z = (sin(b) * cos(a) * r_8) + w.z;
+		// Scale and rotate position:
+		float zr = pow(r, parameter);
+		theta *= parameter;
+		phi *= parameter;
 
-		m = dot(w, w);
-
-		if (m > 256.f) { break; }
+		// Convert position back to Cartesian coordinates:
+		z.x = (zr * sin(theta) * cos(phi)) + position.x;
+		z.y = (zr * sin(phi) * sin(theta)) + position.y;
+		z.z = (zr * cos(theta)) + position.z;
 	}
 
-	return (0.25f * log(m) * sqrt(m)) / dz;
+	return 0.5f * log(r) * (r / dr);
 }
 
 // Print out a few voxels for debugging:
@@ -274,8 +256,7 @@ void print_sdf_3d_voxels(FracRenderSDF3D *sdf_3d)
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
 
-	printf("Max number of voxels:\t\t134217728.\n");
-	printf("Actual number of voxels:\t %d.\n\n", sdf_3d->num_voxels);
+	printf("Number of voxels: %d.\n\n", sdf_3d->num_voxels);
 
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -286,25 +267,45 @@ void print_sdf_3d_voxels(FracRenderSDF3D *sdf_3d)
 	printf("Z: %f to %f.\n", sdf_3d->centre.z - sdf_3d->size, sdf_3d->centre.z + sdf_3d->size);
 
 	uint32_t index = 0;
-	for (int i = 0; i < 3; i++)
+	FracRenderVector3 centre = sdf_3d->centre;
+	float size = sdf_3d->size;
+	int cube_index = 1;
+
+	printf("Level: 0\n");
+	printf("Centre: %f, %f, %f\n", centre.x, centre.y, centre.z);
+	printf("Size: %f\n", size);
+
+	for (uint32_t i = 1; i < sdf_3d->levels; i++)
 	{
 		printf("----------------------------------------");
 		printf("----------------------------------------\n\n");
 
-		if (i > 0)
-		{
-			index = sdf_3d->voxels[index].first_subvoxel_index;
-		}
+		// Get upper top-right cube (index 1 in the row of 8):
+		size /= 2.f;
+		centre.x += size;
+		centre.y += size;
+		centre.z += size;
 
-		printf("Voxel %d:\n", index);
-		printf("Centre: %f, %f, %f\n", sdf_3d->voxels[index].centre.x,
-						sdf_3d->voxels[index].centre.y,
-						sdf_3d->voxels[index].centre.z);
-		printf("Distance: %f\n", sdf_3d->voxels[index].distance);
-		printf("Number of sub-voxels: %d\n", sdf_3d->voxels[index].num_subvoxels);
-		printf("First sub-voxel index: %d\n", sdf_3d->voxels[index].first_subvoxel_index);
-		printf("Size: %f\n\n", sdf_3d->voxels[index].size);
+		index += pow(8, sdf_3d->levels - i) * cube_index;
+
+		printf("Level: %d\n", i);
+		printf("Centre: %f, %f, %f\n", centre.x, centre.y, centre.z);
+		printf("Size: %f\n\n", size);
 	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	size /= 2.f;
+	centre.x += size;
+	centre.y += size;
+	centre.z += size;
+
+	printf("Level: %d\n", sdf_3d->levels);
+	printf("Centre: %f, %f, %f\n", centre.x, centre.y, centre.z);
+	printf("Size: %f\n", size);
+	printf("Index: %d\n", index + cube_index);
+	printf("Distance: %f\n\n", sdf_3d->voxels[index]);
 
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");

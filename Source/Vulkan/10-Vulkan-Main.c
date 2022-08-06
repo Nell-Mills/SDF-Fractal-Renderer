@@ -3,7 +3,7 @@
 // Update scene uniform:
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform,
-	int *mandelbulb_animation)
+	int *animation)
 {
 	// Get program state:
 	FracRenderProgramState *program_state = (FracRenderProgramState *)
@@ -28,21 +28,20 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	scene_uniform->x_axis = multiply_vector_3_scalar(scene_uniform->x_axis,
 						scene_uniform->aspect_ratio);
 
-	// Get Mandelbulb parameter if animation is on:
-	if (*mandelbulb_animation == 0) { return; }
-	scene_uniform->mandelbulb_parameter += program_state->delta_t *
-				0.1f * (float)(*mandelbulb_animation);
+	// Get fractal parameter if animation is on:
+	if (*animation == 0) { return; }
+	scene_uniform->fractal_parameter += program_state->delta_t * 0.1f * (float)(*animation);
 
-	// Check Mandelbulb parameter limits:
-	if (scene_uniform->mandelbulb_parameter <= program_state->mandelbulb_parameter_min)
+	// Check fractal parameter limits:
+	if (scene_uniform->fractal_parameter <= program_state->fractal_parameter_min)
 	{
-		scene_uniform->mandelbulb_parameter = program_state->mandelbulb_parameter_min;
-		*mandelbulb_animation = 1;
+		scene_uniform->fractal_parameter = program_state->fractal_parameter_min;
+		*animation = 1;
 	}
-	else if (scene_uniform->mandelbulb_parameter >= program_state->mandelbulb_parameter_max)
+	else if (scene_uniform->fractal_parameter >= program_state->fractal_parameter_max)
 	{
-		scene_uniform->mandelbulb_parameter = program_state->mandelbulb_parameter_max;
-		*mandelbulb_animation = -1;
+		scene_uniform->fractal_parameter = program_state->fractal_parameter_max;
+		*animation = -1;
 	}
 }
 

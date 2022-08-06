@@ -14,20 +14,9 @@
  **************/
 
 typedef struct {
-	// (vec4, 16 bytes) Location of centre of voxel and its distance value:
-	FracRenderVector3 centre;
-	float distance;
+	// Levels:
+	uint32_t levels;
 
-	// (uvec2, 8 bytes) Subvoxels:
-	uint32_t num_subvoxels;
-	uint32_t first_subvoxel_index;
-
-	// (vec2, 8 bytes) Size (centre to edge) and a padding value:
-	float size;
-	float pad;
-} FracRenderVoxel;
-
-typedef struct {
 	// Number of voxels:
 	uint32_t num_voxels;
 
@@ -36,7 +25,7 @@ typedef struct {
 	FracRenderVector3 centre;
 
 	// Voxels:
-	FracRenderVoxel *voxels;
+	float *voxels;
 } FracRenderSDF3D;
 
 /***********************
@@ -48,7 +37,7 @@ int create_sdf_3d(FracRenderSDF3D *sdf_3d);
 
 // SDF recursion helper:
 int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 centre,
-			uint32_t current_index, uint32_t *safe_index, uint32_t level);
+						uint32_t *current_index, uint32_t level);
 
 // Free SDF memory:
 void destroy_sdf_3d(FracRenderSDF3D *sdf_3d);

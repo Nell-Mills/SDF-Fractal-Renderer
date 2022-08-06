@@ -14,6 +14,33 @@ void print_title()
 	printf("****************************************\n\n");
 }
 
+// Print fractal and SDF type:
+void print_fractal_and_sdf_type(int fractal_type, int sdf_type)
+{
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	if (fractal_type == 0)
+	{
+		printf("Displaying Mandelbulb fractal with ");
+		if (sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
+		else if (sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
+		else { printf(" no Signed Distance Field.\n"); }
+	}
+	else if (fractal_type == 1)
+	{
+		printf("Displaying \"Room of Pillars\" fractal with ");
+		if (sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
+		else if (sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
+		else { printf(" no Signed Distance Field.\n"); }
+	}
+	else
+	{
+		printf("Displaying 2D Mandelbrot set with no Signed Distance Field.\n");
+	}
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+}
+
 // Print keyboard controls:
 void print_controls()
 {
@@ -42,7 +69,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
-	int sdf_type)
+	int fractal_type, int sdf_type)
 {
 	// Vulkan base:
 	base->instance		= VK_NULL_HANDLE;
@@ -120,37 +147,73 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	pipeline->colour_vertex_shader		= VK_NULL_HANDLE;
 	pipeline->colour_fragment_shader	= VK_NULL_HANDLE;
 
-	if (sdf_type == 0)
+	if (fractal_type == 0)
 	{
-		pipeline->geometry_vertex_shader_path =
-			"Assets/Shaders/Fractal-Geometry.vert.sprv";
-		pipeline->geometry_fragment_shader_path	=
-			"Assets/Shaders/Fractal-Geometry-SDF-3D.frag.sprv";
+		// Mandelbulb:
+		if (sdf_type == 0)
+		{
+			// 3D SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb-SDF-3D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb-SDF-3D.frag.sprv";
+		}
+		else if (sdf_type == 1)
+		{
+			// 2D SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb-SDF-2D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb-SDF-2D.frag.sprv";
+		}
+		else
+		{
+			// No SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Mandelbulb.frag.sprv";
+		}
 	}
-	else if (sdf_type == 1)
+	else if (fractal_type == 1)
 	{
-		pipeline->geometry_vertex_shader_path =
-			"Assets/Shaders/Fractal-Geometry-SDF-2D.vert.sprv";
-		pipeline->geometry_fragment_shader_path	=
-			"Assets/Shaders/Fractal-Geometry-SDF-2D.frag.sprv";
-	}
-	else if (sdf_type == 2)
-	{
-		pipeline->geometry_vertex_shader_path =
-			"Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.vert.sprv";
-		pipeline->geometry_fragment_shader_path	=
-			"Assets/Shaders/Fractal-Geometry-2D-Mandelbrot.frag.sprv";
+		// Room of Pillars:
+		if (sdf_type == 0)
+		{
+			// 3D SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.frag.sprv";
+		}
+		else if (sdf_type == 1)
+		{
+			// 2D SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.frag.sprv";
+		}
+		else
+		{
+			// No SDF:
+			pipeline->geometry_vertex_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				"Assets/Shaders/Geometry-Room-Of-Pillars.frag.sprv";
+		}
 	}
 	else
 	{
+		// 2D Mandelbrot:
 		pipeline->geometry_vertex_shader_path =
-			"Assets/Shaders/Fractal-Geometry.vert.sprv";
-		pipeline->geometry_fragment_shader_path	=
-			"Assets/Shaders/Fractal-Geometry.frag.sprv";
+			"Assets/Shaders/Geometry-Mandelbrot-2D.vert.sprv";
+		pipeline->geometry_fragment_shader_path =
+			"Assets/Shaders/Geometry-Mandelbrot-2D.frag.sprv";
 	}
 
-	pipeline->colour_vertex_shader_path	= "Assets/Shaders/Fractal-Colour.vert.sprv";
-	pipeline->colour_fragment_shader_path	= "Assets/Shaders/Fractal-Colour.frag.sprv";
+	pipeline->colour_vertex_shader_path	= "Assets/Shaders/Colour.vert.sprv";
+	pipeline->colour_fragment_shader_path	= "Assets/Shaders/Colour.frag.sprv";
 
 	// Framebuffers:
 	framebuffers->framebuffers		= NULL;

@@ -1,40 +1,38 @@
-1. Finish handle printing function		-->
-2. Colour the fractal				-->
+Coding:
 
--------------------------------------------------------------------------------
+Finish handle printing function		-->
 
-3. Do background research on 2D fractals	-->
-4. Do background research on 3D fractals	-->
-5. Do background research on SDF		-->
-6. Possibly research cone tracing		-->
+Colour different fractals		-->
 
--------------------------------------------------------------------------------
+Do different SDFunc for 3D SDF		-->
 
-7. Implement 3D SDF				-->	Done
-8. Implement 2D SDF				-->
-9. Possibly implement cone tracing		-->
+Choose representative views		-->
+Performance measurements		-->
 
--------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
-10. Write about implementation of fractal	-->
-11. Write about implementation of SDF		-->
-12. Write about implementation of new SDF	-->
-13. Write about implementation of cone tracing	-->
+Report:
 
--------------------------------------------------------------------------------
+Background - 2D fractals		--> Done.
+Background - 3D fractals		-->
+Background - Sphere tracing		-->
+Background - SDF			-->
 
-14. Implement performance measurements		-->
-15. Write about implementation			-->
+Implementation - Methodology		-->
+Implementation - Vulkan			-->
+Implementation - Mandelbulb		-->
+Implementation - SDF			-->
+Implementation - Performance		-->
 
-16. Collect data				-->
-17. Write about results				-->
+Evaluation - 3D SDF			-->
+Evaluation - 2D SDF			-->
 
--------------------------------------------------------------------------------
+Conclusion				-->
 
-18. Conclusion					-->
+Introduction				-->
 
-19. Introduction				-->
+Abstract (if applicable)		-->
 
--------------------------------------------------------------------------------
+Extras (like title)			-->
 
-20. Report proofreading				-->
+Proofreading				-->

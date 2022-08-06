@@ -2,12 +2,24 @@
 
 layout (set = 0, binding = 0) uniform UScene
 {
+	// Axes in eye coordinate system:
 	vec3 plane_centre;
 	vec3 x_axis;
 	vec3 y_axis;
+
+	// Eye position:
 	vec3 eye_position;
+
+	// 3D SDF information:
+	vec3 sdf_3d_centre;
+	float sdf_3d_size;
+	uint sdf_3d_levels;
+
+	// Aspect ratio:
 	float aspect_ratio;
-	float mandelbulb_parameter;
+
+	// Fractal parameter:
+	float fractal_parameter;
 } u_scene;
 
 layout (location = 0) out vec4 out_position;
