@@ -1,55 +1,83 @@
-# Colour pass:
-echo "GLSLC: Compiling Colour.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Colour.vert -o ./Assets/Shaders/Colour.vert.sprv
+#################
+# 2D Mandelbrot #
+#################
 
-echo "GLSLC: Compiling Colour.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Colour.frag -o ./Assets/Shaders/Colour.frag.sprv
+echo "GLSLC: Compiling 2D Mandelbrot shaders..."
 
-# Geometry pass, 2D Mandelbrot:
-echo "GLSLC: Compiling Geometry-Mandelbrot-2D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbrot-2D.vert -o ./Assets/Shaders/Geometry-Mandelbrot-2D.vert.sprv
+# Colour:
+echo " ---> Colour-Mandelbrot-2D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbrot-2D/Colour-Mandelbrot-2D.vert -o ./Assets/Shaders/Mandelbrot-2D/Colour-Mandelbrot-2D.vert.sprv
+echo " ---> Colour-Mandelbrot-2D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbrot-2D/Colour-Mandelbrot-2D.frag -o ./Assets/Shaders/Mandelbrot-2D/Colour-Mandelbrot-2D.frag.sprv
 
-echo "GLSLC: Compiling Geometry-Mandelbrot-2D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbrot-2D.frag -o ./Assets/Shaders/Geometry-Mandelbrot-2D.frag.sprv
+# Geometry:
+echo " ---> Geometry-Mandelbrot-2D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbrot-2D/Geometry-Mandelbrot-2D.vert -o ./Assets/Shaders/Mandelbrot-2D/Geometry-Mandelbrot-2D.vert.sprv
+echo " ---> Geometry-Mandelbrot-2D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbrot-2D/Geometry-Mandelbrot-2D.frag -o ./Assets/Shaders/Mandelbrot-2D/Geometry-Mandelbrot-2D.frag.sprv
 
-# Geometry pass, Mandelbulb, no SDF:
-echo "GLSLC: Compiling Geometry-Mandelbulb.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb.vert -o ./Assets/Shaders/Geometry-Mandelbulb.vert.sprv
+echo "... done."
 
-echo "GLSLC: Compiling Geometry-Mandelbulb.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb.frag -o ./Assets/Shaders/Geometry-Mandelbulb.frag.sprv
+##############
+# Mandelbulb #
+##############
 
-# Geometry pass, Mandelbulb, 3D SDF:
-echo "GLSLC: Compiling Geometry-Mandelbulb-SDF-3D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb-SDF-3D.vert -o ./Assets/Shaders/Geometry-Mandelbulb-SDF-3D.vert.sprv
+echo "GLSLC: Compiling Mandelbulb shaders..."
 
-echo "GLSLC: Compiling Geometry-Mandelbulb-SDF-3D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb-SDF-3D.frag -o ./Assets/Shaders/Geometry-Mandelbulb-SDF-3D.frag.sprv
+# Colour:
+echo " ---> Colour-Mandelbulb.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Colour-Mandelbulb.vert -o ./Assets/Shaders/Mandelbulb/Colour-Mandelbulb.vert.sprv
+echo " ---> Colour-Mandelbulb.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Colour-Mandelbulb.frag -o ./Assets/Shaders/Mandelbulb/Colour-Mandelbulb.frag.sprv
 
-# Geometry pass, Mandelbulb, 2D SDF:
-echo "GLSLC: Compiling Geometry-Mandelbulb-SDF-2D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb-SDF-2D.vert -o ./Assets/Shaders/Geometry-Mandelbulb-SDF-2D.vert.sprv
+# Geometry, no SDF:
+echo " ---> Geometry-Mandelbulb.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb.vert -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb.vert.sprv
+echo " ---> Geometry-Mandelbulb.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb.frag.sprv
 
-echo "GLSLC: Compiling Geometry-Mandelbulb-SDF-2D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Mandelbulb-SDF-2D.frag -o ./Assets/Shaders/Geometry-Mandelbulb-SDF-2D.frag.sprv
+# Geometry, 3D SDF:
+echo " ---> Geometry-Mandelbulb-SDF-3D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.vert -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.vert.sprv
+echo " ---> Geometry-Mandelbulb-SDF-3D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.frag.sprv
 
-# Geometry pass, Room of Pillars, no SDF:
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars.vert -o ./Assets/Shaders/Geometry-Room-Of-Pillars.vert.sprv
+# Geometry, 2D SDF:
+echo " ---> Geometry-Mandelbulb-SDF-2D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.vert -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.vert.sprv
+echo " ---> Geometry-Mandelbulb-SDF-2D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.frag.sprv
 
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars.frag -o ./Assets/Shaders/Geometry-Room-Of-Pillars.frag.sprv
+echo "... done."
 
-# Geometry pass, Room of Pillars, 3D SDF:
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars-SDF-3D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars-SDF-3D.vert -o ./Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.vert.sprv
+###################
+# Hall-Of-Pillars #
+###################
 
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars-SDF-3D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars-SDF-3D.frag -o ./Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.frag.sprv
+echo "GLSLC: Compiling Hall of Pillars shaders..."
 
-# Geometry pass, Room of Pillars, 2D SDF:
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars-SDF-2D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars-SDF-2D.vert -o ./Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.vert.sprv
+# Colour:
+echo " ---> Colour-Hall-Of-Pillars.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Colour-Hall-Of-Pillars.vert -o ./Assets/Shaders/Hall-Of-Pillars/Colour-Hall-Of-Pillars.vert.sprv
+echo " ---> Colour-Hall-Of-Pillars.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Colour-Hall-Of-Pillars.frag -o ./Assets/Shaders/Hall-Of-Pillars/Colour-Hall-Of-Pillars.frag.sprv
 
-echo "GLSLC: Compiling Geometry-Room-Of-Pillars-SDF-2D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Geometry-Room-Of-Pillars-SDF-2D.frag -o ./Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.frag.sprv
+# Geometry, no SDF:
+echo " ---> Geometry-Hall-Of-Pillars.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars.vert -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars.vert.sprv
+echo " ---> Geometry-Hall-Of-Pillars.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars.frag.sprv
+
+# Geometry, 3D SDF:
+echo " ---> Geometry-Hall-Of-Pillars-SDF-3D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.vert -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.vert.sprv
+echo " ---> Geometry-Hall-Of-Pillars-SDF-3D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.frag.sprv
+
+# Geometry, 2D SDF:
+echo " ---> Geometry-Hall-Of-Pillars-SDF-2D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.vert -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.vert.sprv
+echo " ---> Geometry-Hall-Of-Pillars-SDF-2D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag.sprv
+
+echo "... done."

@@ -35,8 +35,7 @@ layout (location = 0) out vec4 out_position;
 vec4 raymarch(vec3 origin, vec3 ray);
 vec2 sdf_3d_lookup(vec3 position);
 bool in_cube(vec3 cube_centre, float cube_size, vec3 point);
-float ray_cube(vec3 origin, vec3 ray, float cube_size);
-float distance_estimator_room_of_pillars(vec3 position);
+float distance_estimator_mandelbulb(vec3 position);
 
 // Main function:
 void main()
@@ -60,21 +59,8 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	// Look up distance estimate and update total distance travelled:
 	vec2 distance_lookup = sdf_3d_lookup(origin);
 
-	// If cube size is invalid, point is not in main cube. Move ray along:
-	if (distance_lookup.y < 0.f)
-	{
-		distance_lookup.x = ray_cube(origin, ray, u_scene.sdf_3d_size);
-		if (distance_lookup.x >= 0.f)
-		{
-			distance_travelled += distance_lookup.x * 1.01f;
-
-			// Get current position and distance travelled again:
-			current_position = vec4(origin + (ray * distance_travelled), 1.f);
-			distance_lookup = sdf_3d_lookup(current_position.xyz);
-			distance_travelled += distance_lookup.x;
-		}
-	}
-	else
+	// Check that ray is in main SDF cube and update distance:
+	if (distance_lookup.y > 0.f)
 	{
 		distance_travelled += distance_lookup.x;
 	}
@@ -86,7 +72,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 			1.f - (float(steps_taken) / float(max_steps)));
 
 		// Get distance estimate and update total distance travelled:
-		distance_estimate = distance_estimator_room_of_pillars(current_position.xyz);
+		distance_estimate = distance_estimator_mandelbulb(current_position.xyz);
 		distance_travelled += distance_estimate;
 
 		// Check how close the point is to the surface:
@@ -157,12 +143,12 @@ vec2 sdf_3d_lookup(vec3 position)
 
 bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
 {
-	if (	(point.x > (cube_centre.x - cube_size)) &&
-		(point.x < (cube_centre.x + cube_size)) &&
-		(point.y > (cube_centre.y - cube_size)) &&
-		(point.y < (cube_centre.y + cube_size)) &&
-		(point.z > (cube_centre.z - cube_size)) &&
-		(point.z < (cube_centre.z + cube_size)))
+	if (	(point.x >= (cube_centre.x - cube_size)) &&
+		(point.x <= (cube_centre.x + cube_size)) &&
+		(point.y >= (cube_centre.y - cube_size)) &&
+		(point.y <= (cube_centre.y + cube_size)) &&
+		(point.z >= (cube_centre.z - cube_size)) &&
+		(point.z <= (cube_centre.z + cube_size)))
 	{
 		return true;
 	}
@@ -170,39 +156,36 @@ bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
 	return false;
 }
 
-float ray_cube(vec3 origin, vec3 ray, float cube_size)
+float distance_estimator_mandelbulb(vec3 position)
 {
-	// Function from: https://iquilezles.org/articles/intersectors/
-	vec3 m = 1.f / ray;
-	vec3 n = m * origin;
-	vec3 k = abs(m) * vec3(cube_size);
-	vec3 t1 = -n - k;
-	vec3 t2 = -n + k;
-	float tN = max(max(t1.x, t1.y), t1.z);
-	float tF = min(min(t2.x, t2.y), t2.z);
-	if ((tN > tF) || (tF < 0.f)) { return -1.f; }	// Doesn't intersect.
-	return tN;	// Nearest intersection distance.
-}
+	int max_iterations = 4;
+	float escape_radius = 2.f;
+	float parameter = u_scene.fractal_parameter;
 
-float distance_estimator_room_of_pillars(vec3 position)
-{
-        vec3 z = position.xzy;
-        float scale = 1.f;
-        vec3 size_clamp = vec3(1.f, 1.f, 1.3f);
+	vec3 z = position;	// Z = Z^2 + C.
+	float dr = 1.f;
+	float r = 0.0;		// Radius.
 
-        for (int i = 0; i < 12; i++)
-        {
-                z = 2.f * clamp(z, -size_clamp, size_clamp) - z;
-                float r2 = dot(z, z);
-                float k = max(2.f / r2, 0.027f);
-                z *= k;
-                scale *- k;
-        }
+	for (int i = 0; i < max_iterations; i++)
+	{
+		r = length(z);
+		if (r > escape_radius) { break; }
 
-        float l = length(z.xy);
-        float rxy = l - 4.f;
-        float n = l * z.z;
-        rxy = max(rxy, -n / 4.f);
+		// Convert position to spherical coordinates:
+		float theta = acos(z.z / r);
+		float phi = atan(z.y, z.x);
+		dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
 
-        return rxy / abs(scale);
+		// Scale and rotate position:
+		float zr = pow(r, parameter);
+		theta *= parameter;
+		phi *= parameter;
+
+		// Convert position back to Cartesian coordinates:
+		z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
+						cos(theta))) + position;
+	}
+
+	// Calculate distance:
+	return 0.5f * log(r) * (r / dr);
 }

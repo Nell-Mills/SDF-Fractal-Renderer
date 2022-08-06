@@ -30,23 +30,12 @@ layout (location = 0) out vec4 out_colour;
 
 // Function prototypes:
 vec4 colour_function_mandelbulb(vec3 position);
-vec4 colour_function_room_of_pillars(vec3 position);
 
 void main()
 {
-	// Special colouring for Mandelbrot 2D iterations:
-/*	vec4 iterations = texture(u_position_sampler, in_tex_coord).rgba;
-	if (iterations.w < 0.f)
-	{
-		//out_colour = vec4(iterations.rgb, 1.f);
-		out_colour = vec4(1.f, 0.f, 1.f, 1.f);
-		return;
-	}*/
-
 	// Colour using colour function:
 	vec3 position = texture(u_position_sampler, in_tex_coord).rgb;
-	//out_colour = colour_function_mandelbulb(position);
-	out_colour = colour_function_room_of_pillars(position);
+	out_colour = colour_function_mandelbulb(position);
 
 	// Colour based on iterations achieved:
 /*	float iterations = texture(u_position_sampler, in_tex_coord).a;
@@ -92,26 +81,4 @@ vec4 colour_function_mandelbulb(vec3 position)
         }
 
 	return vec4(m, colour_parameters.yzw);
-}
-
-vec4 colour_function_room_of_pillars(vec3 position)
-{
-	vec3 z = position.xzy;
-	float col = 0.f;
-	float r2 = dot(z, z);
-	vec3 size_clamp = vec3(1.f, 1.f, 1.3f);
-
-	for (int i = 0; i < 5; i++)
-	{
-		vec3 z1 = 2.f * clamp(z, -size_clamp, size_clamp) - z;
-		col += abs(z.x - z1.z);
-		z = z1;
-		r2 = dot(z, z);
-		float k = max(2.f / r2, 0.027f);
-		z *= k;
-	}
-
-	z = clamp(z + 1.f, vec3(0.f), vec3(1.f));
-
-	return vec4(z.x * 0.1f * col, z.y * 0.5f * col, z.z * col, 1.f);
 }

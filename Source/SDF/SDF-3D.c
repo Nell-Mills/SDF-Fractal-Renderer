@@ -49,7 +49,18 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 	if (level == sdf_3d->levels)
 	{
 		// Max resolution. Calculate signed distance from surface:
-		sdf_3d->voxels[*current_index] = signed_distance_function(centre);
+		if (sdf_3d->fractal_type == 1)
+		{
+			// Hall of Pillars:
+			sdf_3d->voxels[*current_index] =
+				signed_distance_function_hall_of_pillars(centre);
+		}
+		else
+		{
+			// Default to Mandelbulb:
+			sdf_3d->voxels[*current_index] =
+				signed_distance_function_mandelbulb(centre);
+		}
 		*current_index += 1;
 	}
 	else
@@ -212,8 +223,8 @@ void destroy_sdf_3d(FracRenderSDF3D *sdf_3d)
 	printf("----------------------------------------\n\n");
 }
 
-// Signed distance function:
-float signed_distance_function(FracRenderVector3 position)
+// Signed distance function for Mandelbulb fractal:
+float signed_distance_function_mandelbulb(FracRenderVector3 position)
 {
 	int max_iterations = 4;
 	float escape_radius = 2.f;
@@ -245,6 +256,39 @@ float signed_distance_function(FracRenderVector3 position)
 	}
 
 	return 0.5f * log(r) * (r / dr);
+}
+
+// Signed distance function for Hall of Pillars fractal:
+float signed_distance_function_hall_of_pillars(FracRenderVector3 position)
+{
+	FracRenderVector3 z;
+	z.x = position.x;
+	z.y = position.z;
+	z.z = position.y;
+	float scale = 1.f;
+	FracRenderVector3 size_clamp_min = initialize_vector_3(-1.f, -1.f, -1.3f);
+	FracRenderVector3 size_clamp_max = initialize_vector_3(1.f, 1.f, 1.3f);
+
+	for (int i = 0; i < 12; i++)
+	{
+		FracRenderVector3 z_clamped = clamp_vector_3(z, size_clamp_min, size_clamp_max);
+		z.x = (2.f * z_clamped.x) - z.x;
+		z.y = (2.f * z_clamped.y) - z.y;
+		z.z = (2.f * z_clamped.z) - z.z;
+		float r2 = dot(z, z);
+		float k = fmax(2.f / r2, 0.027f);
+		z = multiply_vector_3_scalar(z, k);
+		scale *= k;
+	}
+
+	float l;
+	if ((z.x == 0.f) && (z.y == 0.f)) { l = 0.f; }
+	else { l = sqrt((z.x * z.x) + (z.y * z.y)); }
+	float rxy = l - 4.f;
+	float n = l * z.z;
+	rxy = fmax(rxy, -n / 4.f);
+
+	return rxy / fabs(scale);
 }
 
 // Print out a few voxels for debugging:

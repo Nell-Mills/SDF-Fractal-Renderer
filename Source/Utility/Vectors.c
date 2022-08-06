@@ -112,3 +112,24 @@ FracRenderVector3 add_vector_3(FracRenderVector3 vector_1, FracRenderVector3 vec
 
 	return result;
 }
+
+// Clamp a vector to certain values:
+FracRenderVector3 clamp_vector_3(FracRenderVector3 vector, FracRenderVector3 clamp_min,
+							FracRenderVector3 clamp_max)
+{
+	FracRenderVector3 result = vector;
+
+	// Clamp x:
+	if (result.x < clamp_min.x) { result.x = clamp_min.x; }
+	else if (result.x > clamp_max.x) { result.x = clamp_max.x; }
+
+	// Clamp y:
+	if (result.y < clamp_min.y) { result.y = clamp_min.y; }
+	else if (result.y > clamp_max.y) { result.y = clamp_max.y; }
+
+	// Clamp z:
+	if (result.z < clamp_min.z) { result.z = clamp_min.z; }
+	else if (result.z > clamp_max.z) { result.z = clamp_max.z; }
+
+	return result;
+}

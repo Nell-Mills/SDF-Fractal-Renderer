@@ -1,10 +1,12 @@
 Coding:
 
+Moveable 3D SDF				-->
+
 Finish handle printing function		-->
 
 Colour different fractals		-->
 
-Do different SDFunc for 3D SDF		-->
+Do different SDFunc for 3D SDF		--> Done.
 
 Choose representative views		-->
 Performance measurements		-->
@@ -18,7 +20,7 @@ Background - 3D fractals		-->
 Background - Sphere tracing		-->
 Background - SDF			-->
 
-Implementation - Methodology		-->
+Implementation - Project Methodology	-->
 Implementation - Vulkan			-->
 Implementation - Mandelbulb		-->
 Implementation - SDF			-->

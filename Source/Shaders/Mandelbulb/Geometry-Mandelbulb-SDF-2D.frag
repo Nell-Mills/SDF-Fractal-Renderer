@@ -47,14 +47,6 @@ void main()
 
 vec4 raymarch(vec3 origin, vec3 ray)
 {
-/*	vec3 mandelbulb_positions[] = {
-		vec3( 0.f, 0.f,  0.f),
-		vec3(-1.f, 0.f,  1.f),
-		vec3( 1.f, 0.f,  1.f),
-		vec3(-1.f, 0.f, -1.f),
-		vec3( 1.f, 0.f, -1.f)
-	};
-*/
 	vec4 current_position;
 	int max_steps = 999;
 	float distance_estimate;
@@ -78,17 +70,6 @@ vec4 raymarch(vec3 origin, vec3 ray)
 			1.f - (float(steps_taken) / float(max_steps)));
 
 		// Get distance estimate and update total distance travelled:
-/*		float distance_estimates[5];
-		for (int i = 0; i < 5; i++)
-		{
-			distance_estimates[i] = distance_estimator_mandelbulb_vertical(
-					current_position.xyz + mandelbulb_positions[i]);
-		}
-
-		distance_estimate = min(min(min(min(distance_estimates[3],
-			distance_estimates[4]), distance_estimates[2]),
-			distance_estimates[1]), distance_estimates[0]);
-*/
 		distance_estimate = distance_estimator_mandelbulb(current_position.xyz);
 		distance_travelled += distance_estimate;
 

@@ -28,7 +28,7 @@ void print_fractal_and_sdf_type(int fractal_type, int sdf_type)
 	}
 	else if (fractal_type == 1)
 	{
-		printf("Displaying \"Room of Pillars\" fractal with ");
+		printf("Displaying Hall of Pillars fractal with ");
 		if (sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
 		else if (sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
 		else { printf(" no Signed Distance Field.\n"); }
@@ -52,12 +52,15 @@ void print_controls()
 	printf("----------------------------------------\n");
 
 	// Keyboard controls:
-	printf("W:\tForward\n");
-	printf("A:\tLeft\n");
-	printf("S:\tBackward\n");
-	printf("D:\tRight\n");
-	printf("E:\tUp\n");
-	printf("Q:\tDown\n");
+	printf("W:\t\tForward\n");
+	printf("A:\t\tLeft\n");
+	printf("S:\t\tBackward\n");
+	printf("D:\t\tRight\n");
+	printf("E:\t\tUp\n");
+	printf("Q:\t\tDown\n");
+	printf("Numpad +:\tSpeed Up\n");
+	printf("Numpad -:\tSlow Down\n");
+	printf("Numpad *:\tReset Speed\n");
 
 	// End:
 	printf("----------------------------------------");
@@ -149,71 +152,86 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 
 	if (fractal_type == 0)
 	{
+		#define SHADER_DIR_ "Assets/Shaders/Mandelbulb/"
 		// Mandelbulb:
 		if (sdf_type == 0)
 		{
 			// 3D SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb-SDF-3D.vert.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-SDF-3D.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb-SDF-3D.frag.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-SDF-3D.frag.sprv";
 		}
 		else if (sdf_type == 1)
 		{
 			// 2D SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb-SDF-2D.vert.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-SDF-2D.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb-SDF-2D.frag.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-SDF-2D.frag.sprv";
 		}
 		else
 		{
 			// No SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb.vert.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Mandelbulb.frag.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb.frag.sprv";
 		}
+		pipeline->colour_vertex_shader_path =
+			SHADER_DIR_"Colour-Mandelbulb.vert.sprv";
+		pipeline->colour_fragment_shader_path =
+			SHADER_DIR_"Colour-Mandelbulb.frag.sprv";
+		#undef SHADER_DIR_
 	}
 	else if (fractal_type == 1)
 	{
-		// Room of Pillars:
+		#define SHADER_DIR_ "Assets/Shaders/Hall-Of-Pillars/"
+		// Hall of Pillars:
 		if (sdf_type == 0)
 		{
 			// 3D SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.vert.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-3D.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-3D.frag.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-3D.frag.sprv";
 		}
 		else if (sdf_type == 1)
 		{
 			// 2D SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.vert.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-2D.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars-SDF-2D.frag.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-2D.frag.sprv";
 		}
 		else
 		{
 			// No SDF:
 			pipeline->geometry_vertex_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars.vert.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				"Assets/Shaders/Geometry-Room-Of-Pillars.frag.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars.frag.sprv";
 		}
+		pipeline->colour_vertex_shader_path =
+			SHADER_DIR_"Colour-Hall-Of-Pillars.vert.sprv";
+		pipeline->colour_fragment_shader_path =
+			SHADER_DIR_"Colour-Hall-Of-Pillars.frag.sprv";
+		#undef SHADER_DIR_
 	}
 	else
 	{
+		#define SHADER_DIR_ "Assets/Shaders/Mandelbrot-2D/"
 		// 2D Mandelbrot:
 		pipeline->geometry_vertex_shader_path =
-			"Assets/Shaders/Geometry-Mandelbrot-2D.vert.sprv";
+			SHADER_DIR_"Geometry-Mandelbrot-2D.vert.sprv";
 		pipeline->geometry_fragment_shader_path =
-			"Assets/Shaders/Geometry-Mandelbrot-2D.frag.sprv";
+			SHADER_DIR_"Geometry-Mandelbrot-2D.frag.sprv";
+		pipeline->colour_vertex_shader_path =
+			SHADER_DIR_"Colour-Mandelbrot-2D.vert.sprv";
+		pipeline->colour_fragment_shader_path =
+			SHADER_DIR_"Colour-Mandelbrot-2D.frag.sprv";
+		#undef SHADER_DIR_
 	}
-
-	pipeline->colour_vertex_shader_path	= "Assets/Shaders/Colour.vert.sprv";
-	pipeline->colour_fragment_shader_path	= "Assets/Shaders/Colour.frag.sprv";
 
 	// Framebuffers:
 	framebuffers->framebuffers		= NULL;

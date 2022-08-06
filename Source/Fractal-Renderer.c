@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	int fractal_type = -1;	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = "Room of Pillars".
+	int fractal_type = -1;	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
 	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D.
 	int animation = 0;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
 	if (argc > 1)
@@ -54,6 +54,52 @@ int main(int argc, char **argv)
 	// Print iterations of the Mandelbrot set:
 	//print_mandelbrot_2d_iterations(0.3f, 0.05f, -1);
 
+	// Initialize the program state:
+	FracRenderProgramState program_state;
+	if (fractal_type == 0)
+	{
+		// Mandelbulb:
+		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	}
+	else if (fractal_type == 1)
+	{
+		// Hall of pillars:
+		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		program_state.position	= initialize_vector_3(0.25f, 0.f, 0.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
+	}
+	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
+	program_state.last_update		= 0.0;
+	program_state.current_update		= 0.0;
+	program_state.delta_t			= 0.0;
+	program_state.base_movement_speed	= 1.5f;
+	program_state.mouse_sensitivity		= 7.5f;
+	program_state.fractal_type		= fractal_type;
+	if (fractal_type == 0)
+	{
+		// Mandelbulb:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
+	else if (fractal_type == 1)
+	{
+		// Hall of pillars:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		program_state.fractal_parameter_min	= 2.f;
+		program_state.fractal_parameter_max	= 16.f;
+	}
+
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
 	if (sdf_type == 0)
@@ -63,17 +109,16 @@ int main(int argc, char **argv)
 			sdf_3d.levels		= 8;
 			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
 			sdf_3d.size		= 2.f;
-			sdf_3d.centre		= initialize_vector_3(0.f, 0.f, 0.f);
-			sdf_3d.voxels		= NULL;
 		}
 		else
 		{
 			sdf_3d.levels		= 8;
 			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
-			sdf_3d.size		= 5.f;
-			sdf_3d.centre		= initialize_vector_3(25.f, 20.f, 9.f);
-			sdf_3d.voxels		= NULL;
+			sdf_3d.size		= 10.f;
 		}
+		sdf_3d.centre		= program_state.position;
+		sdf_3d.fractal_type	= fractal_type;
+		sdf_3d.voxels		= NULL;
 
 		// Create 3D SDF:
 		if (create_sdf_3d(&sdf_3d) != 0)
@@ -82,6 +127,24 @@ int main(int argc, char **argv)
 			return -1;
 		}
 	}
+
+	// Initialize the scene UBO:
+	FracRenderVulkanSceneUniform scene_uniform;
+	if (sdf_type == 0)
+	{
+		scene_uniform.sdf_3d_centre		= sdf_3d.centre;
+		scene_uniform.sdf_3d_size		= sdf_3d.size;
+		scene_uniform.sdf_3d_levels		= sdf_3d.levels;
+	}
+	else
+	{
+		scene_uniform.sdf_3d_centre		= initialize_vector_3(0.f, 0.f, 0.f);
+		scene_uniform.sdf_3d_size		= 0.f;
+		scene_uniform.sdf_3d_levels		= 0;
+	}
+	if (fractal_type == 0) { scene_uniform.fractal_parameter = 8.f; }
+	else if (fractal_type == 1) { scene_uniform.fractal_parameter = 8.f; }
+	else { scene_uniform.fractal_parameter = 8.f; }
 
 	// Initialize Volk:
 	if (initialize_volk() != 0)
@@ -211,70 +274,6 @@ int main(int argc, char **argv)
 		print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
 							&pipeline, &framebuffers, &commands);
 	#endif
-
-	// Initialize the scene UBO:
-	FracRenderVulkanSceneUniform scene_uniform;
-	if (sdf_type == 0)
-	{
-		scene_uniform.sdf_3d_centre		= sdf_3d.centre;
-		scene_uniform.sdf_3d_size		= sdf_3d.size;
-		scene_uniform.sdf_3d_levels		= sdf_3d.levels;
-	}
-	else
-	{
-		scene_uniform.sdf_3d_centre		= initialize_vector_3(0.f, 0.f, 0.f);
-		scene_uniform.sdf_3d_size		= 0.f;
-		scene_uniform.sdf_3d_levels		= 0;
-	}
-	if (fractal_type == 0) { scene_uniform.fractal_parameter = 8.f; }
-	else if (fractal_type == 1) { scene_uniform.fractal_parameter = 8.f; }
-	else { scene_uniform.fractal_parameter = 2.f; }
-
-	// Initialize the program state:
-	FracRenderProgramState program_state;
-	if (fractal_type == 0)
-	{
-		// Mandelbulb:
-		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
-		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
-	}
-	else if (fractal_type == 1)
-	{
-		// Room of pillars:
-		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
-		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
-	}
-	else
-	{
-		// 2D Mandelbrot set:
-		program_state.position	= initialize_vector_3(0.25f, 0.f, 0.f);
-		program_state.front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
-	}
-	program_state.up			= initialize_vector_3(0.f, 1.f, 0.f);
-	program_state.last_update		= 0.0;
-	program_state.current_update		= 0.0;
-	program_state.delta_t			= 0.0;
-	program_state.base_movement_speed	= 1.5f;
-	program_state.mouse_sensitivity		= 7.5f;
-	program_state.fractal_type		= fractal_type;
-	if (fractal_type == 0)
-	{
-		// Mandelbulb:
-		program_state.fractal_parameter_min	= 2.f;
-		program_state.fractal_parameter_max	= 16.f;
-	}
-	else if (fractal_type == 1)
-	{
-		// Room of pillars:
-		program_state.fractal_parameter_min	= 2.f;
-		program_state.fractal_parameter_max	= 16.f;
-	}
-	else
-	{
-		// 2D Mandelbrot set:
-		program_state.fractal_parameter_min	= 2.f;
-		program_state.fractal_parameter_max	= 16.f;
-	}
 
 	// Set GLFW callback functions (no mouse movement for 2D Mandelbrot):
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);

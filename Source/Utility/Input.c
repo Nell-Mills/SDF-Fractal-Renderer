@@ -83,8 +83,9 @@ void poll_movement_keys(GLFWwindow *window)
 					glfwGetWindowUserPointer(window);
 
 	// Get speed multipliers:
-	float speed_multiplier_x_y = 1.f;
-	float speed_multiplier_z = 1.f;
+	static float user_speed_multiplier = 1.f;
+	float speed_multiplier_x_y = 1.f * user_speed_multiplier;
+	float speed_multiplier_z = 1.f * user_speed_multiplier;
 	if (program_state->fractal_type == -1)
 	{
 		// Move slower in x and y with more zoom:
@@ -92,6 +93,18 @@ void poll_movement_keys(GLFWwindow *window)
 
 		// Move faster in z with more zoom:
 		speed_multiplier_z *= fmax(1.f, program_state->position.z);
+	}
+	if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
+	{
+		user_speed_multiplier *= 1.05f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+	{
+		user_speed_multiplier /= 1.05f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_KP_MULTIPLY == GLFW_PRESS))
+	{
+		user_speed_multiplier = 1.f;
 	}
 
 	// Get screen aspect ratio:
@@ -101,7 +114,7 @@ void poll_movement_keys(GLFWwindow *window)
 	float aspect = (float)(screen_width) / (float)(screen_height);
 
 	// Movement keys. Start with forward and back (forward takes priority):
-	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_W))
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		program_state->position.x += (float)(program_state->base_movement_speed *
 			speed_multiplier_z * program_state->delta_t) * program_state->front.x;
@@ -110,7 +123,7 @@ void poll_movement_keys(GLFWwindow *window)
 		program_state->position.z += (float)(program_state->base_movement_speed *
 			speed_multiplier_z * program_state->delta_t) * program_state->front.z;
 	}
-	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_S))
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		program_state->position.x -= (float)(program_state->base_movement_speed *
 			speed_multiplier_z * program_state->delta_t) * program_state->front.x;
@@ -121,7 +134,7 @@ void poll_movement_keys(GLFWwindow *window)
 	}
 
 	// Left and right. Left takes priority:
-	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_A))
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		FracRenderVector3 cross_f_u = cross(program_state->front, program_state->up);
 		cross_f_u = normalize(cross_f_u);
@@ -133,7 +146,7 @@ void poll_movement_keys(GLFWwindow *window)
 		program_state->position.z -= (float)(program_state->base_movement_speed *
 			speed_multiplier_x_y * program_state->delta_t) * cross_f_u.z / aspect;
 	}
-	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_D))
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		FracRenderVector3 cross_f_u = cross(program_state->front, program_state->up);
 		cross_f_u = normalize(cross_f_u);
@@ -147,7 +160,7 @@ void poll_movement_keys(GLFWwindow *window)
 	}
 
 	// Up and down. Up takes priority:
-	if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_E))
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
 		program_state->position.x -= (float)(program_state->base_movement_speed *
 			speed_multiplier_x_y * program_state->delta_t) * program_state->up.x;
@@ -156,7 +169,7 @@ void poll_movement_keys(GLFWwindow *window)
 		program_state->position.z -= (float)(program_state->base_movement_speed *
 			speed_multiplier_x_y * program_state->delta_t) * program_state->up.z;
 	}
-	else if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_Q))
+	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
 		program_state->position.x += (float)(program_state->base_movement_speed *
 			speed_multiplier_x_y * program_state->delta_t) * program_state->up.x;

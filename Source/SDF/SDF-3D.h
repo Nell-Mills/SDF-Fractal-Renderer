@@ -24,6 +24,9 @@ typedef struct {
 	float size;
 	FracRenderVector3 centre;
 
+	// Fractal type:
+	int fractal_type;
+
 	// Voxels:
 	float *voxels;
 } FracRenderSDF3D;
@@ -42,8 +45,11 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 // Free SDF memory:
 void destroy_sdf_3d(FracRenderSDF3D *sdf_3d);
 
-// Signed distance function:
-float signed_distance_function(FracRenderVector3 position);
+// Signed distance function for Mandelbulb fractal:
+float signed_distance_function_mandelbulb(FracRenderVector3 position);
+
+// Signed distance function for Hall of Pillars fractal:
+float signed_distance_function_hall_of_pillars(FracRenderVector3 position);
 
 // Print out a few voxels for debugging:
 void print_sdf_3d_voxels(FracRenderSDF3D *sdf_3d);

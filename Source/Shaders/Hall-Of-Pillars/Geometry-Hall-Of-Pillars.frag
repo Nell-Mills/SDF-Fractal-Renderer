@@ -28,7 +28,7 @@ layout (location = 0) out vec4 out_position;
 
 // Function prototypes:
 vec4 raymarch(vec3 origin, vec3 ray);
-float distance_estimator_room_of_pillars(vec3 position);
+float distance_estimator_hall_of_pillars(vec3 position);
 
 // Main function:
 void main()
@@ -56,7 +56,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 			1.f - (float(steps_taken) / float(max_steps)));
 
 		// Get distance estimate and update total distance travelled:
-		distance_estimate = distance_estimator_room_of_pillars(current_position.xyz);
+		distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);
 		distance_travelled += distance_estimate;
 
 		// Check how close the point is to the surface:
@@ -72,7 +72,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 	return current_position;
 }
 
-float distance_estimator_room_of_pillars(vec3 position)
+float distance_estimator_hall_of_pillars(vec3 position)
 {
         vec3 z = position.xzy;
         float scale = 1.f;
@@ -80,11 +80,11 @@ float distance_estimator_room_of_pillars(vec3 position)
 
         for (int i = 0; i < 12; i++)
         {
-                z = 2.f * clamp(z, -size_clamp, size_clamp) - z;
+                z = (2.f * clamp(z, -size_clamp, size_clamp)) - z;
                 float r2 = dot(z, z);
                 float k = max(2.f / r2, 0.027f);
                 z *= k;
-                scale *- k;
+                scale *= k;
         }
 
         float l = length(z.xy);
