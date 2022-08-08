@@ -58,9 +58,9 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
-	if ((fractal_type == 0) || (fractal_type == 2))
+	if (fractal_type == 0)
 	{
-		// Mandelbulb (or multiple):
+		// Mandelbulb:
 		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 	}
@@ -69,6 +69,12 @@ int main(int argc, char **argv)
 		// Hall of pillars:
 		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+	}
+	else if (fractal_type == 2)
+	{
+		// Multiple Mandelbulb:
+		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
+		program_state.front	= normalize(initialize_vector_3(0.f, 0.65f, 1.f));
 	}
 	else
 	{
@@ -148,7 +154,7 @@ int main(int argc, char **argv)
 	{
 		// Mandelbulb (or multiple):
 		scene_uniform.fractal_parameter = 8.f;
-		scene_uniform.view_distance = 100.f;
+		scene_uniform.view_distance = 256.f;
 	}
 	else if (fractal_type == 1)
 	{

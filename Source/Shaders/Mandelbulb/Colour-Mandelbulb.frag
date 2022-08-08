@@ -38,15 +38,17 @@ void main()
 {
 	vec4 position = texture(u_position_sampler, in_tex_coord).rgba;
 
-	// Calculate fog:
-	float fog = length(position.xyz - u_scene.eye_position) / u_scene.view_distance;
-	fog = pow(fog, 10);
+	if ((position.w < 0.01f) || (length(position.xyz - u_scene.eye_position) >= u_scene.view_distance))
+	{
+		out_colour = vec4(1.f);
+		return;
+	}
 
 	// Colour using colour function:
-	out_colour = colour_function_mandelbulb(position.xyz) + fog;
+	out_colour = colour_function_mandelbulb(position.xyz);
 
 	// Colour based on iterations achieved:
-	//out_colour = vec4(vec3(position.w), 1.f) + fog;
+	//out_colour = vec4(vec3(position.w), 1.f);
 }
 
 vec4 colour_function_mandelbulb(vec3 position)
