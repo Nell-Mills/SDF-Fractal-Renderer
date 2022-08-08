@@ -51,41 +51,41 @@ void main()
 
 vec4 colour_function_mandelbulb(vec3 position)
 {
-        int max_iterations = 4;
-        float escape_radius = 2.f;
-        float parameter = u_scene.fractal_parameter;
+	int max_iterations = 4;
+	float escape_radius = 2.f;
+	float parameter = u_scene.fractal_parameter;
 
-        vec3 z = position;      // Z = Z^2 + C.
-        float dr = 1.f;
-        float r = 0.0;          // Radius.
+	vec3 z = position;	// Z = Z^2 + C.
+	float dr = 1.f;
+	float r = 0.0;		// Radius.
 
 	float m = dot(z, z);
 	vec4 colour_parameters = vec4(abs(z), m);
 
-        for (int i = 0; i < max_iterations; i++)
-        {
-                r = length(z);
-                if (r > escape_radius) { break; }
+	for (int i = 0; i < max_iterations; i++)
+	{
+		r = length(z);
+		if (r > escape_radius) { break; }
 
-                // Convert position to spherical coordinates:
-                float theta = acos(z.z / r);
-                float phi = atan(z.y, z.x);
-                dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
+		// Convert position to spherical coordinates:
+		float theta = acos(z.z / r);
+		float phi = atan(z.y, z.x);
+		dr = (pow(r, parameter - 1.f) * parameter * dr) + 1.f;
 
-                // Scale and rotate position:
-                float zr = pow(r, parameter);
-                theta *= parameter;
-                phi *= parameter;
+		// Scale and rotate position:
+		float zr = pow(r, parameter);
+		theta *= parameter;
+		phi *= parameter;
 
 		// Get colour:
 		colour_parameters = vec4(abs(z), m);
 
-                // Convert position back to Cartesian coordinates:
-                z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
-                                                cos(theta))) + position;
+		// Convert position back to Cartesian coordinates:
+		z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
+						cos(theta))) + position;
 
 		m = dot(z, z);
-        }
+	}
 
 	colour_parameters = normalize(colour_parameters);
 

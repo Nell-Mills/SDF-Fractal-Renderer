@@ -55,6 +55,12 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 			sdf_3d->voxels[*current_index] =
 				signed_distance_function_hall_of_pillars(centre);
 		}
+		else if (sdf_3d->fractal_type == 2)
+		{
+			// Multiple Mandelbulb:
+			sdf_3d->voxels[*current_index] =
+				signed_distance_function_multiple_mandelbulb(centre);
+		}
 		else
 		{
 			// Default to Mandelbulb:
@@ -289,6 +295,31 @@ float signed_distance_function_hall_of_pillars(FracRenderVector3 position)
 	rxy = fmax(rxy, -n / 4.f);
 
 	return rxy / fabs(scale);
+}
+
+// Signed distance function for handling multiple Mandelbulb fractals:
+float signed_distance_function_multiple_mandelbulb(FracRenderVector3 position)
+{
+	// Offsets of five Mandelbulb fractals:
+	FracRenderVector3 mandelbulb_positions[] = {
+		initialize_vector_3( 0.f, 0.f,  0.f),
+		initialize_vector_3(-1.f, 0.f,  1.f),
+		initialize_vector_3( 1.f, 0.f,  1.f),
+		initialize_vector_3(-1.f, 0.f, -1.f),
+		initialize_vector_3( 1.f, 0.f, -1.f)
+	};
+
+	// Get distance estimates:
+	float distance_estimates[5];
+	for (int i = 0; i < 5; i++)
+	{
+		distance_estimates[i] = signed_distance_function_mandelbulb(
+			add_vector_3(position, mandelbulb_positions[i]));
+	}
+
+	// Choose minimum distance estimate:
+	return fmin(fmin(fmin(fmin(distance_estimates[3], distance_estimates[4]),
+		distance_estimates[2]), distance_estimates[1]), distance_estimates[0]);
 }
 
 // Print out a few voxels for debugging:

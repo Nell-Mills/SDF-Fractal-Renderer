@@ -22,6 +22,9 @@ layout (set = 0, binding = 0) uniform UScene
 
 	// Fractal parameter:
 	float fractal_parameter;
+
+	// View distance:
+	float view_distance;
 } u_scene;
 
 layout (location = 0) out vec4 out_iterations;
@@ -35,11 +38,7 @@ bool is_iteration(vec2 pixel_location);
 void main()
 {
 	// See if point is in set of first 25 iterations:
-	if (is_iteration(in_position.xy))
-	{
-		out_iterations = vec4(-1.f);
-		return;
-	}
+	//if (is_iteration(in_position.xy)) { out_iterations = vec4(-1.f); return; }
 
 	// Calculate Mandelbrot iterations and output to texture image:
 	float iterations_achieved = mandelbrot_2d(in_position);

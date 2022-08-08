@@ -81,3 +81,35 @@ echo " ---> Geometry-Hall-Of-Pillars-SDF-2D.frag"
 ./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag.sprv
 
 echo "... done."
+
+#######################
+# Multiple Mandelbulb #
+#######################
+
+echo "GLSLC: Compiling Multiple Mandelbulb shaders..."
+
+# Colour:
+echo " ---> Colour-Multiple-Mandelbulb.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Colour-Multiple-Mandelbulb.vert -o ./Assets/Shaders/Multiple-Mandelbulb/Colour-Multiple-Mandelbulb.vert.sprv
+echo " ---> Colour-Multiple-Mandelbulb.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Colour-Multiple-Mandelbulb.frag -o ./Assets/Shaders/Multiple-Mandelbulb/Colour-Multiple-Mandelbulb.frag.sprv
+
+# Geometry, no SDF:
+echo " ---> Geometry-Multiple-Mandelbulb.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb.vert -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb.vert.sprv
+echo " ---> Geometry-Multiple-Mandelbulb.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb.frag -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb.frag.sprv
+
+# Geometry, 3D SDF:
+echo " ---> Geometry-Multiple-Mandelbulb-SDF-3D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-3D.vert -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-3D.vert.sprv
+echo " ---> Geometry-Multiple-Mandelbulb-SDF-3D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-3D.frag -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-3D.frag.sprv
+
+# Geometry, 2D SDF:
+echo " ---> Geometry-Multiple-Mandelbulb-SDF-2D.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-2D.vert -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-2D.vert.sprv
+echo " ---> Geometry-Multiple-Mandelbulb-SDF-2D.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-2D.frag -o ./Assets/Shaders/Multiple-Mandelbulb/Geometry-Multiple-Mandelbulb-SDF-2D.frag.sprv
+
+echo "... done."

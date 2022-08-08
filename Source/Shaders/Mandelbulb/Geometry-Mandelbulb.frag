@@ -22,6 +22,9 @@ layout (set = 0, binding = 0) uniform UScene
 
 	// Fractal parameter:
 	float fractal_parameter;
+
+	// View distance:
+	float view_distance;
 } u_scene;
 
 layout (location = 0) out vec4 out_position;
@@ -51,7 +54,7 @@ vec4 raymarch(vec3 origin, vec3 ray)
 		vec3( 1.f, 0.f, -1.f)
 	};
 */
-	vec4 current_position;
+	vec4 current_position = vec4(origin, 1.f);
 	int max_steps = 999;
 	float distance_estimate;
 	float distance_travelled = 0.f;
@@ -59,10 +62,6 @@ vec4 raymarch(vec3 origin, vec3 ray)
 
 	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
-		// Get current position. Encode iterations in w-coordinate:
-		current_position = vec4(origin + (ray * distance_travelled),
-			1.f - (float(steps_taken) / float(max_steps)));
-
 		// Get distance estimate and update total distance travelled:
 /*		float distance_estimates[5];
 		for (int i = 0; i < 5; i++)
@@ -76,16 +75,17 @@ vec4 raymarch(vec3 origin, vec3 ray)
 				distance_estimates[1]), distance_estimates[0]);
 */
 		distance_estimate = distance_estimator_mandelbulb(current_position.xyz);
-
 		distance_travelled += distance_estimate;
 
+		// Get current position. Encode iterations in w-coordinate:
+		current_position = vec4(origin + (ray * distance_travelled),
+			1.f - (float(steps_taken) / float(max_steps)));
+
 		// Check how close the point is to the surface:
-		if (distance_estimate < distance_threshold)
-		{
-			current_position = vec4(origin + (ray * distance_travelled),
-				1.f - (float(steps_taken) / float(max_steps)));
-			break;
-		}
+		if (distance_estimate < distance_threshold) { break; }
+
+		// Check the view distance:
+		if (abs(distance_travelled) >= u_scene.view_distance) { break; }
 	}
 
 	// Return current position along with iterations achieved:

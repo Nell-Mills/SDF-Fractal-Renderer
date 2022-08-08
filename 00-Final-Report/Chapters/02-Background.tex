@@ -61,7 +61,23 @@ One attempt that seems to have come close was originated by Rudy Rucker in 1987.
 
 Rucker did not have the computational power to accomplish a rendering of this idea, so it was put aside for twenty years, until Daniel White independently published a formula in 2007, which took the approach proposed by Rucker. White decided to approach the problem by considering the geometrical consequences of multiplying numbers in the complex plane, which amounts to rotating them \cite{aron2009mandelbulb}.\newline
 
-White's formula produced images that looked promising, but they didn't have the level of detail that was expected from a true three-dimensional equivalent of the Mandelbrot set. A mathematician, Paul Nylander, raised White's formula to a higher power (eight), which would be equivalent to increasing the number of rotations of the point. The resulting image is shown in figure \ref{figure:mandelbulb-first-look}. The shape maintains excellent detail, even at high levels of magnification \cite {aron2009mandelbulb}.\newline
+White's formula produced images that looked promising, but they didn't have the level of detail that was expected from a true three-dimensional equivalent of the Mandelbrot set. A mathematician, Paul Nylander, raised White's formula to a higher power (eight), which would be equivalent to increasing the number of rotations of the point. The resulting image is shown in figure \ref{figure:mandelbulb-first-look}. The shape maintains excellent detail, even at high levels of magnification \cite {aron2009mandelbulb}.
+
+\newpage
+
+The new shape, known as the Mandelbulb, has roughly the same formula as the Mandelbrot set (equation \ref{equation:mandelbrot-2d}):
+
+\begin{equation} \label{equation:mandelbulb}
+	Z = {Z^k} + C
+\end{equation}
+
+where Z is raised to an arbitrary power like so:
+
+\begin{equation} \label{equation:mandelbulb-power}
+	{Z^k} = {r^k}(sin[k\theta]cos[k\phi], sin[k\theta]sin[k\phi], cos[k\theta]).
+\end{equation}
+
+The variable r is the norm of Z (|Z|), $\theta$ is equal to arctan($Z_y$/$Z_x$) and $\phi$ is equal to |($Z_x$, $Z_y$)|/$Z_z$. The spherical coordinates of the point Z/|Z| are represented by $\theta$ and $\phi$. Equations \ref{equation:mandelbulb} and \ref{equation:mandelbulb-power} are sourced from Chapter 33 of the book Ray Tracing Gems II \cite{marrs2021ray}.\newline
 
 Papers:
 \begin{itemize}
@@ -69,19 +85,8 @@ Papers:
 	\item In Search of a Beautiful 3D Mandelbrot Set \cite{rucker2009search}.
 	\item .
 	\item A glimpse of the Mandelbulb with memory \cite{alonso2016glimpse}.
-	\item Raymarching the Mandelbulb Fractal in VR \cite{letz2018raymarching}.
 	\item On the Algebraic Foundation of the Mandelbulb \cite{boily2022algebraic}.
 \end{itemize}
-
-- A few ways to represent mandelbrot in 3D.
-
-- 1. Slices of 2D mandelbrot.
-
-- 2. Quaternion mandelbrot with fourth dimension = 0.
-
-- 3. Informal extension to 3D with polar coordinates.
-
-- Explain each. I will be going with option 3.
 
 \section{Signed Distance Functions and Sphere Tracing}
 

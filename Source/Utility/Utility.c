@@ -33,6 +33,13 @@ void print_fractal_and_sdf_type(int fractal_type, int sdf_type)
 		else if (sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
 		else { printf(" no Signed Distance Field.\n"); }
 	}
+	else if (fractal_type == 2)
+	{
+		printf("Displaying Multiple Mandelbulb fractals with ");
+		if (sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
+		else if (sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
+		else { printf(" no Signed Distance Field.\n"); }
+	}
 	else
 	{
 		printf("Displaying 2D Mandelbrot set with no Signed Distance Field.\n");
@@ -218,6 +225,40 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 			SHADER_DIR_"Colour-Hall-Of-Pillars.frag.sprv";
 		#undef SHADER_DIR_
 	}
+	else if (fractal_type == 2)
+	{
+		#define SHADER_DIR_ "Assets/Shaders/Multiple-Mandelbulb/"
+		// Multiple Mandelbulb:
+		if (sdf_type == 0)
+		{
+			// 3D SDF:
+			pipeline->geometry_vertex_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb-SDF-3D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb-SDF-3D.frag.sprv";
+		}
+		else if (sdf_type == 1)
+		{
+			// 2D SDF:
+			pipeline->geometry_vertex_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb-SDF-2D.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb-SDF-2D.frag.sprv";
+		}
+		else
+		{
+			// No SDF:
+			pipeline->geometry_vertex_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb.vert.sprv";
+			pipeline->geometry_fragment_shader_path =
+				SHADER_DIR_"Geometry-Multiple-Mandelbulb.frag.sprv";
+		}
+		pipeline->colour_vertex_shader_path =
+			SHADER_DIR_"Colour-Multiple-Mandelbulb.vert.sprv";
+		pipeline->colour_fragment_shader_path =
+			SHADER_DIR_"Colour-Multiple-Mandelbulb.frag.sprv";
+		#undef SHADER_DIR_
+	}
 	else
 	{
 		#define SHADER_DIR_ "Assets/Shaders/Mandelbrot-2D/"
@@ -256,7 +297,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	{
 		// Positions + iterations, and distance write:
 		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
-		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32_SFLOAT;
+		framebuffers->g_buffer_formats[1]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 	}
 	else
 	{
@@ -267,7 +308,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	framebuffers->sdf_2d_image		= VK_NULL_HANDLE;
 	framebuffers->sdf_2d_memory		= VK_NULL_HANDLE;
 	framebuffers->sdf_2d_image_view		= VK_NULL_HANDLE;
-	framebuffers->sdf_2d_format		= VK_FORMAT_R32_SFLOAT;
+	framebuffers->sdf_2d_format		= VK_FORMAT_R32G32B32A32_SFLOAT;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;

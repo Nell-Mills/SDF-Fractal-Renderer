@@ -20,6 +20,9 @@ layout (set = 0, binding = 0) uniform UScene
 
 	// Fractal parameter:
 	float fractal_parameter;
+
+	// View distance:
+	float view_distance;
 } u_scene;
 
 layout (location = 0) out vec4 out_position;

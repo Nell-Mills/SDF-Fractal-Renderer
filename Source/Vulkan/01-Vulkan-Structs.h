@@ -177,6 +177,9 @@ typedef struct {
 
 	// Fractal parameter:
 	float fractal_parameter;
+
+	// View distance:
+	float view_distance;
 } FracRenderVulkanSceneUniform;
 
 typedef struct {

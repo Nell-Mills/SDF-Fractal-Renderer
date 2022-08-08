@@ -22,6 +22,9 @@ layout (set = 0, binding = 0) uniform UScene
 
 	// Fractal parameter:
 	float fractal_parameter;
+
+	// View distance:
+	float view_distance;
 } u_scene;
 
 layout (set = 1, binding = 0) uniform sampler2D u_position_sampler;
@@ -33,22 +36,16 @@ vec4 colour_function_mandelbrot(vec3 position);
 
 void main()
 {
+	vec4 position = texture(u_position_sampler, in_tex_coord).rgba;
+
 	// Special colouring for Mandelbrot 2D iterations:
-	vec4 iterations = texture(u_position_sampler, in_tex_coord).rgba;
-	if (iterations.w < 0.f)
-	{
-		//out_colour = vec4(iterations.rgb, 1.f);
-		out_colour = vec4(1.f, 0.f, 1.f, 1.f);
-		return;
-	}
+	//if (position.w < 0.f) { out_colour = vec4(1.f, 0.f, 1.f, 1.f); return; }
 
 	// Colour using colour function:
-	vec3 position = texture(u_position_sampler, in_tex_coord).rgb;
-	out_colour = colour_function_mandelbrot(position);
+	out_colour = colour_function_mandelbrot(position.xyz);
 
 	// Colour based on iterations achieved:
-/*	float iterations = texture(u_position_sampler, in_tex_coord).a;
-	out_colour = vec4(vec3(iterations), 1.f);*/
+	//out_colour = vec4(vec3(position.w), 1.f);
 }
 
 vec4 colour_function_mandelbrot(vec3 position)

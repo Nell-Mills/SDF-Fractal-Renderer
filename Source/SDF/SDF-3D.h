@@ -51,6 +51,9 @@ float signed_distance_function_mandelbulb(FracRenderVector3 position);
 // Signed distance function for Hall of Pillars fractal:
 float signed_distance_function_hall_of_pillars(FracRenderVector3 position);
 
+// Signed distance function for handling multiple Mandelbulb fractals:
+float signed_distance_function_multiple_mandelbulb(FracRenderVector3 position);
+
 // Print out a few voxels for debugging:
 void print_sdf_3d_voxels(FracRenderSDF3D *sdf_3d);
 
