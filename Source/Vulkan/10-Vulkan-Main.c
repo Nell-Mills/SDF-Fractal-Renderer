@@ -3,12 +3,8 @@
 // Update scene uniform:
 void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanSceneUniform *scene_uniform,
-	int *animation)
+	FracRenderProgramState *program_state)
 {
-	// Get program state:
-	FracRenderProgramState *program_state = (FracRenderProgramState *)
-				glfwGetWindowUserPointer(base->window);
-
 	// Get eye position:
 	scene_uniform->eye_position = program_state->position;
 
@@ -29,19 +25,20 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 						scene_uniform->aspect_ratio);
 
 	// Get fractal parameter if animation is on:
-	if (*animation == 0) { return; }
-	scene_uniform->fractal_parameter += program_state->delta_t * 0.1f * (float)(*animation);
+	if (program_state->animation == 0) { return; }
+	scene_uniform->fractal_parameter += program_state->delta_t * 0.1f *
+					(float)(program_state->animation);
 
 	// Check fractal parameter limits:
 	if (scene_uniform->fractal_parameter <= program_state->fractal_parameter_min)
 	{
 		scene_uniform->fractal_parameter = program_state->fractal_parameter_min;
-		*animation = 1;
+		program_state->animation = 1;
 	}
 	else if (scene_uniform->fractal_parameter >= program_state->fractal_parameter_max)
 	{
 		scene_uniform->fractal_parameter = program_state->fractal_parameter_max;
-		*animation = -1;
+		program_state->animation = -1;
 	}
 }
 

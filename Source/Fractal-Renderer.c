@@ -31,38 +31,41 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	int fractal_type = -1;	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
-	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D.
-	int animation = 0;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
+	// Initialize the program state:
+	FracRenderProgramState program_state;
 	if (argc > 1)
 	{
-		if (argv[1][0] == '0') { fractal_type = 0; }
-		else if (argv[1][0] == '1') { fractal_type = 1; }
+		// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
+		if (argv[1][0] == '0') { program_state.fractal_type = 0; }
+		else if (argv[1][0] == '1') { program_state.fractal_type = 1; }
+		else { program_state.fractal_type = -1; }
 	}
-	if ((argc > 2) && (fractal_type != -1))
+	if ((argc > 2) && (program_state.fractal_type != -1))
 	{
-		if (argv[2][0] == '0') { sdf_type = 0; }
-		else if (argv[2][0] == '1') { sdf_type = 1; }
+		// -1 = none, 0 = 3D, 1 = 2D.
+		if (argv[2][0] == '0') { program_state.sdf_type = 0; }
+		else if (argv[2][0] == '1') { program_state.sdf_type = 1; }
+		else { program_state.sdf_type = -1; }
 	}
 	if (argc > 3)
 	{
-		if (argv[3][0] == '0') { animation = 0; }
-		else if (argv[3][0] == '1') { animation = 1; }
-		else { animation = -1; }
+		// 0 = No animation, -1 = Backwards, 1 = Forwards;
+		if (argv[3][0] == '0') { program_state.animation = 0; }
+		else if (argv[3][0] == '1') { program_state.animation = 1; }
+		else { program_state.animation = -1; }
 	}
-
-	// Print iterations of the Mandelbrot set:
-	//print_mandelbrot_2d_iterations(0.3f, 0.05f, -1);
-
-	// Initialize the program state:
-	FracRenderProgramState program_state;
-	if (fractal_type == 0)
+	if (argc > 4)
+	{
+		// -1 = No measurements, 0 = Measurements.
+		if (argv[4][0] == '0') { program_state.performance = 0; }
+	}
+	if (program_state.fractal_type == 0)
 	{
 		// Mandelbulb:
 		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 	}
-	else if (fractal_type == 1)
+	else if (program_state.fractal_type == 1)
 	{
 		// Hall of pillars:
 		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
@@ -80,14 +83,13 @@ int main(int argc, char **argv)
 	program_state.delta_t			= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
-	program_state.fractal_type		= fractal_type;
-	if (fractal_type == 0)
+	if (program_state.fractal_type == 0)
 	{
 		// Mandelbulb:
 		program_state.fractal_parameter_min	= 2.f;
 		program_state.fractal_parameter_max	= 16.f;
 	}
-	else if (fractal_type == 1)
+	else if (program_state.fractal_type == 1)
 	{
 		// Hall of pillars:
 		program_state.fractal_parameter_min	= 2.f;
@@ -102,9 +104,9 @@ int main(int argc, char **argv)
 
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
-	if (sdf_type == 0)
+	if (program_state.sdf_type == 0)
 	{
-		if (fractal_type == 0)
+		if (program_state.fractal_type == 0)
 		{
 			sdf_3d.levels		= 8;
 			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
 			sdf_3d.size		= 2.f;
 		}
 		sdf_3d.centre		= program_state.position;
-		sdf_3d.fractal_type	= fractal_type;
+		sdf_3d.fractal_type	= program_state.fractal_type;
 		sdf_3d.voxels		= NULL;
 
 		// Create 3D SDF:
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
 
 	// Initialize the scene UBO:
 	FracRenderVulkanSceneUniform scene_uniform;
-	if (sdf_type == 0)
+	if (program_state.sdf_type == 0)
 	{
 		scene_uniform.sdf_3d_centre		= sdf_3d.centre;
 		scene_uniform.sdf_3d_size		= sdf_3d.size;
@@ -142,13 +144,13 @@ int main(int argc, char **argv)
 		scene_uniform.sdf_3d_size		= 0.f;
 		scene_uniform.sdf_3d_levels		= 0;
 	}
-	if (fractal_type == 0)
+	if (program_state.fractal_type == 0)
 	{
 		// Mandelbulb:
 		scene_uniform.fractal_parameter = 8.f;
 		scene_uniform.view_distance = 256.f;
 	}
-	else if (fractal_type == 1)
+	else if (program_state.fractal_type == 1)
 	{
 		// Hall of Pillars:
 		scene_uniform.fractal_parameter = 8.f;
@@ -178,7 +180,7 @@ int main(int argc, char **argv)
 	FracRenderVulkanCommands commands;
 
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-						&framebuffers, &commands, fractal_type, sdf_type);
+		&framebuffers, &commands, program_state.fractal_type, program_state.sdf_type);
 
 	#ifdef FRACRENDER_DEBUG
 		// Check support for required validation layers:
@@ -215,7 +217,8 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize descriptor layouts and sampler:
-	if (initialize_vulkan_descriptor_layouts(&device, &descriptors, &sdf_3d, sdf_type) != 0)
+	if (initialize_vulkan_descriptor_layouts(&device, &descriptors, &sdf_3d,
+						program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 								&framebuffers, &commands);
@@ -224,7 +227,7 @@ int main(int argc, char **argv)
 
 	// Create pipelines and render passes:
 	if (initialize_vulkan_pipeline(&device, &swapchain, &descriptors, &framebuffers,
-								&pipeline, sdf_type) != 0)
+						&pipeline, program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 								&framebuffers, &commands);
@@ -233,7 +236,7 @@ int main(int argc, char **argv)
 
 	// Create framebuffers and G-buffer:
 	if (initialize_vulkan_framebuffers(&device, &swapchain, &pipeline,
-					&framebuffers, sdf_type) != 0)
+				&framebuffers, program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 								&framebuffers, &commands);
@@ -241,7 +244,8 @@ int main(int argc, char **argv)
 	}
 
 	// Create descriptors:
-	if (initialize_vulkan_descriptors(&device, &framebuffers, &descriptors, sdf_type) != 0)
+	if (initialize_vulkan_descriptors(&device, &framebuffers, &descriptors,
+						program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 								&framebuffers, &commands);
@@ -256,7 +260,13 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if (sdf_type == 0)
+	// Set up performance measuring structures:
+	if (program_state.performance == 0)
+	{
+
+	}
+
+	if (program_state.sdf_type == 0)
 	{
 		// Copy SDF data into GPU buffer:
 		if (copy_sdf_3d_data(&device, &descriptors, &commands, &sdf_3d) != 0)
@@ -269,13 +279,13 @@ int main(int argc, char **argv)
 
 		#ifdef FRACRENDER_DEBUG
 			// Print some voxels for debugging:
-			print_sdf_3d_voxels(&sdf_3d);
+			//print_sdf_3d_voxels(&sdf_3d);
 		#endif
 
 		// Buffer has been copied to GPU memory so destroy CPU structure:
 		destroy_sdf_3d(&sdf_3d);
 	}
-	else if (sdf_type == 1)
+	else if (program_state.sdf_type == 1)
 	{
 		// Initialize 2D SDF image to zero values:
 		if (initialize_sdf_2d_image(&device, &swapchain, &framebuffers, &commands) != 0)
@@ -286,13 +296,19 @@ int main(int argc, char **argv)
 
 	#ifdef FRACRENDER_DEBUG
 		// Print all Vulkan struct values for debugging:
-		print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
-							&pipeline, &framebuffers, &commands);
+		//print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
+		//					&pipeline, &framebuffers, &commands);
+
+		// Print iterations of the Mandelbrot set:
+		//print_mandelbrot_2d_iterations(0.3f, 0.05f, -1);
 	#endif
 
 	// Set GLFW callback functions (no mouse movement for 2D Mandelbrot):
 	glfwSetKeyCallback(base.window, &glfw_callback_key_press);
-	if (sdf_type != 2) { glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position); }
+	if (program_state.fractal_type != -1)
+	{
+		glfwSetCursorPosCallback(base.window, &glfw_callback_mouse_position);
+	}
 
 	// Set GLFW user pointer to point to the program state:
 	glfwSetWindowUserPointer(base.window, &program_state);
@@ -301,7 +317,7 @@ int main(int argc, char **argv)
 	print_title();
 
 	// Print which type of fractal and SDF are being used:
-	print_fractal_and_sdf_type(fractal_type, sdf_type);
+	print_fractal_and_sdf_type(program_state.fractal_type, program_state.sdf_type);
 
 	// Print keyboard controls:
 	print_controls();
@@ -355,7 +371,7 @@ int main(int argc, char **argv)
 			if (changed_format == 0)
 			{
 				if (recreate_vulkan_render_passes(&device, &swapchain,
-						&framebuffers, &pipeline, sdf_type) != 0)
+					&framebuffers, &pipeline, program_state.sdf_type) != 0)
 				{
 					break;
 				}
@@ -374,7 +390,7 @@ int main(int argc, char **argv)
 				update_vulkan_g_buffer_descriptors(&device,
 						&framebuffers, &descriptors);
 
-				if (sdf_type == 1)
+				if (program_state.sdf_type == 1)
 				{
 					// Recreate 2D SDF image:
 					if (recreate_sdf_2d_image(&device, &swapchain,
@@ -408,7 +424,7 @@ int main(int argc, char **argv)
 
 			// Recreate G-buffer:
 			if (recreate_vulkan_g_buffer(&device, &swapchain,
-				&pipeline, &framebuffers, sdf_type) != 0)
+				&pipeline, &framebuffers, program_state.sdf_type) != 0)
 			{
 				break;
 			}
@@ -417,7 +433,7 @@ int main(int argc, char **argv)
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_pipelines(&device, &swapchain,
-							&pipeline, sdf_type) != 0)
+					&pipeline, program_state.sdf_type) != 0)
 				{
 					break;
 				}
@@ -453,8 +469,7 @@ int main(int argc, char **argv)
 		}
 
 		// Update scene uniform:
-		update_scene_uniform(&base, &device, &swapchain, &scene_uniform,
-							&animation);
+		update_scene_uniform(&base, &device, &swapchain, &scene_uniform, &program_state);
 
 		// Wait for a command buffer to be available:
 		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],
@@ -475,7 +490,7 @@ int main(int argc, char **argv)
 
 		// Record commands:
 		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers,
-				&commands, &scene_uniform, sdf_type, image_index) != 0)
+			&commands, &scene_uniform, program_state.sdf_type, image_index) != 0)
 		{
 			break;
 		}

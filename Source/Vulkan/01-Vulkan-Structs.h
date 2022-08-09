@@ -200,6 +200,15 @@ typedef struct {
 	// Fractal type:
 	int fractal_type;
 
+	// SDF type:
+	int sdf_type;
+
+	// Animation:
+	int animation;
+
+	// Performance measurements:
+	int performance;
+
 	// Fractal parameter:
 	float fractal_parameter_min;
 	float fractal_parameter_max;
