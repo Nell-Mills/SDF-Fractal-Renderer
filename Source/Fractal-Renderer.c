@@ -31,15 +31,13 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars, 2 = Multiple Mandelbulb:
-	int fractal_type = -1;
+	int fractal_type = -1;	// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
 	int sdf_type = -1;	// -1 = none, 0 = 3D, 1 = 2D.
 	int animation = 0;	// 0 = No animation, -1 = Backwards, 1 = Forwards;
 	if (argc > 1)
 	{
 		if (argv[1][0] == '0') { fractal_type = 0; }
 		else if (argv[1][0] == '1') { fractal_type = 1; }
-		else if (argv[1][0] == '2') { fractal_type = 2; }
 	}
 	if ((argc > 2) && (fractal_type != -1))
 	{
@@ -70,12 +68,6 @@ int main(int argc, char **argv)
 		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 	}
-	else if (fractal_type == 2)
-	{
-		// Multiple Mandelbulb:
-		program_state.position	= initialize_vector_3(0.f, -2.f, -4.f);
-		program_state.front	= normalize(initialize_vector_3(0.f, 0.65f, 1.f));
-	}
 	else
 	{
 		// 2D Mandelbrot set:
@@ -89,9 +81,9 @@ int main(int argc, char **argv)
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
 	program_state.fractal_type		= fractal_type;
-	if ((fractal_type == 0) || (fractal_type == 2))
+	if (fractal_type == 0)
 	{
-		// Mandelbulb (or multiple):
+		// Mandelbulb:
 		program_state.fractal_parameter_min	= 2.f;
 		program_state.fractal_parameter_max	= 16.f;
 	}
@@ -112,7 +104,7 @@ int main(int argc, char **argv)
 	FracRenderSDF3D sdf_3d;
 	if (sdf_type == 0)
 	{
-		if ((fractal_type == 0) || (fractal_type == 2))
+		if (fractal_type == 0)
 		{
 			sdf_3d.levels		= 8;
 			sdf_3d.num_voxels	= pow(8, sdf_3d.levels);
@@ -150,9 +142,9 @@ int main(int argc, char **argv)
 		scene_uniform.sdf_3d_size		= 0.f;
 		scene_uniform.sdf_3d_levels		= 0;
 	}
-	if ((fractal_type == 0) || (fractal_type == 2))
+	if (fractal_type == 0)
 	{
-		// Mandelbulb (or multiple):
+		// Mandelbulb:
 		scene_uniform.fractal_parameter = 8.f;
 		scene_uniform.view_distance = 256.f;
 	}
