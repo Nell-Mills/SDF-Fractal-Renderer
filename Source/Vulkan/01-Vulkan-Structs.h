@@ -159,6 +159,14 @@ typedef struct {
 } FracRenderVulkanCommands;
 
 typedef struct {
+	// Query pool:
+	VkQueryPool query_pool;
+
+	// Device timestamp period:
+	float timestamp_period;
+} FracRenderVulkanPerformance;
+
+typedef struct {
 	// Axes in eye coordinate system:
 	FracRenderVector3 plane_centre; float pad_0;
 	FracRenderVector3 x_axis; float pad_1;

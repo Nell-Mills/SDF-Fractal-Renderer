@@ -23,5 +23,6 @@
 #include "08-Vulkan-Framebuffers.h"
 #include "09-Vulkan-Commands.h"
 #include "10-Vulkan-Main.h"
+#include "11-Vulkan-Performance.h"
 
 #endif

@@ -26,8 +26,9 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 // Record commands:
 int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-		FracRenderVulkanCommands *commands, FracRenderVulkanSceneUniform *scene_uniform,
-		int sdf_type, uint32_t image_index);
+		FracRenderVulkanCommands *commands, FracRenderVulkanPerformance *performance,
+		FracRenderVulkanSceneUniform *scene_uniform, FracRenderProgramState *program_state,
+		uint32_t image_index);
 
 // Submit commands:
 int submit_commands(FracRenderVulkanDevice *device, FracRenderVulkanCommands *commands,
@@ -45,6 +46,7 @@ int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
 void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
 		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+		FracRenderVulkanPerformance *performance);
 
 #endif

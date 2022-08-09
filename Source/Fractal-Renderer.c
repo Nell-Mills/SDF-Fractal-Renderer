@@ -4,6 +4,8 @@
 
 // Library includes:
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // Local includes:
 #include "Vulkan/00-Vulkan-API.h"
@@ -33,19 +35,25 @@ int main(int argc, char **argv)
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
+	program_state.fractal_type = -1;
+	program_state.sdf_type = -1;
+	program_state.animation = 0;
+	#ifdef FRACRENDER_DEBUG
+		program_state.performance = 0;
+	#else
+		program_state.performance = -1;
+	#endif
 	if (argc > 1)
 	{
 		// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
 		if (argv[1][0] == '0') { program_state.fractal_type = 0; }
 		else if (argv[1][0] == '1') { program_state.fractal_type = 1; }
-		else { program_state.fractal_type = -1; }
 	}
 	if ((argc > 2) && (program_state.fractal_type != -1))
 	{
 		// -1 = none, 0 = 3D, 1 = 2D.
 		if (argv[2][0] == '0') { program_state.sdf_type = 0; }
 		else if (argv[2][0] == '1') { program_state.sdf_type = 1; }
-		else { program_state.sdf_type = -1; }
 	}
 	if (argc > 3)
 	{
@@ -178,16 +186,17 @@ int main(int argc, char **argv)
 	FracRenderVulkanPipeline pipeline;
 	FracRenderVulkanFramebuffers framebuffers;
 	FracRenderVulkanCommands commands;
+	FracRenderVulkanPerformance performance;
 
 	initialize_vulkan_structs(&base, &device, &validation, &swapchain, &descriptors, &pipeline,
-		&framebuffers, &commands, program_state.fractal_type, program_state.sdf_type);
+					&framebuffers, &commands, &performance, &program_state);
 
 	#ifdef FRACRENDER_DEBUG
 		// Check support for required validation layers:
 		if (check_validation_support(&validation) != 0)
 		{
 			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers, &commands);
+							&framebuffers, &commands, &performance);
 			return -1;
 		}
 	#endif
@@ -196,7 +205,7 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_base(&base, &validation) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -204,7 +213,7 @@ int main(int argc, char **argv)
 	if (initalize_vulkan_device(&base, &device) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -212,7 +221,7 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_swapchain(&base, &device, &swapchain) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -221,7 +230,7 @@ int main(int argc, char **argv)
 						program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -230,7 +239,7 @@ int main(int argc, char **argv)
 						&pipeline, program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -239,7 +248,7 @@ int main(int argc, char **argv)
 				&framebuffers, program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -248,7 +257,7 @@ int main(int argc, char **argv)
 						program_state.sdf_type) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
@@ -256,14 +265,19 @@ int main(int argc, char **argv)
 	if (initialize_vulkan_commands(&device, &swapchain, &commands) != 0)
 	{
 		destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-								&framebuffers, &commands);
+						&framebuffers, &commands, &performance);
 		return -1;
 	}
 
 	// Set up performance measuring structures:
 	if (program_state.performance == 0)
 	{
-
+		if (initialize_vulkan_performance(&device, &performance) != 0)
+		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &performance);
+			return -1;
+		}
 	}
 
 	if (program_state.sdf_type == 0)
@@ -272,7 +286,7 @@ int main(int argc, char **argv)
 		if (copy_sdf_3d_data(&device, &descriptors, &commands, &sdf_3d) != 0)
 		{
 			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
-									&framebuffers, &commands);
+							&framebuffers, &commands, &performance);
 			destroy_sdf_3d(&sdf_3d);
 			return -1;
 		}
@@ -294,10 +308,18 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Set up performance recording file (overwrite any old ones!):
+	const char *performance_file_name = "./Performance.txt";
+	FILE *performance_file;
+	if (program_state.performance == 0)
+	{
+		performance_file = fopen(performance_file_name, "w");
+	}
+
 	#ifdef FRACRENDER_DEBUG
 		// Print all Vulkan struct values for debugging:
-		//print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
-		//					&pipeline, &framebuffers, &commands);
+		print_vulkan_handles(&base, &device, &validation, &swapchain, &descriptors,
+					&pipeline, &framebuffers, &commands, &performance);
 
 		// Print iterations of the Mandelbrot set:
 		//print_mandelbrot_2d_iterations(0.3f, 0.05f, -1);
@@ -317,13 +339,19 @@ int main(int argc, char **argv)
 	print_title();
 
 	// Print which type of fractal and SDF are being used:
-	print_fractal_and_sdf_type(program_state.fractal_type, program_state.sdf_type);
+	print_fractal_and_sdf_type(&program_state);
 
 	// Print keyboard controls:
 	print_controls();
 
 	// Tracking program state:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
+	int num_frames = 0;		// For getting median of shader execution times.
+	int max_frames = 199;
+	int values_captured = 0;
+	int max_values = 10;
+	double *shader_time = malloc(max_frames * sizeof(double));
+	memset(shader_time, 0, max_frames * sizeof(double));
 
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
@@ -489,8 +517,8 @@ int main(int argc, char **argv)
 		}
 
 		// Record commands:
-		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers,
-			&commands, &scene_uniform, program_state.sdf_type, image_index) != 0)
+		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers, &commands,
+				&performance, &scene_uniform, &program_state, image_index) != 0)
 		{
 			break;
 		}
@@ -513,6 +541,35 @@ int main(int argc, char **argv)
 			recreate_swapchain = 0;
 		}
 
+		// Get geometry fragment shader execution time:
+		if (program_state.performance == 0)
+		{
+			num_frames++;
+			get_shader_time(shader_time, num_frames, &device, &performance);
+
+			if (num_frames == max_frames)
+			{
+				printf("----------------------------------------");
+				printf("----------------------------------------\n");
+
+				printf("Ordered shader times:\n");
+				for (int i = 0; i < num_frames; i++)
+				{
+					printf("%lf\n", shader_time[i]);
+				}
+
+				printf("----------------------------------------");
+				printf("----------------------------------------\n\n");
+
+				fprintf(performance_file, "%lf\n", shader_time[(max_frames + 1)/2]);
+				num_frames = 0;
+				memset(shader_time, 0, max_frames * sizeof(double));
+
+				values_captured++;
+				if (values_captured == max_values) { break; }
+			}
+		}
+
 		// Update the time:
 		program_state.last_update = program_state.current_update;
 	}
@@ -520,9 +577,15 @@ int main(int argc, char **argv)
 	// Wait for Vulkan commands to finish:
 	vkDeviceWaitIdle(device.logical_device);
 
+	// Close performance file:
+	if (program_state.performance == 0) { fclose(performance_file); }
+
+	// Free memory:
+	free(shader_time);
+
 	// Destroy Vulkan structs:
 	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,
-											&commands);
+									&commands, &performance);
 
 	return 0;
 }
