@@ -38,7 +38,8 @@ void main()
 {
 	vec4 position = texture(u_position_sampler, in_tex_coord).rgba;
 
-	if ((position.w < 0.01f) || (length(position.xyz - u_scene.eye_position) >= u_scene.view_distance))
+	if ((position.w < 0.01f) || (length(position.xyz - u_scene.eye_position) >=
+						(u_scene.view_distance * 0.9f)))
 	{
 		out_colour = vec4(1.f);
 		return;
