@@ -77,35 +77,80 @@ where Z is raised to an arbitrary power like so:
 	{Z^k} = {r^k}(sin[k\theta]cos[k\phi], sin[k\theta]sin[k\phi], cos[k\theta]).
 \end{equation}
 
-The variable r is the norm of Z (|Z|), $\theta$ is equal to arctan($Z_y$/$Z_x$) and $\phi$ is equal to |($Z_x$, $Z_y$)|/$Z_z$. The spherical coordinates of the point Z/|Z| are represented by $\theta$ and $\phi$. Equations \ref{equation:mandelbulb} and \ref{equation:mandelbulb-power} are sourced from Chapter 33 of the book Ray Tracing Gems II \cite{marrs2021ray}.\newline
-
-Papers:
-\begin{itemize}
-	\item The mandelbulb: first ‘true’3D image of famous fractal \cite{aron2009mandelbulb}.
-	\item In Search of a Beautiful 3D Mandelbrot Set \cite{rucker2009search}.
-	\item .
-	\item A glimpse of the Mandelbulb with memory \cite{alonso2016glimpse}.
-	\item On the Algebraic Foundation of the Mandelbulb \cite{boily2022algebraic}.
-\end{itemize}
+The variable r is the norm of Z (|Z|), $\theta$ is equal to arctan($Z_y$/$Z_x$) and $\phi$ is equal to |($Z_x$, $Z_y$)|/$Z_z$. The spherical coordinates of the point Z/|Z| are represented by $\theta$ and $\phi$. Equations \ref{equation:mandelbulb} and \ref{equation:mandelbulb-power} are sourced from Chapter 33 of the book Ray Tracing Gems II \cite{marrs2021ray}.
 
 \section{Signed Distance Functions and Sphere Tracing}
 
-Papers:
-\begin{itemize}
-	\item Ray Tracing Gems II \cite{marrs2021ray}.
-\end{itemize}
+This section will focus on rendering three-dimensional fractal shapes, specifically the Mandelbulb. Firstly, signed distance functions will be explained, followed by a very brief explanation of ray tracing. Finally, the application of the signed distance functions to ray tracing will be discussed.
 
-- Briefly introduce ray tracing with triangle geometry.
+\subsection{Signed Distance Functions}
 
-- Signed distance function is an estimate of how close the point is to the surface of the fractal.
+Signed distance functions provide an estimate of how close a point is to the surface of a shape. If the result of the function is positive, then the point is outside the surface. If the result is negative, then the point is inside the surface. If the result is zero, then of course the point is exactly on the surface of the shape described by the function \cite{roblesprocedural}.\newline
 
--  If it's negative, the point is inside the surface.
+A signed distance function can be derived using the B\"{o}ttcher map for the fractal formula, which is a deformation of the space. Closer to the surface of the fractal, the space is deformed to a greater degree than parts further away from the surface, as shown in figure \ref{figure:julia-bottcher-map}. The deformations of the space occur in such a way as to map the exterior of the fractal to the exterior of a unit disk \cite{quilez-distance}.\newline
 
-- Demonstrate derivation from Mandelbulb equation.
+A rigorous mathematical explanation of the B\"{o}ttcher map will not be given in this paper, but a brief introduction is helpful to understand the derivation of the distance function for the Mandelbulb. The map can be calculated as follows:
+
+\begin{equation} \label{equation:bottcher-map}
+	{\phi_C[Z]} = {lim_{n\rightarrow\infty}[f^n[Z]]^{k^{-n}}}
+\end{equation}
+
+where the value of f[Z] is the same as in equation \ref{equation:mandelbulb} and n refers to the current iteration of the equation \cite{marrs2021ray}.
+
+\newpage
+
+\begin{figure} [ht]
+	\centering
+	\includegraphics[width=0.5\linewidth, frame]{Images/Quilez-Bottcher-Map-Image.jpg}
+	\caption{The B\"{o}ttcher map generated for the Julia set (another two-dimensional complex fractal), from the website of Inigo Quilez \cite{quilez-distance}.}
+	\label{figure:julia-bottcher-map}
+\end{figure}
+
+Looking at equation \ref{equation:bottcher-map}, take a point Z that is not in the fractal, so that the function f$^n$[Z] grows as the number of iterations increases, tending towards infinity. For a large enough value of n, the term f$_n$[Z] will become vastly larger than the value of C (as the point is far from the fractal), meaning that C can reasonably be discarded \cite{marrs2021ray}.\newline
+
+From this casting away of C we obtain:
+
+\begin{equation} \label{equation:mandelbulb-without-c}
+	{f^{n+1}[Z] \approx {(f^n[Z])^k}}
+\end{equation}
+
+for points that are sufficiently far away from the surface of the fractal. Since the point at iteration n is far from the fractal, if one were to undo all of the iterations to get back to the original point at f$_0$[Z], we would obtain this expression:
+
+\begin{equation} \label{equation:reverse-iterations}
+	{{f_0^{n}[Z]}^{k^{-n}}} = Z
+\end{equation}
+
+and by extension, returning to the B\"{o}ttcher map:
+
+\begin{equation} \label{equation:reverse-iterations-bottcher}
+	\phi_0[Z] = Z
+\end{equation}
+
+which is the approximate result that equation \ref{equation:bottcher-map} gives when the function f$^n$[Z] ultimately diverges \cite{marrs2021ray}.\newline
+
+Next, we will use something called the Hubbard-Douady potential, equal to the logarithm of the modulo of the B\"{o}ttcher map. This is a map of points onto a unit disk. Recall that the B\"{o}ttcher map maps the exterior of the fractal to the exterior of a unit disk. This now becomes important, as we have a function that tends towards zero as the points approach the boundary of the fractal \cite{quilez-distance}:
+
+\begin{equation} \label{equation:hubbard-douady}
+	G[Z] = {lim_{n\rightarrow\infty}}\frac{log|{f^n}[Z]|}{k^n}.
+\end{equation}
+
+Equation \ref{equation:hubbard-douady} is not ready to be used as a distance measurement yet. However, 
+
+\subsection{Ray and Sphere Tracing}
+
+Ray tracing is a technique used for rendering scenes. Generally, a ray is a line that is cast from the camera or eye through each pixel of an image. Tests are performed to see which object (if any) is encountered by the ray first. By bouncing the ray from object to object, the program can gather the various light contributions from objects that reflect or refract light, or light sources themselves \cite{haines2019ray}.\newline
 
 - Distance estimators can be used for raymarching - known as sphere tracing.
 
 - Diagram of sphere tracing.
+
+Papers:
+\begin{itemize}
+	\item Ray Tracing Gems: High-Quality and Real-Time Rendering with DXR and Other APIs \cite{haines2019ray}.
+	\item Ray Tracing Gems II \cite{marrs2021ray}.
+	\item Procedural Rendering w/Ray Marching \cite{roblesprocedural}.
+	\item Distance to Fractals \cite{quilez-distance}.
+\end{itemize}
 
 \section{Signed Distance Fields}
 
