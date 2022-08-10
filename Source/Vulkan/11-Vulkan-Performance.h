@@ -19,7 +19,7 @@
 
 // Create Vulkan performance structure:
 int initialize_vulkan_performance(FracRenderVulkanDevice *device,
-			FracRenderVulkanPerformance *performance);
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPerformance *performance);
 
 // Destroy Vulkan performance structure:
 void destroy_vulkan_performance(FracRenderVulkanDevice *device,
@@ -30,10 +30,11 @@ int query_timestamp_support(FracRenderVulkanDevice *device,
 		FracRenderVulkanPerformance *performance);
 
 // Create query pool:
-int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance);
+int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanPerformance *performance);
 
 // Get difference between 2 timestamps:
-void get_shader_time(double *shader_time, int num_elements, FracRenderVulkanDevice *device,
-						FracRenderVulkanPerformance *performance);
+void get_shader_time(double *shader_time, int num_elements, uint32_t image_index,
+	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance);
 
 #endif

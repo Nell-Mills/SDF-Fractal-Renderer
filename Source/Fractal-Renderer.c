@@ -38,11 +38,7 @@ int main(int argc, char **argv)
 	program_state.fractal_type = -1;
 	program_state.sdf_type = -1;
 	program_state.animation = 0;
-	#ifdef FRACRENDER_DEBUG
-		program_state.performance = 0;
-	#else
-		program_state.performance = -1;
-	#endif
+	program_state.performance = -1;
 	if (argc > 1)
 	{
 		// -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
@@ -67,6 +63,17 @@ int main(int argc, char **argv)
 		// -1 = No measurements, 0 = Measurements.
 		if (argv[4][0] == '0') { program_state.performance = 0; }
 	}
+	const char *performance_file_name;
+	if (argc > 5)
+	{
+		// Get name of output performance file:
+		performance_file_name = argv[5];
+	}
+	else
+	{
+		performance_file_name = "./Performance-Measurements/00-Default-Name.txt";
+	}
+
 	if (program_state.fractal_type == 0)
 	{
 		// Mandelbulb:
@@ -272,7 +279,7 @@ int main(int argc, char **argv)
 	// Set up performance measuring structures:
 	if (program_state.performance == 0)
 	{
-		if (initialize_vulkan_performance(&device, &performance) != 0)
+		if (initialize_vulkan_performance(&device, &swapchain, &performance) != 0)
 		{
 			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 							&framebuffers, &commands, &performance);
@@ -304,16 +311,25 @@ int main(int argc, char **argv)
 		// Initialize 2D SDF image to zero values:
 		if (initialize_sdf_2d_image(&device, &swapchain, &framebuffers, &commands) != 0)
 		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &performance);
 			return -1;
 		}
 	}
 
 	// Set up performance recording file (overwrite any old ones!):
-	const char *performance_file_name = "./Performance.txt";
 	FILE *performance_file;
 	if (program_state.performance == 0)
 	{
 		performance_file = fopen(performance_file_name, "w");
+		if (!performance_file)
+		{
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &performance);
+			return -1;
+		}
+		// Write column headers:
+		fprintf(performance_file, "Frame\tMedian\t\tMean\t\tMin\t\tMax\n\n");
 	}
 
 	#ifdef FRACRENDER_DEBUG
@@ -347,9 +363,10 @@ int main(int argc, char **argv)
 	// Tracking program state:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
 	int num_frames = 0;		// For getting median of shader execution times.
-	int max_frames = 199;
+	int max_frames = 99;
 	int values_captured = 0;
 	int max_values = 10;
+	int warm_up = 0;
 	double *shader_time = malloc(max_frames * sizeof(double));
 	memset(shader_time, 0, max_frames * sizeof(double));
 
@@ -542,17 +559,42 @@ int main(int argc, char **argv)
 		}
 
 		// Get geometry fragment shader execution time:
-		if (program_state.performance == 0)
+		if ((program_state.performance == 0) && warm_up >= 500)
 		{
+			if (warm_up == 500)
+			{
+				warm_up++;
+				printf("Starting performance measurements...\n\n");
+			}
+
 			num_frames++;
 
 			// Insert time into array (in order):
-			get_shader_time(shader_time, num_frames, &device, &performance);
+			get_shader_time(shader_time, num_frames, image_index,
+							&device, &performance);
 
 			if (num_frames == max_frames)
 			{
+				fprintf(performance_file, "%d\t", values_captured + 1);
+
 				// Take median:
-				fprintf(performance_file, "%lf\n", shader_time[(max_frames + 1)/2]);
+				fprintf(performance_file, "%lf\t", shader_time[(max_frames + 1)/2]);
+
+				// Take mean:
+				double shader_time_mean;
+				for (int i = 0; i < max_frames; i++)
+				{
+					shader_time_mean += shader_time[i];
+				}
+				shader_time_mean /= (float)(max_frames);
+				fprintf(performance_file, "%lf\t", shader_time_mean);
+
+				// Take min:
+				fprintf(performance_file, "%lf\t", shader_time[0]);
+
+				// Take max:
+				fprintf(performance_file, "%lf\n\n", shader_time[max_frames - 1]);
+
 				num_frames = 0;
 				memset(shader_time, 0, max_frames * sizeof(double));
 
@@ -560,6 +602,8 @@ int main(int argc, char **argv)
 				if (values_captured == max_values) { break; }
 			}
 		}
+
+		if (warm_up < 500) { warm_up++; }
 
 		// Update the time:
 		program_state.last_update = program_state.current_update;

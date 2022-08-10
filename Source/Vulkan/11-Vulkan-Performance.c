@@ -2,7 +2,7 @@
 
 // Create Vulkan performance structure:
 int initialize_vulkan_performance(FracRenderVulkanDevice *device,
-			FracRenderVulkanPerformance *performance)
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPerformance *performance)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -17,7 +17,7 @@ int initialize_vulkan_performance(FracRenderVulkanDevice *device,
 
 	// Create query pool:
 	printf(" ---> Creating timestamp query pool.\n");
-	if (create_query_pool(device, performance) != 0)
+	if (create_query_pool(device, swapchain, performance) != 0)
 	{
 		return -1;
 	}
@@ -63,7 +63,8 @@ int query_timestamp_support(FracRenderVulkanDevice *device,
 }
 
 // Create query pool:
-int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance)
+int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
+						FracRenderVulkanPerformance *performance)
 {
 	// Define pool creation info:
 	VkQueryPoolCreateInfo pool_info;
@@ -72,7 +73,7 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanPerformanc
 	pool_info.pNext			= NULL;
 	pool_info.flags			= 0;
 	pool_info.queryType		= VK_QUERY_TYPE_TIMESTAMP;
-	pool_info.queryCount		= 2;
+	pool_info.queryCount		= 2 * swapchain->num_swapchain_images;
 	pool_info.pipelineStatistics	= 0;
 
 	// Create the pool:
@@ -85,16 +86,16 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanPerformanc
 }
 
 // Get difference between 2 timestamps:
-void get_shader_time(double *shader_time, int num_elements, FracRenderVulkanDevice *device,
-						FracRenderVulkanPerformance *performance)
+void get_shader_time(double *shader_time, int num_elements, uint32_t image_index,
+	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance)
 {
 	// Get values in timestamp queries. Get 64-bit values and wait for availability:
 	uint64_t timestamps[2];
 	VkResult result = vkGetQueryPoolResults(
 		device->logical_device,
 		performance->query_pool,
-		0,	// First query.
-		2,	// Query count.
+		2 * image_index,	// First query.
+		2,			// Query count.
 		2 * sizeof(uint64_t),
 		timestamps,
 		sizeof(uint64_t),

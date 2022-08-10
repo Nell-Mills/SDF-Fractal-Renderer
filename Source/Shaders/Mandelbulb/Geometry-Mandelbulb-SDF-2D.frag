@@ -58,8 +58,12 @@ vec4 raymarch(vec3 origin, vec3 ray)
 
 	// Step according to written distance:
 	vec4 distance_sample = texture(u_distance_sampler, in_tex_coord).rgba;
-	if (abs(distance_sample.r - distance_sample.a) > 0.001f) { distance_travelled = 0.f; }
+
+	if (abs(distance_sample.r - distance_sample.a) >
+		(min(distance_sample.r, distance_sample.a) * 0.0001f))
+	{ distance_travelled = 0.f; }
 	else { distance_travelled = length(distance_sample) / 4.f; }
+
 	current_position = vec4(origin + (ray * distance_travelled), 1.f);
 
 	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)

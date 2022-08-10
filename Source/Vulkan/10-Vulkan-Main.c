@@ -71,7 +71,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		vkCmdResetQueryPool(
 			commands->command_buffers[image_index],
 			performance->query_pool,
-			0,
+			2 * image_index,
 			2
 		);
 
@@ -79,7 +79,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 			performance->query_pool,
-			0 // First query in pool.
+			2 * image_index
 		);
 	}
 
@@ -203,7 +203,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 			performance->query_pool,
-			1 // Second query in pool.
+			(2 * image_index) + 1
 		);
 	}
 
