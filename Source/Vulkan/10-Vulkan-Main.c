@@ -65,6 +65,24 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		return -1;
 	}
 
+	// Reset performance query pool and write first timestamp:
+	if (program_state->performance == 0)
+	{
+		vkCmdResetQueryPool(
+			commands->command_buffers[image_index],
+			performance->query_pool,
+			0,
+			2
+		);
+
+		vkCmdWriteTimestamp(
+			commands->command_buffers[image_index],
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+			performance->query_pool,
+			0 // First query in pool.
+		);
+	}
+
 	// Upload scene uniform data. First put up a barrier:
 	VkBufferMemoryBarrier buffer_barrier_1;
 	memset(&buffer_barrier_1, 0, sizeof(VkBufferMemoryBarrier));
@@ -144,17 +162,6 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	// Free memory for geometry clear values:
 	free(geometry_clear_values);
 
-	// Reset performance query pool:
-	if (program_state->performance == 0)
-	{
-		vkCmdResetQueryPool(
-			commands->command_buffers[image_index],
-			performance->query_pool,
-			0,
-			2
-		);
-	}
-
 	// Begin render pass:
 	vkCmdBeginRenderPass(commands->command_buffers[image_index],
 		&geometry_pass_info, VK_SUBPASS_CONTENTS_INLINE);
@@ -186,26 +193,19 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	// Draw fullscreen triangle:
 	vkCmdDraw(commands->command_buffers[image_index], 3, 1, 0, 0);
 
-	// Write timestamps:
+	// End the render pass:
+	vkCmdEndRenderPass(commands->command_buffers[image_index]);
+
+	// Write second timestamp:
 	if (program_state->performance == 0)
 	{
 		vkCmdWriteTimestamp(
 			commands->command_buffers[image_index],
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			performance->query_pool,
-			0 // First query in pool.
-		);
-
-		vkCmdWriteTimestamp(
-			commands->command_buffers[image_index],
-			VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 			performance->query_pool,
 			1 // Second query in pool.
 		);
 	}
-
-	// End the render pass:
-	vkCmdEndRenderPass(commands->command_buffers[image_index]);
 
 	uint32_t max_images;
 	if (program_state->sdf_type == 1)

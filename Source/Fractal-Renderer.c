@@ -545,22 +545,13 @@ int main(int argc, char **argv)
 		if (program_state.performance == 0)
 		{
 			num_frames++;
+
+			// Insert time into array (in order):
 			get_shader_time(shader_time, num_frames, &device, &performance);
 
 			if (num_frames == max_frames)
 			{
-				printf("----------------------------------------");
-				printf("----------------------------------------\n");
-
-				printf("Ordered shader times:\n");
-				for (int i = 0; i < num_frames; i++)
-				{
-					printf("%lf\n", shader_time[i]);
-				}
-
-				printf("----------------------------------------");
-				printf("----------------------------------------\n\n");
-
+				// Take median:
 				fprintf(performance_file, "%lf\n", shader_time[(max_frames + 1)/2]);
 				num_frames = 0;
 				memset(shader_time, 0, max_frames * sizeof(double));
