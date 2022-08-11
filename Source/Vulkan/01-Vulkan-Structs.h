@@ -201,20 +201,18 @@ typedef struct {
 	double current_update;
 	double delta_t;
 
+	// Frames:
+	int frames;
+	double frame_time;
+
 	// Controls:
 	float base_movement_speed;
 	float mouse_sensitivity;
 
-	// Fractal type:
+	// Program settings:
 	int fractal_type;
-
-	// SDF type:
 	int sdf_type;
-
-	// Animation:
 	int animation;
-
-	// Performance measurements:
 	int performance;
 
 	// Fractal parameter:

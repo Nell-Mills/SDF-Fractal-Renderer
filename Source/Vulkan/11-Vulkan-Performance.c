@@ -73,7 +73,7 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain 
 	pool_info.pNext			= NULL;
 	pool_info.flags			= 0;
 	pool_info.queryType		= VK_QUERY_TYPE_TIMESTAMP;
-	pool_info.queryCount		= 2 * swapchain->num_swapchain_images;
+	pool_info.queryCount		= 3 * swapchain->num_swapchain_images;
 	pool_info.pipelineStatistics	= 0;
 
 	// Create the pool:
@@ -85,42 +85,112 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain 
 	}
 }
 
-// Get difference between 2 timestamps:
-void get_shader_time(double *shader_time, int num_elements, uint32_t image_index,
-	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance)
+// Get differences between 3 timestamps:
+void get_shader_time(double *shader_time, double *image_time, int num_frames, uint32_t image_index,
+	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance, int order)
 {
 	// Get values in timestamp queries. Get 64-bit values and wait for availability:
-	uint64_t timestamps[2];
+	uint64_t timestamps[3];
 	VkResult result = vkGetQueryPoolResults(
 		device->logical_device,
 		performance->query_pool,
-		2 * image_index,	// First query.
-		2,			// Query count.
-		2 * sizeof(uint64_t),
+		3 * image_index,	// First query.
+		3,			// Query count.
+		3 * sizeof(uint64_t),
 		timestamps,
 		sizeof(uint64_t),
 		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT
 	);
 
-	// Get difference between timestamps:
-	uint64_t time = timestamps[1] - timestamps[0];
-	double real_time = (double)(time) * performance->timestamp_period;
+	// Get difference between render pass timestamps:
+	uint64_t render_pass_time = timestamps[1] - timestamps[0];
+	double real_render_pass_time = (double)(render_pass_time) * performance->timestamp_period;
 
-	// Insert into the array in order:
-	int i = 0;
-	for (; i < num_elements; i++)
+	if (order == 0)
 	{
-		if (shader_time[i] >= real_time) { break; }
-	}
+		// Insert into the array in order:
+		int i = 0;
+		for (; i < num_frames; i++)
+		{
+			if (shader_time[i] >= real_render_pass_time) { break; }
+		}
 
-	// Move other elements along:
-	if (i == num_elements) { shader_time[i - 1] = real_time; }
+		// Move other elements along:
+		if (i == num_frames) { shader_time[i - 1] = real_render_pass_time; }
+		else
+		{
+			for (int j = (num_frames - 1); j >= (i + 1); j--)
+			{
+				shader_time[j] = shader_time[j - 1];
+			}
+			shader_time[i] = real_render_pass_time;
+		}
+	}
 	else
 	{
-		for (int j = (num_elements - 1); j >= (i + 1); j--)
-		{
-			shader_time[j] = shader_time[j - 1];
-		}
-		shader_time[i] = real_time;
+		// Insert into free place:
+		shader_time[num_frames - 1] = real_render_pass_time;
 	}
+
+	// Get difference between image copy timestamps:
+	uint64_t image_copy_time = timestamps[2] - timestamps[1];
+	double real_image_copy_time = (double)(image_copy_time) * performance->timestamp_period;
+
+	if (order == 0)
+	{
+		// Insert into the array in order:
+		int i = 0;
+		for (; i < num_frames; i++)
+		{
+			if (image_time[i] >= real_image_copy_time) { break; }
+		}
+
+		// Move other elements along:
+		if (i == num_frames) { image_time[i - 1] = real_image_copy_time; }
+		else
+		{
+			for (int j = (num_frames - 1); j >= (i + 1); j--)
+			{
+				image_time[j] = image_time[j - 1];
+			}
+			image_time[i] = real_image_copy_time;
+		}
+	}
+	else
+	{
+		// Insert into free place:
+		image_time[num_frames - 1] = real_image_copy_time;
+	}
+}
+
+// Sort elements of array in ascending order:
+void sort_array_ascending(double *array, int num_elements)
+{
+	// Create new array, copy data and reset contents of original array to 0:
+	double *new_array = malloc(num_elements * sizeof(double));
+	memcpy(new_array, array, num_elements * sizeof(double));
+	memset(array, 0, num_elements * sizeof(double));
+
+	// Insert all elements back into original array according to value:
+	for (int i = 0; i < num_elements; i++)
+	{
+		int j = 0;
+		for (; j < (i + 1); j++)
+		{
+			if (array[j] >= new_array[i]) { break; }
+		}
+
+		if (j == (i + 1)) { array[j - 1] = new_array[i]; }
+		else
+		{
+			for (int k = i; k >= (j + 1); k--)
+			{
+				array[k] = array[k - 1];
+			}
+			array[j] = new_array[i];
+		}
+	}
+
+	// Free memory:
+	free(new_array);
 }

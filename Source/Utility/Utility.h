@@ -1,6 +1,10 @@
 #ifndef FRACRENDER_UTILITY_UTILITY_H
 #define FRACRENDER_UTILITY_UTILITY_H
 
+/********************************************************************************************
+ * Utilities for printing program info and initializing Vulkan structures to default values *
+ ********************************************************************************************/
+
 // Library includes:
 #include <stdio.h>
 

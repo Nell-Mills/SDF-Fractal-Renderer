@@ -1,24 +1,25 @@
 Coding:
 
-Moveable 3D SDF				-->
-
 Finish handle printing function		-->
 
-Colour different fractals		-->
+Colour different fractals		--> Done.
 
 Do different SDFunc for 3D SDF		--> Done.
 
+Set up flythrough animation (just one)	-->
+
 Choose representative views		-->
-Performance measurements		-->
+Performance measurements		--> Got method, need data.
 
 ----------------------------------------------------------------------------------------------------
 
 Report:
 
 Background - 2D fractals		--> Done.
-Background - 3D fractals		-->
+Background - 3D fractals		--> Done.
 Background - Sphere tracing		-->
 Background - SDF			-->
+Background - Temporal Caching		-->
 
 Implementation - Project Methodology	-->
 Implementation - Vulkan			-->

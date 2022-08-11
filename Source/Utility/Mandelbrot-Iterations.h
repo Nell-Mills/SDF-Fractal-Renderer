@@ -1,9 +1,9 @@
 #ifndef FRACRENDER_UTILITY_MANDELBROT_ITERATIONS_H
 #define FRACRENDER_UTILITY_MANDELBROT_ITERATIONS_H
 
-/********************************************************************************************
- * This is for printing results of a certain number of iterations of the 2D Mandelbrot set. *
- ********************************************************************************************/
+/*******************************************************************************************
+ * This is for printing results of a certain number of iterations of the 2D Mandelbrot set *
+ *******************************************************************************************/
 
 // Library includes:
 #include <stdio.h>

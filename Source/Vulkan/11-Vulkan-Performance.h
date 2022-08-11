@@ -7,6 +7,7 @@
 
 // Library includes:
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Local includes:
@@ -33,8 +34,14 @@ int query_timestamp_support(FracRenderVulkanDevice *device,
 int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 						FracRenderVulkanPerformance *performance);
 
-// Get difference between 2 timestamps:
-void get_shader_time(double *shader_time, int num_elements, uint32_t image_index,
-	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance);
+// Get differences between 3 timestamps:
+void get_shader_time(double *shader_time, double *image_time, int num_frames, uint32_t image_index,
+	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance, int order);
+
+// Write measurements to file:
+void write_measurements(FILE *performance_file, double *shader_time, double *image_time);
+
+// Sort elements of array in ascending order:
+void sort_array_ascending(double *array, int num_elements);
 
 #endif

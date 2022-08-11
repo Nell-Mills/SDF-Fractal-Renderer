@@ -1,7 +1,7 @@
 \chapter{Background}
 \label{chapter2}
 
-This project aims to improve the efficiency of real-time rendering of 3D fractals. This chapter will focus on background theory for fractals, signed distance functions and sphere tracing.
+This project aims to improve the efficiency of real-time rendering of 3D fractals. This chapter will focus on background theory for fractals, signed distance functions and sphere tracing. Afterwards, two possible methods of improving efficiency will be discussed, namely signed distance fields and temporal caching.
 
 \section{2D Fractals - The Mandelbrot Set}
 
@@ -128,7 +128,7 @@ and by extension, returning to the B\"{o}ttcher map:
 
 which is the approximate result that equation \ref{equation:bottcher-map} gives when the function f$^n$[Z] ultimately diverges \cite{marrs2021ray}.\newline
 
-Next, we will use something called the Hubbard-Douady potential, equal to the logarithm of the modulo of the B\"{o}ttcher map. This is a map of points onto a unit disk. Recall that the B\"{o}ttcher map maps the exterior of the fractal to the exterior of a unit disk. This now becomes important, as we have a function that tends towards zero as the points approach the boundary of the fractal \cite{quilez-distance}:
+Next, we will use something called the Hubbard-Douady potential, equal to the logarithm of the modulo of the B\"{o}ttcher map. This is a map of points onto a unit disk. Recall that the B\"{o}ttcher map maps the exterior of the fractal to the exterior of a unit disk. This now becomes important, as it enables us to use the Hubbard-Douady potential for all of our complex fractals. We now have a function that tends towards zero as the points approach the boundary of the fractal \cite{quilez-distance}:
 
 \begin{equation} \label{equation:hubbard-douady}
 	G[Z] = {lim_{n\rightarrow\infty}}\frac{log|{f^n}[Z]|}{k^n}.
@@ -138,11 +138,20 @@ Equation \ref{equation:hubbard-douady} is not ready to be used as a distance mea
 
 \subsection{Ray and Sphere Tracing}
 
-Ray tracing is a technique used for rendering scenes. Generally, a ray is a line that is cast from the camera or eye through each pixel of an image. Tests are performed to see which object (if any) is encountered by the ray first. By bouncing the ray from object to object, the program can gather the various light contributions from objects that reflect or refract light, or light sources themselves \cite{haines2019ray}.\newline
+Ray tracing is a technique used for rendering scenes. Generally, a ray is a line that is cast from the camera or eye through each pixel of an image. Tests are performed to see which object (if any) is encountered by the ray first. By bouncing the ray from object to object, the program can gather the various light contributions from objects that reflect, emit or refract light \cite{haines2019ray}.\newline
 
-- Distance estimators can be used for raymarching - known as sphere tracing.
+Distance estimators can be used for ray tracing. If the approximate distance to the nearest surface can be calculated then the current point can be moved along the ray safely, until it is close enough to the surface to stop, according to this formula:
 
-- Diagram of sphere tracing.
+\begin{equation} \label{equation:sphere-tracing}
+	
+\end{equation}
+
+\begin{figure} [ht]
+	\centering
+	\includegraphics[width=0.75\linewidth, frame]{Images/Sphere-Tracing.png}
+	\caption{Three scenarios in sphere tracing. Top left: Distance function underestimates distance, resulting in a loss of performance. Top right: Distance function overestimates distance, resulting in a loss of accuracy. Bottom: Distance function is exact.}
+	\label{figure:sphere-tracing}
+\end{figure}
 
 Papers:
 \begin{itemize}
@@ -170,3 +179,5 @@ Papers:
 - Briefly talk about storage methods - octrees.
 
 - Talk about 2D methods - particularly used for fonts.
+
+\section{Temporal Caching}

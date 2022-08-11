@@ -10,6 +10,7 @@
 // Local includes:
 #include "Vulkan/00-Vulkan-API.h"
 #include "SDF/SDF-3D.h"
+#include "Utility/Animation.h"
 #include "Utility/Input.h"
 #include "Utility/Mandelbrot-Iterations.h"
 #include "Utility/Utility.h"
@@ -96,6 +97,8 @@ int main(int argc, char **argv)
 	program_state.last_update		= 0.0;
 	program_state.current_update		= 0.0;
 	program_state.delta_t			= 0.0;
+	program_state.frames			= 0;
+	program_state.frame_time		= 0.0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
 	if (program_state.fractal_type == 0)
@@ -329,7 +332,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		// Write column headers:
-		fprintf(performance_file, "Frame\tMedian\t\tMean\t\tMin\t\tMax\n\n");
+		fprintf(performance_file, "Frame\tMedian\t\tMin\t\tMax\t\tFrame Time\n\n");
 	}
 
 	#ifdef FRACRENDER_DEBUG
@@ -360,15 +363,23 @@ int main(int argc, char **argv)
 	// Print keyboard controls:
 	print_controls();
 
-	// Tracking program state:
+	// Tracking swapchain recreation:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
-	int num_frames = 0;		// For getting median of shader execution times.
-	int max_frames = 99;
-	int values_captured = 0;
-	int max_values = 10;
-	int warm_up = 0;
-	double *shader_time = malloc(max_frames * sizeof(double));
-	memset(shader_time, 0, max_frames * sizeof(double));
+
+	// Tracking performance measurements:
+	int values_captured = 0;	// Capture a set number of values for performance.
+	int max_values = 10;		// Change this value to measure more times.
+	int warm_up = 0;		// Start measuring after 1000 frames to allow warm up.
+	int order = 0;			// Whether to insert new measurements according to value.
+	int animation_tick_max = 1;	// How often to update animation.
+	int animation_tick = 0;
+	void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
+
+	// Storing measurements for geometry render pass and image copy over 100 frames:
+	double *shader_time = malloc(100 * sizeof(double));
+	double *image_time = malloc(100 * sizeof(double));
+	memset(shader_time, 0, 100 * sizeof(double));
+	memset(image_time, 0, 100 * sizeof(double));
 
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
@@ -558,55 +569,96 @@ int main(int argc, char **argv)
 			recreate_swapchain = 0;
 		}
 
-		// Get geometry fragment shader execution time:
-		if ((program_state.performance == 0) && warm_up >= 500)
+		// Update the time:
+		program_state.last_update = program_state.current_update;
+
+		/****************************
+		 * PERFORMANCE MEASUREMENTS *
+		 ****************************/
+
+		// Update frame count and time:
+		program_state.frames++;
+		program_state.frame_time += program_state.delta_t;
+
+		if ((program_state.performance == 0) && (warm_up >= 1000))
 		{
-			if (warm_up == 500)
+			if (warm_up == 1000)
 			{
 				warm_up++;
 				printf("Starting performance measurements...\n\n");
 			}
 
-			num_frames++;
-
-			// Insert time into array (in order):
-			get_shader_time(shader_time, num_frames, image_index,
-							&device, &performance);
-
-			if (num_frames == max_frames)
-			{
-				fprintf(performance_file, "%d\t", values_captured + 1);
-
-				// Take median:
-				fprintf(performance_file, "%lf\t", shader_time[(max_frames + 1)/2]);
-
-				// Take mean:
-				double shader_time_mean;
-				for (int i = 0; i < max_frames; i++)
-				{
-					shader_time_mean += shader_time[i];
-				}
-				shader_time_mean /= (float)(max_frames);
-				fprintf(performance_file, "%lf\t", shader_time_mean);
-
-				// Take min:
-				fprintf(performance_file, "%lf\t", shader_time[0]);
-
-				// Take max:
-				fprintf(performance_file, "%lf\n\n", shader_time[max_frames - 1]);
-
-				num_frames = 0;
-				memset(shader_time, 0, max_frames * sizeof(double));
-
-				values_captured++;
-				if (values_captured == max_values) { break; }
-			}
+			// Get geometry render pass execution time:
+			get_shader_time(shader_time, image_time, program_state.frames,
+					image_index, &device, &performance, order);
 		}
 
-		if (warm_up < 500) { warm_up++; }
+		if (program_state.frames == 100)
+		{
+			// Get current frame rate (for last 100 frames):
+			program_state.frame_time /= 100.0;
+			double frame_rate = 1.0 / program_state.frame_time;
 
-		// Update the time:
-		program_state.last_update = program_state.current_update;
+			// Change window title to display frame rate:
+			char window_title[32];
+			if (sprintf(window_title, "Fractal Renderer - %.2lf", frame_rate) < 0)
+			{
+				fprintf(stderr, "Error: Failed to change window title!\n");
+				break;
+			}
+			glfwSetWindowTitle(base.window, window_title);
+
+			// Write out performance measurements:
+			if ((program_state.performance == 0) && (warm_up > 1000))
+			{
+				// Take median, min, max and frame time for render pass:
+				fprintf(performance_file, "R %d\t", values_captured + 1);
+				fprintf(performance_file, "%.1lf\t", shader_time[50]);
+				fprintf(performance_file, "%.1lf\t", shader_time[0]);
+				fprintf(performance_file, "%.1lf\t", shader_time[99]);
+				fprintf(performance_file, "%.1lf\n", program_state.frame_time
+										* 1000000000.0);
+
+				// Take median, min and max for image copy (frame time 0.0):
+				if (program_state.sdf_type == 1)
+				{
+					fprintf(performance_file, "I %d\t", values_captured + 1);
+					fprintf(performance_file, "%.1lf\t", image_time[50]);
+					fprintf(performance_file, "%.1lf\t", image_time[0]);
+					fprintf(performance_file, "%.1lf\t", image_time[99]);
+					fprintf(performance_file, "%.1lf\n\n", 0.0);
+				}
+				else
+				{
+					fprintf(performance_file, "\n");
+				}
+
+				// Reset times:
+				memset(shader_time, 0, 100 * sizeof(double));
+				memset(image_time, 0, 100 * sizeof(double));
+
+				// If enough values have been captured, turn off performance:
+				values_captured++;
+				if (values_captured == max_values)
+				{
+					printf("Finished performance measurements.\n\n");
+					program_state.performance = -1;
+				}
+			}
+
+			program_state.frames = 0;
+			program_state.frame_time = 0.0;
+		}
+
+		if (warm_up < 1000) { warm_up++; }
+
+		// Update animation:
+		animation_tick++;
+		if (animation_tick == animation_tick_max)
+		{
+			animation_update_function(&program_state);
+			animation_tick = 0;
+		}
 	}
 
 	// Wait for Vulkan commands to finish:
@@ -617,6 +669,7 @@ int main(int argc, char **argv)
 
 	// Free memory:
 	free(shader_time);
+	free(image_time);
 
 	// Destroy Vulkan structs:
 	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,

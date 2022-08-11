@@ -71,15 +71,15 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		vkCmdResetQueryPool(
 			commands->command_buffers[image_index],
 			performance->query_pool,
-			2 * image_index,
-			2
+			3 * image_index,
+			3
 		);
 
 		vkCmdWriteTimestamp(
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 			performance->query_pool,
-			2 * image_index
+			3 * image_index
 		);
 	}
 
@@ -203,7 +203,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 			performance->query_pool,
-			(2 * image_index) + 1
+			(3 * image_index) + 1
 		);
 	}
 
@@ -219,6 +219,17 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		}
 	}
 	else { max_images = framebuffers->num_g_buffer_images; }
+
+	// Write third timestamp:
+	if (program_state->performance == 0)
+	{
+		vkCmdWriteTimestamp(
+			commands->command_buffers[image_index],
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+			performance->query_pool,
+			(3 * image_index) + 2
+		);
+	}
 
 	for (uint32_t i = 0; i < max_images; i++)
 	{
