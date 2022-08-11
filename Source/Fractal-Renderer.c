@@ -34,6 +34,10 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	// Animation function:
+	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
+	void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
+
 	// Initialize the program state:
 	FracRenderProgramState program_state;
 	program_state.fractal_type = -1;
@@ -86,6 +90,9 @@ int main(int argc, char **argv)
 		// Hall of pillars:
 		program_state.position	= initialize_vector_3(25.f, 20.f, 9.f);
 		program_state.front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+		//program_state.position	= initialize_vector_3(360.f, 60.f, 470.f);
+		//program_state.front	= normalize(initialize_vector_3(0.9f, 0.4f, 0.1f));
 	}
 	else
 	{
@@ -99,6 +106,7 @@ int main(int argc, char **argv)
 	program_state.delta_t			= 0.0;
 	program_state.frames			= 0;
 	program_state.frame_time		= 0.0;
+	program_state.animation_frames		= 0;
 	program_state.base_movement_speed	= 1.5f;
 	program_state.mouse_sensitivity		= 7.5f;
 	if (program_state.fractal_type == 0)
@@ -373,7 +381,6 @@ int main(int argc, char **argv)
 	int order = 0;			// Whether to insert new measurements according to value.
 	int animation_tick_max = 1;	// How often to update animation.
 	int animation_tick = 0;
-	void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
 
 	// Storing measurements for geometry render pass and image copy over 100 frames:
 	double *shader_time = malloc(100 * sizeof(double));
@@ -607,7 +614,10 @@ int main(int argc, char **argv)
 				break;
 			}
 			glfwSetWindowTitle(base.window, window_title);
+		}
 
+		if (program_state.frames == 100)
+		{
 			// Write out performance measurements:
 			if ((program_state.performance == 0) && (warm_up > 1000))
 			{
@@ -657,6 +667,7 @@ int main(int argc, char **argv)
 		if (animation_tick == animation_tick_max)
 		{
 			animation_update_function(&program_state);
+			program_state.animation_frames++;
 			animation_tick = 0;
 		}
 	}

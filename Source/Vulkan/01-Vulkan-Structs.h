@@ -205,6 +205,9 @@ typedef struct {
 	int frames;
 	double frame_time;
 
+	// Animation:
+	uint64_t animation_frames;
+
 	// Controls:
 	float base_movement_speed;
 	float mouse_sensitivity;

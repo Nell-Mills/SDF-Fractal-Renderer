@@ -2,6 +2,8 @@ Coding:
 
 Finish handle printing function		-->
 
+Get rid of image copy measurement	-->
+
 Colour different fractals		--> Done.
 
 Do different SDFunc for 3D SDF		--> Done.
