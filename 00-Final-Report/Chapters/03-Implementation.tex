@@ -3,22 +3,51 @@
 
 \section{Project Structure and Overview}
 
+Version control - GitHub
+Methodology - Waterfall, since all Vulkan setup needs doing first
+Show Gantt chart maybe... probably not.
+C and Make - JUSTIFY (efficient data structures - arrays, performance, speed, don't badmouth C++, be reasonable).
+
 \section{Rendering 3D Fractals}
 
-\section{Signed Distance Field}
+Shader implementation of signed distance function for Mandelbulb
+View distance limit
 
-\section{Second Attempt: 2D Texture SDF}
+\section{3D Signed Distance Field}
 
-\subsection{Single-pixel Sampling}
+Centered around fractal - Mandelbulb
+Centered around camera - Hall of Pillars?
 
-\subsection{Sampling a small area}
+\section{Temporal Caching}
 
-\subsection{Sampling with memory}
+Single image - memory of 4 previous frames.
+Why did I choose length / 4? Be more scientific about it.
+Talk about how you dealt with movement - temporal reprojection?
 
 \section{Performance Measurement}
 
 \subsection{Data Types Collected}
 
+Mention image copying time and how it could be avoided altogether, so didn't measure.
+Measured geometry pass time.
+Median, min, max, frame time.
+
 \subsection{Representative Views}
 
+Hall of Pillars - Room with archway
+Hall of Pillars - Flat ground
+Hall of Pillars - Room with huge distance differences and bottlenecks
+Hall of Pillars - Room with very short distance to back, maybe bottlenecks
+
+Mandelbulb - Full view, lots of white space
+Mandelbulb - Zoomed in so it covers the screen
+Mandelbulb - Try to find a view with bottleneck
+Mandelbulb - Zoom in to get detail
+
 \subsection{Animation}
+
+Hall of Pillars - Flythrough
+Hall of Pillars - Varying parameter?
+
+Mandelbulb - Varying parameter
+Mandelbulb - Fly across? Probably not.

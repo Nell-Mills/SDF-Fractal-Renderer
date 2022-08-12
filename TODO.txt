@@ -8,10 +8,25 @@ Colour different fractals		--> Done.
 
 Do different SDFunc for 3D SDF		--> Done.
 
-Set up flythrough animation (just one)	-->
+Set up flythrough animation (just one)	--> Done.
 
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
+Set up measurements for flythrough	-->
+Investigate why warm up isn't working	-->
+
+----------------------------------------------------------------------------------------------------
+
+Coding if time:
+
+3D SDF moving with camera.
+3D SDF around Mandelbulb - do culling optimizations for main cube in ALL shaders.
+About above, do a single sample, also try getting as close to the surface as possible, then
+moving on to the regular distance function.
+
+Get rid of image copy - instead, swap G-Buffer image and texture image every frame.
+
+Maybe try implementing sparse octree again.
 
 ----------------------------------------------------------------------------------------------------
 

@@ -58,6 +58,7 @@ void print_controls()
 	printf("D:\t\tRight\n");
 	printf("E:\t\tUp\n");
 	printf("Q:\t\tDown\n");
+	printf("P:\t\tPrint current position and camera front\n");
 	printf("Numpad +:\tSpeed Up\n");
 	printf("Numpad -:\tSlow Down\n");
 	printf("Numpad *:\tReset Speed\n");

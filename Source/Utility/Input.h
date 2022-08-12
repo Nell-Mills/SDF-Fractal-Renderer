@@ -11,6 +11,7 @@
 #endif
 #include <GLFW/glfw3.h>
 #include <math.h>
+#include <stdio.h>
 
 // Local includes:
 #include "../Vulkan/01-Vulkan-Structs.h"

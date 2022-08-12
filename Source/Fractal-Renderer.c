@@ -35,8 +35,8 @@ int main(int argc, char **argv)
 	}
 
 	// Animation function:
-	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
-	void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
+	void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
+	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
 
 	// Initialize the program state:
 	FracRenderProgramState program_state;
@@ -663,12 +663,15 @@ int main(int argc, char **argv)
 		if (warm_up < 1000) { warm_up++; }
 
 		// Update animation:
-		animation_tick++;
-		if (animation_tick == animation_tick_max)
+		if (warm_up >= 1000)
 		{
-			animation_update_function(&program_state);
-			program_state.animation_frames++;
-			animation_tick = 0;
+			animation_tick++;
+			if (animation_tick == animation_tick_max)
+			{
+				animation_update_function(&program_state);
+				program_state.animation_frames++;
+				animation_tick = 0;
+			}
 		}
 	}
 

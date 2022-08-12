@@ -79,11 +79,7 @@ where Z is raised to an arbitrary power like so:
 
 The variable r is the norm of Z (|Z|), $\theta$ is equal to arctan($Z_y$/$Z_x$) and $\phi$ is equal to |($Z_x$, $Z_y$)|/$Z_z$. The spherical coordinates of the point Z/|Z| are represented by $\theta$ and $\phi$. Equations \ref{equation:mandelbulb} and \ref{equation:mandelbulb-power} are sourced from Chapter 33 of the book Ray Tracing Gems II \cite{marrs2021ray}.
 
-\section{Signed Distance Functions and Sphere Tracing}
-
-This section will focus on rendering three-dimensional fractal shapes, specifically the Mandelbulb. Firstly, signed distance functions will be explained, followed by a very brief explanation of ray tracing. Finally, the application of the signed distance functions to ray tracing will be discussed.
-
-\subsection{Signed Distance Functions}
+\section{Signed Distance Functions}
 
 Signed distance functions provide an estimate of how close a point is to the surface of a shape. If the result of the function is positive, then the point is outside the surface. If the result is negative, then the point is inside the surface. If the result is zero, then of course the point is exactly on the surface of the shape described by the function \cite{roblesprocedural}.\newline
 
@@ -95,7 +91,9 @@ A rigorous mathematical explanation of the B\"{o}ttcher map will not be given in
 	{\phi_C[Z]} = {lim_{n\rightarrow\infty}[f^n[Z]]^{k^{-n}}}
 \end{equation}
 
-where the value of f[Z] is the same as in equation \ref{equation:mandelbulb} and n refers to the current iteration of the equation \cite{marrs2021ray}.
+where the value of f[Z] is the same as in equation \ref{equation:mandelbulb} and n refers to the current iteration of the equation \cite{marrs2021ray}.\newline
+
+Looking at equation \ref{equation:bottcher-map}, take a point Z that is not in the fractal, so that the function f$^n$[Z] grows as the number of iterations increases, tending towards infinity. For a large enough value of n, the term f$_n$[Z] will become vastly larger than the value of C (as the point is far from the fractal), meaning that C can reasonably be discarded \cite{marrs2021ray}.
 
 \newpage
 
@@ -105,8 +103,6 @@ where the value of f[Z] is the same as in equation \ref{equation:mandelbulb} and
 	\caption{The B\"{o}ttcher map generated for the Julia set (another two-dimensional complex fractal), from the website of Inigo Quilez \cite{quilez-distance}.}
 	\label{figure:julia-bottcher-map}
 \end{figure}
-
-Looking at equation \ref{equation:bottcher-map}, take a point Z that is not in the fractal, so that the function f$^n$[Z] grows as the number of iterations increases, tending towards infinity. For a large enough value of n, the term f$_n$[Z] will become vastly larger than the value of C (as the point is far from the fractal), meaning that C can reasonably be discarded \cite{marrs2021ray}.\newline
 
 From this casting away of C we obtain:
 
@@ -134,17 +130,29 @@ Next, we will use something called the Hubbard-Douady potential, equal to the lo
 	G[Z] = {lim_{n\rightarrow\infty}}\frac{log|{f^n}[Z]|}{k^n}.
 \end{equation}
 
-Equation \ref{equation:hubbard-douady} is not ready to be used as a distance measurement yet. However, 
+Equation \ref{equation:hubbard-douady} is not ready to be used as a distance measurement yet. However, it's possible to make it so. More detail is given in Ray Tracing Gems II, but a brief explanation will be given here. If we divide G[Z] by its gradient (obtaining this from the first-order Taylor expansion of the function), then we obtain an upper bound on the distance to the surface, which is desirable. The final equation for distance estimation therefore is \cite{marrs2021ray}:
 
-\subsection{Ray and Sphere Tracing}
+\begin{equation} \label{equation:final-distance-estimate}
+	d(Z) = {lim_{n\rightarrow\infty}}\frac{|f^n(Z)|log|f^n(Z)|}{|(f^n)'(Z)|}.
+\end{equation}
+
+\section{Ray and Sphere Tracing}
 
 Ray tracing is a technique used for rendering scenes. Generally, a ray is a line that is cast from the camera or eye through each pixel of an image. Tests are performed to see which object (if any) is encountered by the ray first. By bouncing the ray from object to object, the program can gather the various light contributions from objects that reflect, emit or refract light \cite{haines2019ray}.\newline
 
 Distance estimators can be used for ray tracing. If the approximate distance to the nearest surface can be calculated then the current point can be moved along the ray safely, until it is close enough to the surface to stop, according to this formula:
 
 \begin{equation} \label{equation:sphere-tracing}
-	
+	{P_{n+1}} = {P_n} + \textbf{v}d({P_n})
 \end{equation}
+
+where P$_{n+1}$ is the point at the next step, P$_n$ is the point at the current step, \textbf{v} is the unit vector representing the ray direction and d(P$_n$) is the distance function acting on the current point \cite{marrs2021ray}.\newline
+
+Using a distance function in this way is known as sphere tracing. The magnitude of the result of the distance function can be considered as the radius of a sphere. This sphere is guaranteed not to go through any part of the surface, making it safe to step according to the distance function result in any direction. For this guarantee to hold, the distance function must either be an exact calculation of the distance, or an underestimate \cite{hart1996sphere}.\newline
+
+See figure \ref{figure:sphere-tracing}. This shows three scenarios for tracing a ray with the sphere tracing technique. At the bottom, the distance function is an exact measure of the distance to the nearest point on the surface. This is the ideal scenario, for correctness and performance. The top left image shows the result of a distance function which underestimates the distance each time. As a result, significantly more steps are taken along the ray, which will result in decreased performance. Lastly, the top right image shows the result of overestimating the distance. The ray ends up stepping past the boundary of the shape.
+
+\newpage
 
 \begin{figure} [ht]
 	\centering
@@ -153,19 +161,15 @@ Distance estimators can be used for ray tracing. If the approximate distance to 
 	\label{figure:sphere-tracing}
 \end{figure}
 
-Papers:
-\begin{itemize}
-	\item Ray Tracing Gems: High-Quality and Real-Time Rendering with DXR and Other APIs \cite{haines2019ray}.
-	\item Ray Tracing Gems II \cite{marrs2021ray}.
-	\item Procedural Rendering w/Ray Marching \cite{roblesprocedural}.
-	\item Distance to Fractals \cite{quilez-distance}.
-\end{itemize}
-
 \section{Signed Distance Fields}
+
+
 
 Papers:
 \begin{itemize}
 	\item Signed distance fields: A natural representation for both mapping and planning \cite{oleynikova2016signed}.
+	\item Hierarchical hp-adaptive signed distance fields \cite{koschier2016hierarchical}.
+	\item Interactive ray tracing of distance fields (page 91) \cite{jamrivska2010interactive}.
 \end{itemize}
 
 - Stored values from signed distance function, stored as 2D texture or 3D grid.

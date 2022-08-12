@@ -22,6 +22,18 @@ void glfw_callback_key_press(GLFWwindow *window, int key, int scan_code,
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
+
+	// P prints the current position and front:
+	if ((key == GLFW_KEY_P) && (action == GLFW_PRESS))
+	{
+		// Get program state:
+		FracRenderProgramState *program_state = (FracRenderProgramState *)
+						glfwGetWindowUserPointer(window);
+		printf("Position:\t%f\t%f\t%f\n", program_state->position.x,
+			program_state->position.y, program_state->position.z);
+		printf("Front   :\t%f\t%f\t%f\n\n", program_state->front.x,
+			program_state->front.y, program_state->front.z);
+	}
 }
 
 // GLFW mouse position callback:
