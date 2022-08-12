@@ -73,7 +73,7 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain 
 	pool_info.pNext			= NULL;
 	pool_info.flags			= 0;
 	pool_info.queryType		= VK_QUERY_TYPE_TIMESTAMP;
-	pool_info.queryCount		= 3 * swapchain->num_swapchain_images;
+	pool_info.queryCount		= 2 * swapchain->num_swapchain_images;
 	pool_info.pipelineStatistics	= 0;
 
 	// Create the pool:
@@ -85,18 +85,18 @@ int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain 
 	}
 }
 
-// Get differences between 3 timestamps:
-void get_shader_time(double *shader_time, double *image_time, int num_frames, uint32_t image_index,
-	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance, int order)
+// Get difference between 2 timestamps:
+void get_shader_time(double *shader_time, int num_frames, uint32_t image_index, int order,
+		FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance)
 {
 	// Get values in timestamp queries. Get 64-bit values and wait for availability:
-	uint64_t timestamps[3];
+	uint64_t timestamps[2];
 	VkResult result = vkGetQueryPoolResults(
 		device->logical_device,
 		performance->query_pool,
-		3 * image_index,	// First query.
-		3,			// Query count.
-		3 * sizeof(uint64_t),
+		2 * image_index,	// First query.
+		2,			// Query count.
+		2 * sizeof(uint64_t),
 		timestamps,
 		sizeof(uint64_t),
 		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT
@@ -130,36 +130,6 @@ void get_shader_time(double *shader_time, double *image_time, int num_frames, ui
 	{
 		// Insert into free place:
 		shader_time[num_frames - 1] = real_render_pass_time;
-	}
-
-	// Get difference between image copy timestamps:
-	uint64_t image_copy_time = timestamps[2] - timestamps[1];
-	double real_image_copy_time = (double)(image_copy_time) * performance->timestamp_period;
-
-	if (order == 0)
-	{
-		// Insert into the array in order:
-		int i = 0;
-		for (; i < num_frames; i++)
-		{
-			if (image_time[i] >= real_image_copy_time) { break; }
-		}
-
-		// Move other elements along:
-		if (i == num_frames) { image_time[i - 1] = real_image_copy_time; }
-		else
-		{
-			for (int j = (num_frames - 1); j >= (i + 1); j--)
-			{
-				image_time[j] = image_time[j - 1];
-			}
-			image_time[i] = real_image_copy_time;
-		}
-	}
-	else
-	{
-		// Insert into free place:
-		image_time[num_frames - 1] = real_image_copy_time;
 	}
 }
 

@@ -93,9 +93,9 @@ typedef struct {
 	VkBuffer sdf_3d_buffer;
 	VkDeviceMemory sdf_3d_memory;
 
-	// 2D SDF descriptor:
-	VkDescriptorSetLayout sdf_2d_descriptor_layout;
-	VkDescriptorSet sdf_2d_descriptor;
+	// Temporal Cache descriptor:
+	VkDescriptorSetLayout temporal_cache_descriptor_layout;
+	VkDescriptorSet temporal_cache_descriptor;
 } FracRenderVulkanDescriptors;
 
 typedef struct {
@@ -136,11 +136,11 @@ typedef struct {
 	VkImageView *g_buffer_image_views;
 	VkFormat *g_buffer_formats;
 
-	// 2D SDF:
-	VkImage sdf_2d_image;
-	VkDeviceMemory sdf_2d_memory;
-	VkImageView sdf_2d_image_view;
-	VkFormat sdf_2d_format;
+	// Temporal Cache:
+	VkImage temporal_cache_image;
+	VkDeviceMemory temporal_cache_memory;
+	VkImageView temporal_cache_image_view;
+	VkFormat temporal_cache_format;
 } FracRenderVulkanFramebuffers;
 
 typedef struct {
@@ -189,38 +189,5 @@ typedef struct {
 	// View distance:
 	float view_distance;
 } FracRenderVulkanSceneUniform;
-
-typedef struct {
-	// Camera (eye):
-	FracRenderVector3 position;
-	FracRenderVector3 front;
-	FracRenderVector3 up;
-
-	// Time:
-	double last_update;
-	double current_update;
-	double delta_t;
-
-	// Frames:
-	int frames;
-	double frame_time;
-
-	// Animation:
-	uint64_t animation_frames;
-
-	// Controls:
-	float base_movement_speed;
-	float mouse_sensitivity;
-
-	// Program settings:
-	int fractal_type;
-	int sdf_type;
-	int animation;
-	int performance;
-
-	// Fractal parameter:
-	float fractal_parameter_min;
-	float fractal_parameter_max;
-} FracRenderProgramState;
 
 #endif

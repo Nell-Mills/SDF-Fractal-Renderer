@@ -14,7 +14,7 @@
 #include <stdio.h>
 
 // Local includes:
-#include "../Vulkan/01-Vulkan-Structs.h"
+#include "Program-State.h"
 
 /***********************
  * Function Prototypes *

@@ -3,7 +3,7 @@
 // Create Vulkan framebuffers:
 int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers, int sdf_type)
+	FracRenderVulkanFramebuffers *framebuffers, int optimize)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -25,16 +25,16 @@ int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 
 	// Create G-buffer:
 	printf(" ---> Creating G-buffer.\n");
-	if (create_g_buffer(device, swapchain, pipeline, framebuffers, sdf_type) != 0)
+	if (create_g_buffer(device, swapchain, pipeline, framebuffers, optimize) != 0)
 	{
 		return -1;
 	}
 
-	if (sdf_type == 1)
+	if (optimize == 1)
 	{
-		// Create 2D SDF image and image view:
-		printf(" ---> Creating 2D SDF image and image view.\n");
-		if (create_sdf_2d_image(device, swapchain, framebuffers) != 0)
+		// Create Temporal Cache image and image view:
+		printf(" ---> Creating Temporal Cache image and image view.\n");
+		if (create_temporal_cache_image(device, swapchain, framebuffers) != 0)
 		{
 			return -1;
 		}
@@ -113,20 +113,21 @@ void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
 		free(framebuffers->g_buffer_formats);
 	}
 
-	// Destroy 2D SDF image view:
-	if (framebuffers->sdf_2d_image_view != VK_NULL_HANDLE)
+	// Destroy Temporal Cache image view:
+	if (framebuffers->temporal_cache_image_view != VK_NULL_HANDLE)
 	{
-		vkDestroyImageView(device->logical_device, framebuffers->sdf_2d_image_view, NULL);
+		vkDestroyImageView(device->logical_device, framebuffers->temporal_cache_image_view,
+											NULL);
 	}
 
-	// Destroy 2D SDF image and free memory:
-	if (framebuffers->sdf_2d_image != VK_NULL_HANDLE)
+	// Destroy Temporal Cache image and free memory:
+	if (framebuffers->temporal_cache_image != VK_NULL_HANDLE)
 	{
-		vkDestroyImage(device->logical_device, framebuffers->sdf_2d_image, NULL);
+		vkDestroyImage(device->logical_device, framebuffers->temporal_cache_image, NULL);
 	}
-	if (framebuffers->sdf_2d_memory != VK_NULL_HANDLE)
+	if (framebuffers->temporal_cache_memory != VK_NULL_HANDLE)
 	{
-		vkFreeMemory(device->logical_device, framebuffers->sdf_2d_memory, NULL);
+		vkFreeMemory(device->logical_device, framebuffers->temporal_cache_memory, NULL);
 	}
 }
 
@@ -328,7 +329,7 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 // Create G-buffer:
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type)
+	int optimize)
 {
 	/* Adding new attachments:
 	 * Add here.
@@ -341,7 +342,7 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	// Create attachments:
 	VkImageView *attachments;
 	attachments = malloc(framebuffers->num_g_buffer_images * sizeof(VkImageView));
-	if (sdf_type == 1)
+	if (optimize == 1)
 	{
 		attachments[0] = framebuffers->g_buffer_image_views[0];
 		attachments[1] = framebuffers->g_buffer_image_views[1];
@@ -375,9 +376,9 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	return 0;
 }
 
-// Create 2D SDF image and image view:
-int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers)
+// Create Temporal Cache image and image view:
+int create_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Define image creation info:
 	VkImageCreateInfo image_info;
@@ -386,7 +387,7 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 	image_info.pNext			= NULL;
 	image_info.flags			= 0;
 	image_info.imageType			= VK_IMAGE_TYPE_2D;
-	image_info.format			= framebuffers->sdf_2d_format;
+	image_info.format			= framebuffers->temporal_cache_format;
 	image_info.extent.width			= swapchain->swapchain_extent.width;
 	image_info.extent.height		= swapchain->swapchain_extent.height;
 	image_info.extent.depth			= 1;
@@ -402,16 +403,16 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 
 	// Create image:
 	if (vkCreateImage(device->logical_device, &image_info, NULL,
-			&framebuffers->sdf_2d_image) != VK_SUCCESS)
+		&framebuffers->temporal_cache_image) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to create image for 2D SDF!\n");
+		fprintf(stderr, "Error: Unable to create image for Temporal Cache!\n");
 		return -1;
 	}
 
 	// Get memory requirements of image:
 	VkMemoryRequirements memory_requirements;
 	vkGetImageMemoryRequirements(device->logical_device,
-		framebuffers->sdf_2d_image, &memory_requirements);
+		framebuffers->temporal_cache_image, &memory_requirements);
 
 	// Allocate memory for image:
 	VkMemoryAllocateInfo allocate_info;
@@ -439,21 +440,21 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 	}
 	if (success_flag != 0)
 	{
-		fprintf(stderr, "Error: No suitable memory type found for 2D SDF image!\n");
+		fprintf(stderr, "Error: No suitable memory type found for Temporal Cache image!\n");
 		return -1;
 	}
 
 	// Allocate memory for image:
 	if (vkAllocateMemory(device->logical_device, &allocate_info, NULL,
-				&framebuffers->sdf_2d_memory) != VK_SUCCESS)
+			&framebuffers->temporal_cache_memory) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to allocate memory for 2D SDF image!\n");
+		fprintf(stderr, "Error: Unable to allocate memory for Temporal Cache image!\n");
 		return -1;
 	}
 
 	// Bind image memory:
-	vkBindImageMemory(device->logical_device, framebuffers->sdf_2d_image,
-					framebuffers->sdf_2d_memory, 0);
+	vkBindImageMemory(device->logical_device, framebuffers->temporal_cache_image,
+					framebuffers->temporal_cache_memory, 0);
 
 	// Define image view creation info:
 	VkImageViewCreateInfo view_info;
@@ -461,9 +462,9 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 	view_info.sType			= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	view_info.pNext			= NULL;
 	view_info.flags			= 0;
-	view_info.image			= framebuffers->sdf_2d_image;
+	view_info.image			= framebuffers->temporal_cache_image;
 	view_info.viewType		= VK_IMAGE_VIEW_TYPE_2D;
-	view_info.format		= framebuffers->sdf_2d_format;
+	view_info.format		= framebuffers->temporal_cache_format;
 
 	view_info.components.r	= VK_COMPONENT_SWIZZLE_IDENTITY;
 	view_info.components.g	= VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -478,18 +479,19 @@ int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchai
 
 	// Create image view:
 	if (vkCreateImageView(device->logical_device, &view_info, NULL,
-			&framebuffers->sdf_2d_image_view) != VK_SUCCESS)
+		&framebuffers->temporal_cache_image_view) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to create image view for 2D SDF image!\n");
+		fprintf(stderr, "Error: Unable to create image view for Temporal Cache image!\n");
 		return -1;
 	}
 
 	return 0;
 }
 
-// Initialize 2D SDF image to zero:
-int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands)
+// Initialize Temporal Cache image to zero:
+int initialize_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
+	FracRenderVulkanCommands *commands)
 {
 	// Allocate command buffer:
 	VkCommandBufferAllocateInfo allocate_info;
@@ -504,8 +506,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 	if (vkAllocateCommandBuffers(device->logical_device, &allocate_info,
 						&command_buffer) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to allocate command buffer for 2D SDF "
-								"initialization!\n");
+		fprintf(stderr, "Error: Unable to allocate command buffer for Temporal Cache "
+									"initialization!\n");
 		return -1;
 	}
 
@@ -523,8 +525,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 		vkFreeCommandBuffers(device->logical_device,
 			commands->command_pool, 1, &command_buffer);
 
-		fprintf(stderr, "Error: Unable to begin recording commands for 2D SDF "
-								"initialization!\n");
+		fprintf(stderr, "Error: Unable to begin recording commands for Temporal Cache "
+									"initialization!\n");
 		return -1;
 	}
 
@@ -539,7 +541,7 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 	image_barrier_1.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	image_barrier_1.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 	image_barrier_1.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-	image_barrier_1.image			= framebuffers->sdf_2d_image;
+	image_barrier_1.image			= framebuffers->temporal_cache_image;
 
 	image_barrier_1.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
 	image_barrier_1.subresourceRange.baseMipLevel	= 0;
@@ -565,7 +567,7 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 
 	vkCmdClearColorImage(
 		command_buffer,
-		framebuffers->sdf_2d_image,
+		framebuffers->temporal_cache_image,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		&clear_colour,
 		1, &subresource_range
@@ -582,7 +584,7 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 	image_barrier_2.newLayout		= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	image_barrier_2.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 	image_barrier_2.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-	image_barrier_2.image			= framebuffers->sdf_2d_image;
+	image_barrier_2.image			= framebuffers->temporal_cache_image;
 
 	image_barrier_2.subresourceRange.aspectMask	= VK_IMAGE_ASPECT_COLOR_BIT;
 	image_barrier_2.subresourceRange.baseMipLevel	= 0;
@@ -601,8 +603,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 		vkFreeCommandBuffers(device->logical_device,
 			commands->command_pool, 1, &command_buffer);
 
-		fprintf(stderr, "Error: Unable to stop recording commands for 2D SDF "
-								"initialization!\n");
+		fprintf(stderr, "Error: Unable to stop recording commands for Temporal Cache "
+									"initialization!\n");
 		return -1;
 	}
 
@@ -620,7 +622,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 		vkFreeCommandBuffers(device->logical_device,
 			commands->command_pool, 1, &command_buffer);
 
-		fprintf(stderr, "Error: Unable to create fence for 2d SDF initialization!\n");
+		fprintf(stderr, "Error: Unable to create fence for Temporal Cache "
+								"initialization!\n");
 		return -1;
 	}
 
@@ -644,7 +647,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 		vkFreeCommandBuffers(device->logical_device,
 			commands->command_pool, 1, &command_buffer);
 
-		fprintf(stderr, "Error: Unable to submit commands for 2D SDF initialization!\n");
+		fprintf(stderr, "Error: Unable to submit commands for Temporal Cache "
+								"initialization!\n");
 		return -1;
 	}
 
@@ -656,7 +660,8 @@ int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwap
 		vkFreeCommandBuffers(device->logical_device,
 			commands->command_pool, 1, &command_buffer);
 
-		fprintf(stderr, "Error: Failed to wait for fence for 2D SDF initialization!\n");
+		fprintf(stderr, "Error: Failed to wait for fence for Temporal Cache "
+								"initialization!\n");
 		return -1;
 	}
 
@@ -724,14 +729,14 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 // Recreate G-buffer:
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type)
+	int optimize)
 {
 	// Destroy current G-buffer:
 	vkDestroyFramebuffer(device->logical_device, framebuffers->g_buffer, NULL);
 	framebuffers->g_buffer = VK_NULL_HANDLE;
 
 	// Create new one:
-	if (create_g_buffer(device, swapchain, pipeline, framebuffers, sdf_type) != 0)
+	if (create_g_buffer(device, swapchain, pipeline, framebuffers, optimize) != 0)
 	{
 		return -1;
 	}
@@ -739,21 +744,21 @@ int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwa
 	return 0;
 }
 
-// Recreate 2D SDF image and image view:
-int recreate_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers)
+// Recreate Temporal Cache image and image view:
+int recreate_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Destroy image and image view:
-	vkDestroyImageView(device->logical_device, framebuffers->sdf_2d_image_view, NULL);
-	vkDestroyImage(device->logical_device, framebuffers->sdf_2d_image, NULL);
-	vkFreeMemory(device->logical_device, framebuffers->sdf_2d_memory, NULL);
+	vkDestroyImageView(device->logical_device, framebuffers->temporal_cache_image_view, NULL);
+	vkDestroyImage(device->logical_device, framebuffers->temporal_cache_image, NULL);
+	vkFreeMemory(device->logical_device, framebuffers->temporal_cache_memory, NULL);
 
-	framebuffers->sdf_2d_image_view = VK_NULL_HANDLE;
-	framebuffers->sdf_2d_image = VK_NULL_HANDLE;
-	framebuffers->sdf_2d_memory = VK_NULL_HANDLE;
+	framebuffers->temporal_cache_image_view = VK_NULL_HANDLE;
+	framebuffers->temporal_cache_image = VK_NULL_HANDLE;
+	framebuffers->temporal_cache_memory = VK_NULL_HANDLE;
 
 	// Create new ones:
-	if (create_sdf_2d_image(device, swapchain, framebuffers) != 0)
+	if (create_temporal_cache_image(device, swapchain, framebuffers) != 0)
 	{
 		return -1;
 	}

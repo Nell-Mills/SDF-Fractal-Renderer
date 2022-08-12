@@ -34,12 +34,12 @@ int query_timestamp_support(FracRenderVulkanDevice *device,
 int create_query_pool(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 						FracRenderVulkanPerformance *performance);
 
-// Get differences between 3 timestamps:
-void get_shader_time(double *shader_time, double *image_time, int num_frames, uint32_t image_index,
-	FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance, int order);
+// Get difference between 2 timestamps:
+void get_shader_time(double *shader_time, int num_frames, uint32_t image_index, int order,
+		FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance);
 
 // Write measurements to file:
-void write_measurements(FILE *performance_file, double *shader_time, double *image_time);
+void write_measurements(FILE *performance_file, double *shader_time);
 
 // Sort elements of array in ascending order:
 void sort_array_ascending(double *array, int num_elements);

@@ -1,5 +1,35 @@
 #include "SDF-3D.h"
 
+// Set up 3D SDF structure:
+void set_up_sdf_3d(FracRenderProgramState *program_state, FracRenderSDF3D *sdf_3d)
+{
+	// If 3D SDF is not being used, stop:
+	if (program_state->optimize != 0) { return; }
+
+	// Set up SDF info:
+	if (program_state->fractal_type == 0)
+	{
+		sdf_3d->levels		= 8;
+		sdf_3d->num_voxels	= pow(8, sdf_3d->levels);
+		sdf_3d->size		= 2.f;
+	}
+	else
+	{
+		sdf_3d->levels		= 8;
+		sdf_3d->num_voxels	= pow(8, sdf_3d->levels);
+		sdf_3d->size		= 2.f;
+	}
+	sdf_3d->centre		= program_state->position;
+	sdf_3d->fractal_type	= program_state->fractal_type;
+	sdf_3d->voxels		= NULL;
+
+	// Create 3D SDF:
+	if (create_sdf_3d(sdf_3d) != 0)
+	{
+		destroy_sdf_3d(sdf_3d);
+	}
+}
+
 // Calculate 3D SDF:
 int create_sdf_3d(FracRenderSDF3D *sdf_3d)
 {

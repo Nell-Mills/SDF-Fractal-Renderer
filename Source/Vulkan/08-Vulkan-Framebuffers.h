@@ -21,7 +21,7 @@
 // Create Vulkan framebuffers:
 int initialize_vulkan_framebuffers(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanPipeline *pipeline,
-	FracRenderVulkanFramebuffers *framebuffers, int sdf_type);
+	FracRenderVulkanFramebuffers *framebuffers, int optimize);
 
 // Destroy Vulkan framebuffer structure:
 void destroy_vulkan_framebuffers(FracRenderVulkanDevice *device,
@@ -39,15 +39,16 @@ int create_g_buffer_images(FracRenderVulkanDevice *device, FracRenderVulkanSwapc
 // Create G-buffer:
 int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type);
+	int optimize);
 
-// Create 2D SDF image and image view:
-int create_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanFramebuffers *framebuffers);
+// Create Temporal Cache image and image view:
+int create_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers);
 
-// Initialize 2D SDF image to zero:
-int initialize_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands);
+// Initialize Temporal Cache image to zero:
+int initialize_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
+	FracRenderVulkanCommands *commands);
 
 // Recreate swapchain framebuffers:
 int recreate_vulkan_swapchain_framebuffers(FracRenderVulkanDevice *device,
@@ -61,10 +62,10 @@ int recreate_vulkan_g_buffer_images(FracRenderVulkanDevice *device,
 // Recreate G-buffer:
 int recreate_vulkan_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
-	int sdf_type);
+	int optimize);
 
-// Recreate 2D SDF image and image view:
-int recreate_sdf_2d_image(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanFramebuffers *framebuffers);
+// Recreate Temporal Cache image and image view:
+int recreate_temporal_cache_image(FracRenderVulkanDevice *device,
+	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers);
 
 #endif

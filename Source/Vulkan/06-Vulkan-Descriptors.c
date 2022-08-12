@@ -2,7 +2,7 @@
 
 // Create Vulkan descriptor layouts:
 int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
-	FracRenderVulkanDescriptors *descriptors, FracRenderSDF3D *sdf_3d, int sdf_type)
+	FracRenderVulkanDescriptors *descriptors, FracRenderSDF3D *sdf_3d, int optimize)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -43,7 +43,7 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	if (sdf_type == 0)
+	if (optimize == 0)
 	{
 		// Create 3D SDF buffer:
 		printf(" ---> Creating 3D SDF buffer.\n");
@@ -59,11 +59,11 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 			return -1;
 		}
 	}
-	else if (sdf_type == 1)
+	else if (optimize == 1)
 	{
-		// Create 2D SDF descriptor layout:
-		printf(" ---> Creating 2D SDF descriptor layout.\n");
-		if (create_sdf_2d_descriptor_layout(device, descriptors) != 0)
+		// Create Temporal Cache descriptor layout:
+		printf(" ---> Creating Temporal Cache descriptor layout.\n");
+		if (create_temporal_cache_descriptor_layout(device, descriptors) != 0)
 		{
 			return -1;
 		}
@@ -79,7 +79,7 @@ int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
 // Create Vulkan descriptors (after creating the framebuffers):
 int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	FracRenderVulkanFramebuffers *framebuffers,
-	FracRenderVulkanDescriptors *descriptors, int sdf_type)
+	FracRenderVulkanDescriptors *descriptors, int optimize)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -99,7 +99,7 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 		return -1;
 	}
 
-	if (sdf_type == 0)
+	if (optimize == 0)
 	{
 		// Create 3D SDF descriptor:
 		printf(" ---> Creating 3D SDF descriptor.\n");
@@ -108,11 +108,11 @@ int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 			return -1;
 		}
 	}
-	else if (sdf_type == 1)
+	else if (optimize == 1)
 	{
-		// Create 2D SDF descriptor:
-		printf(" ---> Creating 2D SDF descriptor.\n");
-		if (create_sdf_2d_descriptor(device, descriptors, framebuffers) != 0)
+		// Create Temporal Cache descriptor:
+		printf(" ---> Creating Temporal Cache descriptor.\n");
+		if (create_temporal_cache_descriptor(device, descriptors, framebuffers) != 0)
 		{
 			return -1;
 		}
@@ -178,11 +178,11 @@ void destroy_vulkan_descriptors(FracRenderVulkanDevice *device,
 		vkFreeMemory(device->logical_device, descriptors->sdf_3d_memory, NULL);
 	}
 
-	// Destroy 2D SDF descriptor layout:
-	if (descriptors->sdf_2d_descriptor_layout != VK_NULL_HANDLE)
+	// Destroy Temporal Cache descriptor layout:
+	if (descriptors->temporal_cache_descriptor_layout != VK_NULL_HANDLE)
 	{
 		vkDestroyDescriptorSetLayout(device->logical_device,
-			descriptors->sdf_2d_descriptor_layout, NULL);
+			descriptors->temporal_cache_descriptor_layout, NULL);
 	}
 
 	// Destroy sampler:
@@ -945,9 +945,9 @@ int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors
 	return 0;
 }
 
-// Create 2D SDF descriptor set layout:
-int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
-			FracRenderVulkanDescriptors *descriptors)
+// Create Temporal Cache descriptor set layout:
+int create_temporal_cache_descriptor_layout(FracRenderVulkanDevice *device,
+				FracRenderVulkanDescriptors *descriptors)
 {
 	// Create array of descriptor set layout bindings:
 	VkDescriptorSetLayoutBinding bindings[1];
@@ -968,17 +968,17 @@ int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
 	layout_info.pBindings		= bindings;
 
 	if (vkCreateDescriptorSetLayout(device->logical_device, &layout_info,
-		NULL, &descriptors->sdf_2d_descriptor_layout) != VK_SUCCESS)
+		NULL, &descriptors->temporal_cache_descriptor_layout) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to create 2D SDF descriptor set layout!\n");
+		fprintf(stderr, "Error: Unable to create Temporal Cache descriptor set layout!\n");
 		return -1;
 	}
 
 	return 0;
 }
 
-// Create 2D SDF descriptor:
-int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+// Create Temporal Cache descriptor:
+int create_temporal_cache_descriptor(FracRenderVulkanDevice *device,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Allocate descriptor set:
@@ -988,32 +988,32 @@ int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
 	allocate_info.pNext			= NULL;
 	allocate_info.descriptorPool		= descriptors->descriptor_pool;
 	allocate_info.descriptorSetCount	= 1;
-	allocate_info.pSetLayouts		= &descriptors->sdf_2d_descriptor_layout;
+	allocate_info.pSetLayouts		= &descriptors->temporal_cache_descriptor_layout;
 
 	if (vkAllocateDescriptorSets(device->logical_device, &allocate_info,
-				&descriptors->sdf_2d_descriptor) != VK_SUCCESS)
+		&descriptors->temporal_cache_descriptor) != VK_SUCCESS)
 	{
-		fprintf(stderr, "Error: Unable to allocate 2D SDF descriptor set!\n");
+		fprintf(stderr, "Error: Unable to allocate Temporal Cache descriptor set!\n");
 		return -1;
 	}
 
 	// Create descriptor set:
-	VkDescriptorImageInfo sdf_2d_image_info;
-	memset(&sdf_2d_image_info, 0, sizeof(VkDescriptorImageInfo));
-	sdf_2d_image_info.sampler	= descriptors->sampler;
-	sdf_2d_image_info.imageView	= framebuffers->sdf_2d_image_view;
-	sdf_2d_image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	VkDescriptorImageInfo temporal_cache_image_info;
+	memset(&temporal_cache_image_info, 0, sizeof(VkDescriptorImageInfo));
+	temporal_cache_image_info.sampler	= descriptors->sampler;
+	temporal_cache_image_info.imageView	= framebuffers->temporal_cache_image_view;
+	temporal_cache_image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	VkWriteDescriptorSet descriptor_write[1];
 	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	descriptor_write[0].pNext		= NULL;
-	descriptor_write[0].dstSet		= descriptors->sdf_2d_descriptor;
+	descriptor_write[0].dstSet		= descriptors->temporal_cache_descriptor;
 	descriptor_write[0].dstBinding		= 0;
 	descriptor_write[0].dstArrayElement	= 0;
 	descriptor_write[0].descriptorCount	= 1;
 	descriptor_write[0].descriptorType	= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descriptor_write[0].pImageInfo		= &sdf_2d_image_info;
+	descriptor_write[0].pImageInfo		= &temporal_cache_image_info;
 	descriptor_write[0].pBufferInfo		= NULL;
 	descriptor_write[0].pTexelBufferView	= NULL;
 
@@ -1023,15 +1023,15 @@ int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
 	return 0;
 }
 
-// Update 2D SDF descriptor:
-int update_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+// Update Temporal Cache descriptor:
+int update_temporal_cache_descriptor(FracRenderVulkanDevice *device,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers)
 {
 	// Define texture and sampler info:
 	VkDescriptorImageInfo image_info;
 	memset(&image_info, 0, sizeof(VkDescriptorImageInfo));
 	image_info.sampler	= descriptors->sampler;
-	image_info.imageView	= framebuffers->sdf_2d_image_view;
+	image_info.imageView	= framebuffers->temporal_cache_image_view;
 	image_info.imageLayout	= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	// Create descriptor set writing info:
@@ -1039,7 +1039,7 @@ int update_sdf_2d_descriptor(FracRenderVulkanDevice *device,
 	memset(descriptor_write, 0, 1 * sizeof(VkWriteDescriptorSet));
 	descriptor_write[0].sType		= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	descriptor_write[0].pNext		= NULL;
-	descriptor_write[0].dstSet		= descriptors->sdf_2d_descriptor;
+	descriptor_write[0].dstSet		= descriptors->temporal_cache_descriptor;
 	descriptor_write[0].dstBinding		= 0;
 	descriptor_write[0].dstArrayElement	= 0;
 	descriptor_write[0].descriptorCount	= 1;

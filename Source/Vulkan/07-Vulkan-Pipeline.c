@@ -4,7 +4,7 @@
 int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescriptors *descriptors,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline,
-	int sdf_type)
+	int optimize)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
@@ -19,21 +19,21 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create geometry render pass:
 	printf(" ---> Creating geometry render pass.\n");
-	if (create_geometry_render_pass(device, framebuffers, pipeline, sdf_type) != 0)
+	if (create_geometry_render_pass(device, framebuffers, pipeline, optimize) != 0)
 	{
 		return -1;
 	}
 
 	// Create geometry pipeline layout:
 	printf(" ---> Creating geometry pipeline layout.\n");
-	if (create_pipeline_layout(device, descriptors, pipeline, 0, sdf_type) != 0)
+	if (create_pipeline_layout(device, descriptors, pipeline, 0, optimize) != 0)
 	{
 		return -1;
 	}
 
 	// Create geometry pipeline:
 	printf(" ---> Creating geometry pipeline.\n");
-	if (create_pipeline(device, swapchain, pipeline, 0, sdf_type) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 0, optimize) != 0)
 	{
 		return -1;
 	}
@@ -47,14 +47,14 @@ int initialize_vulkan_pipeline(FracRenderVulkanDevice *device,
 
 	// Create colour pipeline layout:
 	printf(" ---> Creating colour pipeline layout.\n");
-	if (create_pipeline_layout(device, descriptors, pipeline, 1, sdf_type) != 0)
+	if (create_pipeline_layout(device, descriptors, pipeline, 1, optimize) != 0)
 	{
 		return -1;
 	}
 
 	// Create colour pipeline:
 	printf(" ---> Creating colour pipeline.\n");
-	if (create_pipeline(device, swapchain, pipeline, 1, sdf_type) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 1, optimize) != 0)
 	{
 		return -1;
 	}
@@ -245,7 +245,7 @@ VkShaderModule load_shader_module(FracRenderVulkanDevice *device, const char *sh
 // Create geometry render pass:
 int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanPipeline *pipeline,
-	int sdf_type)
+	int optimize)
 {
 	// Create attachment descriptions:
 	VkAttachmentDescription *attachments;
@@ -263,7 +263,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	attachments[0].initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[0].finalLayout	= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	if (sdf_type == 1)
+	if (optimize == 1)
 	{
 		// Distance write attachment:
 		attachments[1].flags		= 0;
@@ -288,7 +288,7 @@ int create_geometry_render_pass(FracRenderVulkanDevice *device,
 	subpass_attachments[0].attachment	= 0;	// Attachments[0].
 	subpass_attachments[0].layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	if (sdf_type == 1)
+	if (optimize == 1)
 	{
 		// Distance write attachment:
 		subpass_attachments[1].attachment	= 1;	// Attachments[1].
@@ -406,7 +406,7 @@ int create_colour_render_pass(FracRenderVulkanDevice *device,
 
 // Create pipeline layout:
 int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
-	FracRenderVulkanPipeline *pipeline, int pipe, int sdf_type)
+	FracRenderVulkanPipeline *pipeline, int pipe, int optimize)
 {
 	// Create an array of descriptor set layouts:
 	uint32_t num_layouts;
@@ -414,19 +414,19 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		if (sdf_type == 0)
+		if (optimize == 0)
 		{
 			num_layouts = 2;
 			layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 			layouts[0] = descriptors->scene_descriptor_layout;
 			layouts[1] = descriptors->sdf_3d_descriptor_layout;
 		}
-		else if (sdf_type == 1)
+		else if (optimize == 1)
 		{
 			num_layouts = 2;
 			layouts = malloc(num_layouts * sizeof(VkDescriptorSetLayout));
 			layouts[0] = descriptors->scene_descriptor_layout;
-			layouts[1] = descriptors->sdf_2d_descriptor_layout;
+			layouts[1] = descriptors->temporal_cache_descriptor_layout;
 		}
 		else
 		{
@@ -491,7 +491,7 @@ int create_pipeline_layout(FracRenderVulkanDevice *device, FracRenderVulkanDescr
 
 // Create pipeline:
 int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-				FracRenderVulkanPipeline *pipeline, int pipe, int sdf_type)
+				FracRenderVulkanPipeline *pipeline, int pipe, int optimize)
 {
 	// Define shader stages:
 	VkPipelineShaderStageCreateInfo shader_stages[2];
@@ -611,7 +611,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	if (pipe == 0)
 	{
 		// Geometry pipeline:
-		if (sdf_type == 1)
+		if (optimize == 1)
 		{
 			num_blend_states = 2;
 		}
@@ -733,7 +733,7 @@ int create_pipeline(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 // Recreate render passes:
 int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 	FracRenderVulkanSwapchain *swapchain, FracRenderVulkanFramebuffers *framebuffers,
-	FracRenderVulkanPipeline *pipeline, int sdf_type)
+	FracRenderVulkanPipeline *pipeline, int optimize)
 {
 	// Destroy old render passes:
 	vkDestroyRenderPass(device->logical_device, pipeline->geometry_render_pass, NULL);
@@ -743,7 +743,7 @@ int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 	pipeline->colour_render_pass = VK_NULL_HANDLE;
 
 	// Create new ones:
-	if (create_geometry_render_pass(device, framebuffers, pipeline, sdf_type) != 0)
+	if (create_geometry_render_pass(device, framebuffers, pipeline, optimize) != 0)
 	{
 		return -1;
 	}
@@ -757,7 +757,7 @@ int recreate_vulkan_render_passes(FracRenderVulkanDevice *device,
 
 // Recreate pipelines:
 int recreate_vulkan_pipelines(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *swapchain,
-						FracRenderVulkanPipeline *pipeline, int sdf_type)
+						FracRenderVulkanPipeline *pipeline, int optimize)
 {
 	// Destroy current pipelines:
 	vkDestroyPipeline(device->logical_device, pipeline->geometry_pipeline, NULL);
@@ -767,11 +767,11 @@ int recreate_vulkan_pipelines(FracRenderVulkanDevice *device, FracRenderVulkanSw
 	pipeline->colour_pipeline = VK_NULL_HANDLE;
 
 	// Create new ones:
-	if (create_pipeline(device, swapchain, pipeline, 0, sdf_type) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 0, optimize) != 0)
 	{
 		return -1;
 	}
-	if (create_pipeline(device, swapchain, pipeline, 1, sdf_type) != 0)
+	if (create_pipeline(device, swapchain, pipeline, 1, optimize) != 0)
 	{
 		return -1;
 	}

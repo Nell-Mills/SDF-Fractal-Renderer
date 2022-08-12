@@ -21,12 +21,12 @@
 
 // Create Vulkan descriptor layouts:
 int initialize_vulkan_descriptor_layouts(FracRenderVulkanDevice *device,
-	FracRenderVulkanDescriptors *descriptors, FracRenderSDF3D *sdf_3d, int sdf_type);
+	FracRenderVulkanDescriptors *descriptors, FracRenderSDF3D *sdf_3d, int optimize);
 
 // Create Vulkan descriptors (after creating the framebuffers):
 int initialize_vulkan_descriptors(FracRenderVulkanDevice *device,
 	FracRenderVulkanFramebuffers *framebuffers,
-	FracRenderVulkanDescriptors *descriptors, int sdf_type);
+	FracRenderVulkanDescriptors *descriptors, int optimize);
 
 // Destroy Vulkan descriptors:
 void destroy_vulkan_descriptors(FracRenderVulkanDevice *device,
@@ -79,16 +79,16 @@ int create_sdf_3d_descriptor(FracRenderVulkanDevice *device,
 int copy_sdf_3d_data(FracRenderVulkanDevice *device, FracRenderVulkanDescriptors *descriptors,
 				FracRenderVulkanCommands *commands, FracRenderSDF3D *sdf_3d);
 
-// Create 2D SDF descriptor set layout:
-int create_sdf_2d_descriptor_layout(FracRenderVulkanDevice *device,
-			FracRenderVulkanDescriptors *descriptors);
+// Create Temporal Cache descriptor set layout:
+int create_temporal_cache_descriptor_layout(FracRenderVulkanDevice *device,
+				FracRenderVulkanDescriptors *descriptors);
 
-// Create 2D SDF descriptor:
-int create_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+// Create Temporal Cache descriptor:
+int create_temporal_cache_descriptor(FracRenderVulkanDevice *device,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers);
 
-// Update 2D SDF descriptor:
-int update_sdf_2d_descriptor(FracRenderVulkanDevice *device,
+// Update Temporal Cache descriptor:
+int update_temporal_cache_descriptor(FracRenderVulkanDevice *device,
 	FracRenderVulkanDescriptors *descriptors, FracRenderVulkanFramebuffers *framebuffers);
 
 #endif

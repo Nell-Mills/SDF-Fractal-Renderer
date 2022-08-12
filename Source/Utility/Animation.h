@@ -7,9 +7,10 @@
 
 // Library includes:
 #include <stdio.h>
+#include <stdint.h>
 
 // Local includes:
-#include "../Vulkan/01-Vulkan-Structs.h"
+#include "Program-State.h"
 
 /***********************
  * Function Prototypes *

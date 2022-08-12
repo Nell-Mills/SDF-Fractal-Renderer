@@ -14,28 +14,28 @@ void print_title()
 	printf("****************************************\n\n");
 }
 
-// Print fractal and SDF type:
-void print_fractal_and_sdf_type(FracRenderProgramState *program_state)
+// Print fractal and optimization type:
+void print_fractal_and_optimization_type(FracRenderProgramState *program_state)
 {
 	printf("----------------------------------------");
 	printf("----------------------------------------\n");
 	if (program_state->fractal_type == 0)
 	{
 		printf("Displaying Mandelbulb fractal with ");
-		if (program_state->sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
-		else if (program_state->sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
-		else { printf(" no Signed Distance Field.\n"); }
+		if (program_state->optimize == 0) { printf(" 3D Signed Distance Field.\n"); }
+		else if (program_state->optimize == 1) { printf(" Temporal Caching.\n"); }
+		else { printf(" no optimizations.\n"); }
 	}
 	else if (program_state->fractal_type == 1)
 	{
 		printf("Displaying Hall of Pillars fractal with ");
-		if (program_state->sdf_type == 0) { printf(" 3D Signed Distance Field.\n"); }
-		else if (program_state->sdf_type == 1) { printf(" 2D Signed Distance Field.\n"); }
-		else { printf(" no Signed Distance Field.\n"); }
+		if (program_state->optimize == 0) { printf(" 3D Signed Distance Field.\n"); }
+		else if (program_state->optimize == 1) { printf(" Temporal Caching.\n"); }
+		else { printf(" no optimizations.\n"); }
 	}
 	else
 	{
-		printf("Displaying 2D Mandelbrot set with no Signed Distance Field.\n");
+		printf("Displaying 2D Mandelbrot set with no optimizations.\n");
 	}
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -66,6 +66,125 @@ void print_controls()
 	// End:
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
+}
+
+// Set up program state according to program inputs:
+void set_up_program_state(int argc, char **argv, FracRenderProgramState *program_state)
+{
+	program_state->fractal_type = -1;
+	program_state->optimize = -1;
+	program_state->animation = 0;
+	program_state->performance = -1;
+	if (argc > 1)
+	{
+		// Fractal type. -1 = 2D Mandelbrot, 0 = Mandelbulb, 1 = Hall of Pillars.
+		if (argv[1][0] == '0') { program_state->fractal_type = 0; }
+		else if (argv[1][0] == '1') { program_state->fractal_type = 1; }
+	}
+	if ((argc > 2) && (program_state->fractal_type != -1))
+	{
+		// Optimization type. -1 = none, 0 = 3D SDF, 1 = Temporal Cache.
+		if (argv[2][0] == '0') { program_state->optimize = 0; }
+		else if (argv[2][0] == '1') { program_state->optimize = 1; }
+	}
+	if (argc > 3)
+	{
+		// Parameter "animation". 0 = No animation, -1 = Backwards, 1 = Forwards;
+		if (argv[3][0] == '0') { program_state->animation = 0; }
+		else if (argv[3][0] == '1') { program_state->animation = 1; }
+		else { program_state->animation = -1; }
+	}
+	if (argc > 4)
+	{
+		// Performance measurements. -1 = No measurements, 0 = Measurements.
+		if (argv[4][0] == '0') { program_state->performance = 0; }
+	}
+
+	// Get performance file name:
+	char *default_name = "./Performance-Measurements/00-Default-Name.txt";
+	if (argc > 5) { strcpy(program_state->performance_file_name, argv[5]); }
+	else { strcpy(program_state->performance_file_name, default_name); }
+
+	// Set up initial position, camera front and fractal parameter range:
+	if (program_state->fractal_type == 0)
+	{
+		// Mandelbulb:
+		program_state->position	= initialize_vector_3(0.f, -2.f, -4.f);
+		program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+		program_state->fractal_parameter_min	= 2.f;
+		program_state->fractal_parameter_max	= 16.f;
+	}
+	else if (program_state->fractal_type == 1)
+	{
+		// Hall of pillars:
+		program_state->position	= initialize_vector_3(25.f, 20.f, 9.f);
+		program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+		program_state->fractal_parameter_min	= 2.f;
+		program_state->fractal_parameter_max	= 16.f;
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		program_state->position	= initialize_vector_3(0.25f, 0.f, 0.f);
+		program_state->front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
+
+		program_state->fractal_parameter_min	= 2.f;
+		program_state->fractal_parameter_max	= 16.f;
+	}
+
+	// Set up other initial values for program state:
+	program_state->up			= initialize_vector_3(0.f, 1.f, 0.f);
+	program_state->last_update		= 0.0;
+	program_state->current_update		= 0.0;
+	program_state->delta_t			= 0.0;
+	program_state->frames			= 0;
+	program_state->frame_time		= 0.0;
+	program_state->animation_frames		= 0;
+	program_state->base_movement_speed	= 1.5f;
+	program_state->mouse_sensitivity	= 7.5f;
+}
+
+// Set up scene uniform object:
+void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D *sdf_3d,
+					FracRenderVulkanSceneUniform *scene_uniform)
+{
+	// Set up 3D SDF information:
+	if (program_state->optimize == 0)
+	{
+		// 3D SDF:
+		scene_uniform->sdf_3d_centre	= sdf_3d->centre;
+		scene_uniform->sdf_3d_size	= sdf_3d->size;
+		scene_uniform->sdf_3d_levels	= sdf_3d->levels;
+	}
+	else
+	{
+		// No 3D SDF:
+		scene_uniform->sdf_3d_centre	= initialize_vector_3(0.f, 0.f, 0.f);
+		scene_uniform->sdf_3d_size	= 0.f;
+		scene_uniform->sdf_3d_levels	= 0;
+	}
+
+	// Set up fractal information:
+	if (program_state->fractal_type == 0)
+	{
+		// Mandelbulb:
+		scene_uniform->fractal_parameter = 8.f;
+		scene_uniform->view_distance = 256.f;
+	}
+	else if (program_state->fractal_type == 1)
+	{
+		// Hall of Pillars:
+		scene_uniform->fractal_parameter = 8.f;
+		scene_uniform->view_distance = 16384.f;
+	}
+	else
+	{
+		// 2D Mandelbrot set:
+		scene_uniform->fractal_parameter = 8.f;
+		scene_uniform->view_distance = 0.f;
+	}
 }
 
 // Initialize Vulkan structs to default values:
@@ -133,8 +252,8 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	descriptors->sdf_3d_buffer			= VK_NULL_HANDLE;
 	descriptors->sdf_3d_memory			= VK_NULL_HANDLE;
 
-	descriptors->sdf_2d_descriptor_layout		= VK_NULL_HANDLE;
-	descriptors->sdf_2d_descriptor			= VK_NULL_HANDLE;
+	descriptors->temporal_cache_descriptor_layout	= VK_NULL_HANDLE;
+	descriptors->temporal_cache_descriptor		= VK_NULL_HANDLE;
 
 	// Pipeline:
 	pipeline->geometry_pipeline_layout	= VK_NULL_HANDLE;
@@ -155,7 +274,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	{
 		#define SHADER_DIR_ "Assets/Shaders/Mandelbulb/"
 		// Mandelbulb:
-		if (program_state->sdf_type == 0)
+		if (program_state->optimize == 0)
 		{
 			// 3D SDF:
 			pipeline->geometry_vertex_shader_path =
@@ -163,13 +282,13 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 			pipeline->geometry_fragment_shader_path =
 				SHADER_DIR_"Geometry-Mandelbulb-SDF-3D.frag.sprv";
 		}
-		else if (program_state->sdf_type == 1)
+		else if (program_state->optimize == 1)
 		{
-			// 2D SDF:
+			// Temporal Cache:
 			pipeline->geometry_vertex_shader_path =
-				SHADER_DIR_"Geometry-Mandelbulb-SDF-2D.vert.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-Temporal-Cache.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				SHADER_DIR_"Geometry-Mandelbulb-SDF-2D.frag.sprv";
+				SHADER_DIR_"Geometry-Mandelbulb-Temporal-Cache.frag.sprv";
 		}
 		else
 		{
@@ -189,7 +308,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	{
 		#define SHADER_DIR_ "Assets/Shaders/Hall-Of-Pillars/"
 		// Hall of Pillars:
-		if (program_state->sdf_type == 0)
+		if (program_state->optimize == 0)
 		{
 			// 3D SDF:
 			pipeline->geometry_vertex_shader_path =
@@ -197,13 +316,13 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 			pipeline->geometry_fragment_shader_path =
 				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-3D.frag.sprv";
 		}
-		else if (program_state->sdf_type == 1)
+		else if (program_state->optimize == 1)
 		{
-			// 2D SDF:
+			// Temporal Cache:
 			pipeline->geometry_vertex_shader_path =
-				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-2D.vert.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-Temporal-Cache.vert.sprv";
 			pipeline->geometry_fragment_shader_path =
-				SHADER_DIR_"Geometry-Hall-Of-Pillars-SDF-2D.frag.sprv";
+				SHADER_DIR_"Geometry-Hall-Of-Pillars-Temporal-Cache.frag.sprv";
 		}
 		else
 		{
@@ -239,7 +358,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 
 	framebuffers->g_buffer			= VK_NULL_HANDLE;
 
-	if (program_state->sdf_type == 1)
+	if (program_state->optimize == 1)
 	{
 		framebuffers->num_g_buffer_images = 2;
 	}
@@ -253,7 +372,7 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	// Allocate memory for G-buffer formats (free in destroy_vulkan_framebuffers):
 	framebuffers->g_buffer_formats		= malloc(framebuffers->num_g_buffer_images *
 									sizeof(VkFormat));
-	if (program_state->sdf_type == 1)
+	if (program_state->optimize == 1)
 	{
 		// Positions + iterations, and distance write:
 		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -265,10 +384,10 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 		framebuffers->g_buffer_formats[0]	= VK_FORMAT_R32G32B32A32_SFLOAT;
 	}
 
-	framebuffers->sdf_2d_image		= VK_NULL_HANDLE;
-	framebuffers->sdf_2d_memory		= VK_NULL_HANDLE;
-	framebuffers->sdf_2d_image_view		= VK_NULL_HANDLE;
-	framebuffers->sdf_2d_format		= VK_FORMAT_R32G32B32A32_SFLOAT;
+	framebuffers->temporal_cache_image		= VK_NULL_HANDLE;
+	framebuffers->temporal_cache_memory		= VK_NULL_HANDLE;
+	framebuffers->temporal_cache_image_view		= VK_NULL_HANDLE;
+	framebuffers->temporal_cache_format		= VK_FORMAT_R32G32B32A32_SFLOAT;
 
 	// Commands:
 	commands->command_pool		= VK_NULL_HANDLE;
@@ -280,6 +399,113 @@ void initialize_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevic
 	// Performance:
 	performance->query_pool		= VK_NULL_HANDLE;
 	performance->timestamp_period	= 0.f;
+}
+
+// Perform all setup of Vulkan environment and SDF (if any):
+int set_up_vulkan(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+		FracRenderVulkanPerformance *performance, FracRenderProgramState *program_state,
+		FracRenderSDF3D *sdf_3d)
+{
+	// Initialize Volk:
+	if (initialize_volk() != 0)
+	{
+		return -1;
+	}
+
+	// Initialize Vulkan structs to default values:
+	initialize_vulkan_structs(base, device, validation, swapchain, descriptors, pipeline,
+					framebuffers, commands, performance, program_state);
+
+	#ifdef FRACRENDER_DEBUG
+		// Check support for required validation layers:
+		if (check_validation_support(validation) != 0)
+		{
+			return -1;
+		}
+	#endif
+
+	// Initialize Vulkan base (instance, window, surface and debug messenger):
+	if (initialize_vulkan_base(base, validation) != 0)
+	{
+		return -1;
+	}
+
+	// Select physical device and create logical device:
+	if (initalize_vulkan_device(base, device) != 0)
+	{
+		return -1;
+	}
+
+	// Create swapchain:
+	if (initialize_vulkan_swapchain(base, device, swapchain) != 0)
+	{
+		return -1;
+	}
+
+	// Initialize descriptor layouts and sampler:
+	if (initialize_vulkan_descriptor_layouts(device, descriptors, sdf_3d,
+					program_state->optimize) != 0)
+	{
+		return -1;
+	}
+
+	// Create pipelines and render passes:
+	if (initialize_vulkan_pipeline(device, swapchain, descriptors, framebuffers,
+					pipeline, program_state->optimize) != 0)
+	{
+		return -1;
+	}
+
+	// Create framebuffers and G-buffer:
+	if (initialize_vulkan_framebuffers(device, swapchain, pipeline,
+				framebuffers, program_state->optimize) != 0)
+	{
+		return -1;
+	}
+
+	// Create descriptors:
+	if (initialize_vulkan_descriptors(device, framebuffers, descriptors,
+					program_state->optimize) != 0)
+	{
+		return -1;
+	}
+
+	// Create command pool, fences and semaphores:
+	if (initialize_vulkan_commands(device, swapchain, commands) != 0)
+	{
+		return -1;
+	}
+
+	// Set up performance measuring structures:
+	if (program_state->performance == 0)
+	{
+		if (initialize_vulkan_performance(device, swapchain, performance) != 0)
+		{
+			return -1;
+		}
+	}
+
+	if (program_state->optimize == 0)
+	{
+		// Copy SDF data into GPU buffer:
+		if (copy_sdf_3d_data(device, descriptors, commands, sdf_3d) != 0)
+		{
+			return -1;
+		}
+	}
+	else if (program_state->optimize == 1)
+	{
+		// Initialize Temporal Cache image to zero values:
+		if (initialize_temporal_cache_image(device, swapchain, framebuffers, commands) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return 0;
 }
 
 // Destroy contents of Vulkan structs:

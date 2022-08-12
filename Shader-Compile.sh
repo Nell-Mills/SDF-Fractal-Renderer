@@ -42,11 +42,11 @@ echo " ---> Geometry-Mandelbulb-SDF-3D.vert"
 echo " ---> Geometry-Mandelbulb-SDF-3D.frag"
 ./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-3D.frag.sprv
 
-# Geometry, 2D SDF:
-echo " ---> Geometry-Mandelbulb-SDF-2D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.vert -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.vert.sprv
-echo " ---> Geometry-Mandelbulb-SDF-2D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-SDF-2D.frag.sprv
+# Geometry, Temporal Cache:
+echo " ---> Geometry-Mandelbulb-Temporal-Cache.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-Temporal-Cache.vert -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-Temporal-Cache.vert.sprv
+echo " ---> Geometry-Mandelbulb-Temporal-Cache.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Mandelbulb/Geometry-Mandelbulb-Temporal-Cache.frag -o ./Assets/Shaders/Mandelbulb/Geometry-Mandelbulb-Temporal-Cache.frag.sprv
 
 echo "... done."
 
@@ -74,10 +74,10 @@ echo " ---> Geometry-Hall-Of-Pillars-SDF-3D.vert"
 echo " ---> Geometry-Hall-Of-Pillars-SDF-3D.frag"
 ./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-3D.frag.sprv
 
-# Geometry, 2D SDF:
-echo " ---> Geometry-Hall-Of-Pillars-SDF-2D.vert"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.vert -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.vert.sprv
-echo " ---> Geometry-Hall-Of-Pillars-SDF-2D.frag"
-./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-SDF-2D.frag.sprv
+# Geometry, Temporal Cache:
+echo " ---> Geometry-Hall-Of-Pillars-Temporal-Cache.vert"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-Temporal-Cache.vert -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-Temporal-Cache.vert.sprv
+echo " ---> Geometry-Hall-Of-Pillars-Temporal-Cache.frag"
+./Third-Party/glslc/linux-x86_64/glslc ./Source/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-Temporal-Cache.frag -o ./Assets/Shaders/Hall-Of-Pillars/Geometry-Hall-Of-Pillars-Temporal-Cache.frag.sprv
 
 echo "... done."

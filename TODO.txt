@@ -2,7 +2,7 @@ Coding:
 
 Finish handle printing function		-->
 
-Get rid of image copy measurement	-->
+Get rid of image copy measurement	--> Done.
 
 Colour different fractals		--> Done.
 
@@ -18,6 +18,8 @@ Investigate why warm up isn't working	-->
 ----------------------------------------------------------------------------------------------------
 
 Coding if time:
+
+See if performance differences vary with resolution (apart from scaling proportionally)
 
 3D SDF moving with camera.
 3D SDF around Mandelbulb - do culling optimizations for main cube in ALL shaders.
@@ -45,7 +47,7 @@ Implementation - SDF			-->
 Implementation - Performance		-->
 
 Evaluation - 3D SDF			-->
-Evaluation - 2D SDF			-->
+Evaluation - Temporal Caching		-->
 
 Conclusion				-->
 

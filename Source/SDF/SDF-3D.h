@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 // Local includes:
+#include "../Utility/Program-State.h"
 #include "../Utility/Vectors.h"
 
 /**************
@@ -34,6 +35,9 @@ typedef struct {
 /***********************
  * Function Prototypes *
  ***********************/
+
+// Set up 3D SDF structure:
+void set_up_sdf_3d(FracRenderProgramState *program_state, FracRenderSDF3D *sdf_3d);
 
 // Calculate 3D SDF:
 int create_sdf_3d(FracRenderSDF3D *sdf_3d);

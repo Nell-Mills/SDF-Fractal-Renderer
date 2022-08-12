@@ -71,15 +71,15 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		vkCmdResetQueryPool(
 			commands->command_buffers[image_index],
 			performance->query_pool,
-			3 * image_index,
-			3
+			2 * image_index,
+			2
 		);
 
 		vkCmdWriteTimestamp(
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 			performance->query_pool,
-			3 * image_index
+			2 * image_index
 		);
 	}
 
@@ -123,7 +123,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Set G-buffer clear colour:
 	int num_clear_values;
-	if (program_state->sdf_type == 1) { num_clear_values = 2; }
+	if (program_state->optimize == 1) { num_clear_values = 2; }
 	else { num_clear_values = 1; }
 
 	VkClearValue *geometry_clear_values;
@@ -136,7 +136,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_clear_values[0].color.float32[2] = 0.f;
 	geometry_clear_values[0].color.float32[3] = 1.f;
 
-	if (program_state->sdf_type == 1)
+	if (program_state->optimize == 1)
 	{
 		// Distance write:
 		geometry_clear_values[1].color.float32[0] = 0.f;
@@ -175,19 +175,19 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
 		0, 1, &descriptors->scene_descriptor, 0, NULL);
 
-	if (program_state->sdf_type == 0)
+	if (program_state->optimize == 0)
 	{
 		// Bind 3D SDF descriptor:
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
 			1, 1, &descriptors->sdf_3d_descriptor, 0, NULL);
 	}
-	else if (program_state->sdf_type == 1)
+	else if (program_state->optimize == 1)
 	{
-		// Bind 2D SDF descriptor:
+		// Bind Temporal Cache descriptor:
 		vkCmdBindDescriptorSets(commands->command_buffers[image_index],
 			VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->geometry_pipeline_layout,
-			1, 1, &descriptors->sdf_2d_descriptor, 0, NULL);
+			1, 1, &descriptors->temporal_cache_descriptor, 0, NULL);
 	}
 
 	// Draw fullscreen triangle:
@@ -203,14 +203,14 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 			commands->command_buffers[image_index],
 			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 			performance->query_pool,
-			(3 * image_index) + 1
+			(2 * image_index) + 1
 		);
 	}
 
 	uint32_t max_images;
-	if (program_state->sdf_type == 1)
+	if (program_state->optimize == 1)
 	{
-		// Copy data from third G-Buffer image to 2D SDF and transition layouts:
+		// Copy data from third G-Buffer image to Temporal Cache and transition layouts:
 		max_images = framebuffers->num_g_buffer_images - 1;
 		if (copy_g_buffer_image(swapchain, framebuffers,
 			commands->command_buffers[image_index]) != 0)
@@ -219,17 +219,6 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 		}
 	}
 	else { max_images = framebuffers->num_g_buffer_images; }
-
-	// Write third timestamp:
-	if (program_state->performance == 0)
-	{
-		vkCmdWriteTimestamp(
-			commands->command_buffers[image_index],
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-			performance->query_pool,
-			(3 * image_index) + 2
-		);
-	}
 
 	for (uint32_t i = 0; i < max_images; i++)
 	{
@@ -390,7 +379,7 @@ int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
 	// Transition image layouts:
 	VkImage images[2] = {
 		framebuffers->g_buffer_images[1],
-		framebuffers->sdf_2d_image
+		framebuffers->temporal_cache_image
 	};
 	VkImageLayout src_image_layouts_1[2] = {
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
