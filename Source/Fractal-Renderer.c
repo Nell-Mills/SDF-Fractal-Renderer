@@ -95,7 +95,8 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		// Write column headers:
-		fprintf(performance_file, "Frame\tMedian\t\tMin\t\tMax\t\tFrame Time\n\n");
+		fprintf(performance_file, "Frame\tMedian(ns)\t\tMin(ns)\t\t"
+					"Max(ns)\t\tFrame Time(s)\n\n");
 	}
 
 	// Set GLFW callback functions (no mouse movement for 2D Mandelbrot):
@@ -108,27 +109,22 @@ int main(int argc, char **argv)
 	// Set GLFW user pointer to point to the program state:
 	glfwSetWindowUserPointer(base.window, &program_state);
 
-	// Print title:
+	// Print title, optimization and fractal info, and keyboard controls:
 	print_title();
-
-	// Print which type of fractal and optimization are being used:
 	print_fractal_and_optimization_type(&program_state);
-
-	// Print keyboard controls:
 	print_controls();
 
-	// Tracking swapchain recreation:
+	// Tracking swapchain and performance measurements:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
 
-	// Tracking performance measurements:
 	int values_captured = 0;	// Capture a set number of values for performance.
 	int max_values = 10;		// Change this value to measure more times.
 	int warm_up = 0;		// Start measuring after 1000 frames to allow warm up.
 	int order = 0;			// Whether to insert new measurements according to value.
 	int animation_tick_max = 1;	// How often to update animation.
-	int animation_tick = 0;
+	int animation_tick = 0;		// Current animation update tick.
 
-	// Storing measurements for geometry render pass over 100 frames:
+	// Storing measurements for geometry render pass time over 100 frames:
 	double *shader_time = malloc(100 * sizeof(double));
 	memset(shader_time, 0, 100 * sizeof(double));
 
@@ -155,19 +151,10 @@ int main(int argc, char **argv)
 			int changed_format = -1;
 			int changes = recreate_vulkan_swapchain(&base, &device, &swapchain);
 
-			if (changes == -1)
-			{
-				// Error code:
-				break;
-			}
-			else if (changes == 1)
-			{
-				changed_extent = 0;
-			}
-			else if (changes == 2)
-			{
-				changed_format = 0;
-			}
+			// -1 is error code:
+			if (changes == -1) { break; }
+			else if (changes == 1) { changed_extent = 0; }
+			else if (changes == 2) { changed_format = 0; }
 			else if (changes == 3)
 			{
 				changed_extent = 0;
@@ -188,10 +175,7 @@ int main(int argc, char **argv)
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_g_buffer_images(&device,
-					&swapchain, &framebuffers) != 0)
-				{
-					break;
-				}
+					&swapchain, &framebuffers) != 0) { break; }
 
 				// Update G-buffer descriptors:
 				update_vulkan_g_buffer_descriptors(&device,
@@ -201,49 +185,31 @@ int main(int argc, char **argv)
 				{
 					// Recreate Temporal Cache image:
 					if (recreate_temporal_cache_image(&device, &swapchain,
-									&framebuffers) != 0)
-					{
-						break;
-					}
+								&framebuffers) != 0) { break; }
 
 					// Re-initialize image to 0:
 					if (initialize_temporal_cache_image(&device, &swapchain,
-								&framebuffers, &commands) != 0)
-					{
-						break;
-					}
+							&framebuffers, &commands) != 0) { break; }
 
 					// Update Temporal Cache descriptor:
 					if (update_temporal_cache_descriptor(&device, &descriptors,
-										&framebuffers) != 0)
-					{
-						break;
-					}
+								&framebuffers) != 0) { break; }
 				}
 			}
 
 			// Recreate swapchain framebuffers:
 			if (recreate_vulkan_swapchain_framebuffers(&device, &swapchain,
-					&pipeline, &framebuffers, num_images) != 0)
-			{
-				break;
-			}
+				&pipeline, &framebuffers, num_images) != 0) { break; }
 
 			// Recreate G-buffer:
 			if (recreate_vulkan_g_buffer(&device, &swapchain,
-				&pipeline, &framebuffers, program_state.optimize) != 0)
-			{
-				break;
-			}
+				&pipeline, &framebuffers, program_state.optimize) != 0) { break; }
 
 			// If extent changed, recreate pipelines:
 			if (changed_extent == 0)
 			{
 				if (recreate_vulkan_pipelines(&device, &swapchain,
-					&pipeline, program_state.optimize) != 0)
-				{
-					break;
-				}
+					&pipeline, program_state.optimize) != 0) { break; }
 			}
 
 			recreate_swapchain = -1;
@@ -282,8 +248,7 @@ int main(int argc, char **argv)
 		if (vkWaitForFences(device.logical_device, 1, &commands.fences[image_index],
 							VK_TRUE, UINT64_MAX) != VK_SUCCESS)
 		{
-			fprintf(stderr, "Error: Unable to get free command buffer %d!\n",
-									image_index);
+			fprintf(stderr, "Error: Unable to get command buffer %d!\n", image_index);
 			break;
 		}
 
@@ -297,28 +262,15 @@ int main(int argc, char **argv)
 
 		// Record commands:
 		if (record_commands(&swapchain, &descriptors, &pipeline, &framebuffers, &commands,
-				&performance, &scene_uniform, &program_state, image_index) != 0)
-		{
-			break;
-		}
+			&performance, &scene_uniform, &program_state, image_index) != 0) { break; }
 
 		// Submit commands:
-		if (submit_commands(&device, &commands, image_index) != 0)
-		{
-			break;
-		}
+		if (submit_commands(&device, &commands, image_index) != 0) { break; }
 
-		// Present results:
+		// Present results. Return value of 1 means swapchain needs recreating:
 		int present_result = present_results(&device, &swapchain, &commands, image_index);
-		if (present_result == -1)
-		{
-			break;
-		}
-		else if (present_result == 1)
-		{
-			// Swapchain needs recreating:
-			recreate_swapchain = 0;
-		}
+		if (present_result == -1) { break; }
+		else if (present_result == 1) { recreate_swapchain = 0; }
 
 		// Update the time:
 		program_state.last_update = program_state.current_update;
@@ -365,7 +317,7 @@ int main(int argc, char **argv)
 			// Write out performance measurements:
 			if ((program_state.performance == 0) && (warm_up > 1000))
 			{
-				// Take median, min, max and frame time for render pass:
+				// Take median (ns), min (ns), max (ns) and frame time (s):
 				fprintf(performance_file, "R %d\t", values_captured + 1);
 				fprintf(performance_file, "%.1lf\t", shader_time[50]);
 				fprintf(performance_file, "%.1lf\t", shader_time[0]);

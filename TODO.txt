@@ -2,13 +2,7 @@ Coding:
 
 Finish handle printing function		-->
 
-Get rid of image copy measurement	--> Done.
-
-Colour different fractals		--> Done.
-
-Do different SDFunc for 3D SDF		--> Done.
-
-Set up flythrough animation (just one)	--> Done.
+Set up flythrough animation (just one)	--> Almost done.
 
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
@@ -19,7 +13,7 @@ Investigate why warm up isn't working	-->
 
 Coding if time:
 
-See if performance differences vary with resolution (apart from scaling proportionally)
+See if performance differences vary with resolution (apart from scaling proportionally).
 
 3D SDF moving with camera.
 3D SDF around Mandelbulb - do culling optimizations for main cube in ALL shaders.

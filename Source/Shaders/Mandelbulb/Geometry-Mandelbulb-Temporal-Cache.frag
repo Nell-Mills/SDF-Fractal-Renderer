@@ -34,7 +34,7 @@ layout (location = 0) out vec4 out_position;
 layout (location = 1) out vec4 out_distance;
 
 // Function prototypes:
-vec4 raymarch(vec3 origin, vec3 ray);
+vec4 sphere_trace(vec3 origin, vec3 ray);
 float distance_estimator_mandelbulb(vec3 position);
 
 // Main function:
@@ -45,10 +45,10 @@ void main()
 	ray = normalize(ray);
 
 	// Find closest point on Mandelbulb and calculate normal:
-	out_position = raymarch(u_scene.eye_position, ray);
+	out_position = sphere_trace(u_scene.eye_position, ray);
 }
 
-vec4 raymarch(vec3 origin, vec3 ray)
+vec4 sphere_trace(vec3 origin, vec3 ray)
 {
 	vec4 current_position = vec4(origin, 1.f);
 	int max_steps = 999;
