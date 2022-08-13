@@ -369,9 +369,15 @@ int create_g_buffer(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 	if (vkCreateFramebuffer(device->logical_device, &g_buffer_info, NULL,
 					&framebuffers->g_buffer) != VK_SUCCESS)
 	{
+		// Free memory:
+		free(attachments);
+
 		fprintf(stderr, "Error: Unable to create G-buffer!\n");
 		return -1;
 	}
+
+	// Free memory:
+	free(attachments);
 
 	return 0;
 }

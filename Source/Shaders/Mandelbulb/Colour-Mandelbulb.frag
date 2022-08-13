@@ -46,10 +46,10 @@ void main()
 	}
 
 	// Colour using colour function:
-	out_colour = colour_function_mandelbulb(position.xyz);
+	out_colour = colour_function_mandelbulb(position.xyz) * pow(position.w, 20);
 
 	// Colour based on iterations achieved:
-	//out_colour = vec4(vec3(position.w), 1.f);
+	//out_colour = vec4(vec3(pow(position.w, 20)), 1.f);
 }
 
 vec4 colour_function_mandelbulb(vec3 position)
@@ -62,8 +62,10 @@ vec4 colour_function_mandelbulb(vec3 position)
         float dr = 1.f;
         float r = 0.0;          // Radius.
 
-	float m = dot(z, z);
-	vec4 colour_parameters = vec4(abs(z), m);
+	// Colour:
+	vec3 reference_point = vec3(1.f, 0.75f, 0.5f);
+	vec3 colour = abs(z - reference_point);
+	vec3 colour_addition = vec3(0.05f, 0.1f, 0.15f);
 
         for (int i = 0; i < max_iterations; i++)
         {
@@ -80,17 +82,13 @@ vec4 colour_function_mandelbulb(vec3 position)
                 theta *= parameter;
                 phi *= parameter;
 
-		// Get colour:
-		colour_parameters = vec4(abs(z), m);
-
                 // Convert position back to Cartesian coordinates:
                 z = (zr * vec3(sin(theta) * cos(phi), sin(phi) * sin(theta),
                                                 cos(theta))) + position;
 
-		m = dot(z, z);
+		// Get colour (minimum distance from reference point):
+		colour = min(colour, abs(z - reference_point));
         }
 
-	colour_parameters = normalize(colour_parameters);
-
-	return vec4(colour_parameters.y, colour_parameters.z, m, colour_parameters.w);
+	return vec4(colour.zyx + colour_addition, 1.f);
 }

@@ -135,7 +135,7 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	char const **glfw_extensions = glfwGetRequiredInstanceExtensions(&num_glfw_extensions);
 
 	// Gather all extension names:
-	int max_name_length = 64;
+	int max_name_length = 128;
 	uint32_t extension_count = 0;
 	extension_count += validation->num_validation_extensions;
 	extension_count += num_glfw_extensions;
@@ -170,12 +170,26 @@ int create_vulkan_instance(FracRenderVulkanBase *base, FracRenderVulkanValidatio
 	// Create the instance:
 	if (vkCreateInstance(&instance_create_info, NULL, &base->instance) != VK_SUCCESS)
 	{
+		// Free memory:
+		for (uint32_t i = 0; i < extension_count; i++)
+		{
+			free(extensions[i]);
+		}
+		free(extensions);
+
 		fprintf(stderr, "Error: Failed to create the Vulkan instance!\n");
 		base->instance = VK_NULL_HANDLE;
 		return -1;
 	}
 	if (base->instance == VK_NULL_HANDLE)
 	{
+		// Free memory:
+		for (uint32_t i = 0; i < extension_count; i++)
+		{
+			free(extensions[i]);
+		}
+		free(extensions);
+
 		fprintf(stderr, "Error: Failed to create the Vulkan instance!\n");
 		return -1;
 	}

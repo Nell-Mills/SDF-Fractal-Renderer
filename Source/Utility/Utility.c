@@ -21,14 +21,14 @@ void print_fractal_and_optimization_type(FracRenderProgramState *program_state)
 	printf("----------------------------------------\n");
 	if (program_state->fractal_type == 0)
 	{
-		printf("Displaying Mandelbulb fractal with ");
+		printf("Displaying Mandelbulb fractal with");
 		if (program_state->optimize == 0) { printf(" 3D Signed Distance Field.\n"); }
 		else if (program_state->optimize == 1) { printf(" Temporal Caching.\n"); }
 		else { printf(" no optimizations.\n"); }
 	}
 	else if (program_state->fractal_type == 1)
 	{
-		printf("Displaying Hall of Pillars fractal with ");
+		printf("Displaying Hall of Pillars fractal with");
 		if (program_state->optimize == 0) { printf(" 3D Signed Distance Field.\n"); }
 		else if (program_state->optimize == 1) { printf(" Temporal Caching.\n"); }
 		else { printf(" no optimizations.\n"); }

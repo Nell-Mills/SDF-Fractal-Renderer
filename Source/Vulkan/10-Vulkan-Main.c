@@ -159,12 +159,12 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	geometry_pass_info.clearValueCount		= num_clear_values;
 	geometry_pass_info.pClearValues			= geometry_clear_values;
 
-	// Free memory for geometry clear values:
-	free(geometry_clear_values);
-
 	// Begin render pass:
 	vkCmdBeginRenderPass(commands->command_buffers[image_index],
 		&geometry_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+	// Free memory for geometry clear values:
+	free(geometry_clear_values);
 
 	// Bind geometry pipeline:
 	vkCmdBindPipeline(commands->command_buffers[image_index],
@@ -248,7 +248,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 
 	// Set framebuffer clear colour:
 	VkClearValue colour_clear_values[1];
-	memset(&colour_clear_values, 0, 1 * sizeof(VkClearValue));
+	memset(colour_clear_values, 0, 1 * sizeof(VkClearValue));
 
 	colour_clear_values[0].color.float32[0] = 0.f;
 	colour_clear_values[0].color.float32[1] = 1.f;

@@ -83,10 +83,10 @@ int check_validation_support(FracRenderVulkanValidation *validation)
 		if (supported != 0)
 		{
 			// Required layer not supported:
+			free(layers);
 			printf("\n");
 			fprintf(stderr, "Error: Required layer \"%s\" not supported!\n",
 							validation->validation_layers[i]);
-			free(layers);
 			return -1;
 		}
 		printf(" Supported.\n");
@@ -129,10 +129,10 @@ int check_validation_support(FracRenderVulkanValidation *validation)
 		if (supported != 0)
 		{
 			// Required extension not supported:
+			free(extensions);
 			printf("\n");
 			fprintf(stderr, "Error: Required extension \"%s\" not supported!\n",
 						validation->validation_extensions[i]);
-			free(extensions);
 			return -1;
 		}
 		printf(" Supported.\n");

@@ -79,6 +79,9 @@ int select_physical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *d
 	if (vkEnumeratePhysicalDevices(base->instance, &num_physical_devices,
 					physical_devices) != VK_SUCCESS)
 	{
+		// Free memory:
+		free(physical_devices);
+
 		fprintf(stderr, "Error: Unable to get physical devices!\n");
 		return -1;
 	}
@@ -99,6 +102,9 @@ int select_physical_device(FracRenderVulkanBase *base, FracRenderVulkanDevice *d
 	// See if a device was selected:
 	if (best_score < 0)
 	{
+		// Free memory:
+		free(physical_devices);
+
 		fprintf(stderr, "Error: No suitable physical device found!\n");
 		return -1;
 	}

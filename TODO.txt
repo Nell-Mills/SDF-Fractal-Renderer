@@ -28,27 +28,29 @@ Maybe try implementing sparse octree again.
 
 Report:
 
+Proofreading				-->
+Final extra proofreading		-->
+
+Extras (like title)			-->
+
+Starting summary			-->
+
+Introduction				-->
+
 Background - 2D fractals		--> Done.
 Background - 3D fractals		--> Done.
-Background - Sphere tracing		-->
+Background - Sphere tracing		--> Done.
 Background - SDF			-->
 Background - Temporal Caching		-->
 
-Implementation - Project Methodology	-->
-Implementation - Vulkan			-->
-Implementation - Mandelbulb		-->
+Implementation - System + Vulkan	--> Done.
+Implementation - Fractals		--> Done.
 Implementation - SDF			-->
+Implementation - Temporal Caching	-->
 Implementation - Performance		-->
+Implementation - Debugging		--> Done.
 
 Evaluation - 3D SDF			-->
 Evaluation - Temporal Caching		-->
 
 Conclusion				-->
-
-Introduction				-->
-
-Abstract (if applicable)		-->
-
-Extras (like title)			-->
-
-Proofreading				-->
