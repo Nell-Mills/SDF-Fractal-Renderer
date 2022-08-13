@@ -43,10 +43,10 @@ void main()
 	fog = pow(fog, 10);
 
 	// Colour using colour function:
-	out_colour = colour_function_hall_of_pillars(position.xyz) + fog;
+	//out_colour = colour_function_hall_of_pillars(position.xyz) + fog;
 
 	// Colour using colour function, with iterations achieved for AO effect:
-	//out_colour = (colour_function_hall_of_pillars(position.xyz) * pow(position.w, 10)) + fog;
+	out_colour = (colour_function_hall_of_pillars(position.xyz) * pow(position.w, 10)) + fog;
 
 	// Colour based on iterations achieved:
 	//out_colour = vec4(vec3(position.w) + fog, 1.f);

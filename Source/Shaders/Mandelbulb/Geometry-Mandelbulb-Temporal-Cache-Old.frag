@@ -53,24 +53,18 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	vec4 current_position = vec4(origin, 1.f);
 	int max_steps = 999;
 	float distance_estimate;
-	float distance_travelled = 0.f;
+	float distance_travelled;
 	float distance_threshold = 0.0001f;
 
 	// Step according to written distance:
 	vec4 distance_sample = texture(u_distance_sampler, in_tex_coord).rgba;
 
-	// See if the camera has moved too much:
-	current_position = vec4(origin + (ray * distance_sample.r), 1.f);
-	if (abs(length(current_position.xyz - distance_sample.gba)) > distance_threshold * 10.f)
-	{
-		// Camera has moved too much, start ray at origin:
-		current_position = vec4(origin, 1.f);
-	}
-	else
-	{
-		// Camera has not moved too much, can skip this:
-		return current_position;
-	}
+	if (abs(distance_sample.r - distance_sample.a) >
+		(min(distance_sample.r, distance_sample.a) * 0.0001f))
+	{ distance_travelled = 0.f; }
+	else { distance_travelled = length(distance_sample) / 4.f; }
+
+	current_position = vec4(origin + (ray * distance_travelled), 1.f);
 
 	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
@@ -90,7 +84,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	}
 
 	// Write out value of distance travelled:
-	out_distance = vec4(distance_travelled, current_position.xyz);
+	out_distance = vec4(distance_travelled, distance_sample.rgb);
 
 	// Return current position along with iterations achieved:
 	return current_position;
