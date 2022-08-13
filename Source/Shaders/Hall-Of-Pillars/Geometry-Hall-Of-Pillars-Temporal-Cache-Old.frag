@@ -59,16 +59,12 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	// Step according to written distance:
 	vec4 distance_sample = texture(u_distance_sampler, in_tex_coord).rgba;
 
-	current_position = vec4(origin + (ray * distance_sample.r), 1.f);
-	if (abs(length(current_position.xyz) - distance_sample.b) > (distance_sample.b* 0.5f)) {
-		current_position = vec4(origin, 1.f);
-	}
-	else
-	{
-		return current_position;
-		distance_estimate = distance_sample.r;
-		current_position = vec4(origin + (ray * distance_estimate), 1.f);
-	}
+	if (abs(distance_sample.r - distance_sample.a) >
+		(min(distance_sample.r, distance_sample.a) * 0.0001f))
+	{ distance_travelled = 0.f; }
+	else { distance_travelled = length(distance_sample) / 4.f; }
+
+	current_position = vec4(origin + (ray * distance_travelled), 1.f);
 
 	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
@@ -88,7 +84,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	}
 
 	// Write out value of distance travelled:
-	out_distance = vec4(distance_travelled, vec3(length(current_position.xyz)));
+	out_distance = vec4(distance_travelled, distance_sample.rgb);
 
 	// Return current position along with iterations achieved:
 	return current_position;
