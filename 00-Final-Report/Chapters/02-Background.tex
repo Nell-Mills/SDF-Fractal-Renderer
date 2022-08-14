@@ -184,8 +184,23 @@ Papers:
 
 \section{Temporal Caching} \label{section:temporal-caching}
 
-Papers:
-\begin{itemize}
-	\item Instant caching for interactive global illumination \cite{debattista2009instant}.
-	\item Foveated real-time ray tracing for head-mounted displays \cite{weier2016foveated}.
-\end{itemize}
+\begin{figure} [ht]
+	\centering
+	\includegraphics[width=0.75\linewidth, frame]{Images/Sphere-Tracing-Bottleneck.png}
+	\caption{A particular scenario in sphere tracing, where the ray passes close to some geometry, but never intersects. This slows the ray down and results in a loss of performance.}
+	\label{figure:sphere-tracing-bottleneck}
+\end{figure}
+
+Temporal caching methods rely on the idea that the contents of an image don't change much from frame to frame; they are temporally coherent. With this in mind, a possible performance booster can be implemented for ray tracing, which uses information (such as colours, lighting data or positions) from previous states to speed up or provide a hint for calculations in the current frame \cite{cosenza2008estimating}.\newline
+
+Taking advantage of temporal coherence in ray tracing is of special interest in the case of global illumination data, which is very expensive to calculate. In order to maintain spatial coherence between frames, methods often perform temporal reprojection, which maps the location of the point on the surface from the current frame to the previous frame, so that it samples from similar areas in the scene \cite{scherzer2012temporal}.\newline
+
+In the context of this paper, the information required to render the scene is the distance travelled by each ray. For a still image (no camera movement), the result of the last frame can be sampled and used again exactly the same in the next frame, skipping all sphere tracing iterations. Of course for real time rendering, an image is likely to change, either because of moving geometry, or camera changes.\newline
+
+Consider the scenario in which a ray travels through a room, hitting the back wall. In the next frame, the camera has moved, and the same ray now intersects a closer object, say a chair. However, the sampled distance from the previous frame already places the point behind the chair, rendering the chair invisible. This is not a problem if the current true distance is greater than the previous, as the sphere tracing algorithm can be used to march along the ray further with no loss of accuracy, and in fact potential gains in performance. The method used in this project needs to take this problem into account, since the camera position and rotation will change.\newline
+
+One scenario of interest in this paper is illustrated in figure \ref{figure:sphere-tracing-bottleneck}. The ray passes very close to the surface of the shape along its path, but never intersects that part of the shape. This results in smaller steps for the sphere tracing algorithm, and a loss of performance, as a significant number of iterations are expended getting past the bottleneck in the scene. This paper proposes that a temporal caching method could be employed that provides a significant performance boost by bypassing the bottlenecks in these scenarios.\newline
+
+The reconstruction of surface positions from previous frames will not be done in this project. This is because the relative expense of the signed distance calculations compared to global illumination ray tracing is tiny. Reprojection itself has an overhead, and the technique would require storing position data, and possibly ray data as well, and sampling during the render pass, which may result in a performance loss, rather than gain.\newline
+
+Determining whether a pixel value is invalid can be done in a few ways. For example, testing the angle between the normal of the previous frame and the current ray, and recasting the ray if the angle exceeds some threshold. It could also be done by comparing the depth of previous frames with the depth of the current frame, though this would likely work better for mesh geometry, as it requires knowing the exact depth in the current frame, the calculation of which this project is trying to avoid \cite{weier2016foveated}.

@@ -59,10 +59,21 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	// Step according to written distance:
 	vec4 distance_sample = texture(u_distance_sampler, in_tex_coord).rgba;
 
-	if (abs(distance_sample.r - distance_sample.a) >
-		(min(distance_sample.r, distance_sample.a) * 0.0001f))
-	{ distance_travelled = 0.f; }
-	else { distance_travelled = length(distance_sample) / 4.f; }
+	float distance_min = min(min(min(distance_sample.r, distance_sample.g),
+					distance_sample.b), distance_sample.a);
+
+	float distance_max = max(max(max(distance_sample.r, distance_sample.g),
+					distance_sample.b), distance_sample.a);
+
+	// Check for excess camera movement, scaled by how far away the point is:
+	if (abs(distance_max - distance_min) > (distance_min * 0.0001f))
+	{
+		distance_travelled = 0.f;
+	}
+	else
+	{
+		distance_travelled = distance_min * 0.9f;
+	}
 
 	current_position = vec4(origin + (ray * distance_travelled), 1.f);
 

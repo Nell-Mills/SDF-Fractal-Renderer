@@ -137,11 +137,20 @@ Centered around camera - Hall of Pillars?
 
 \section{Temporal Caching}
 
-Single image - memory of 4 previous frames.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/Distance-Test.png}
+	\caption{Test to determine if a pixel is invalid and the ray needs recasting.}
+	\label{figure:distance-test}
+\end{figure}
 
-Why did I choose length / 4? Be more scientific about it.
+The data chosen to persist across frames was the true distance travelled by the ray. The aim of this optimization method was to reduce the number of iterations in certain areas of the image, especially edges and holes, so just storing the first distance estimate was not the solution. In order to preserve depth data for multiple frames, a texture image with red, green, blue and alpha floating-point components was chosen. With this, the data for the last four frames was stored.\newline
 
-Talk about how you dealt with movement - temporal reprojection? Wanted to deal with the specific scenario where the distance recorded is greater than the true distance. My method relies on the landscape not being smooth, so these changes happen often. Maybe find another method.
+Alternative data was experimented with as well, such as end position, end distance estimate and the first distance estimate along the ray that was below a certain threshold. The end position was intended to help reveal if the end pixel location had moved too much, invalidating the data. To do this, the stored estimate was used to march the point along the ray for the current frame. The magnitude of the difference between the end position for the last and current frames was then used to determine validity. The end distance estimate was used for the same purpose, but allowed data to be stored for two previous frames, as opposed to just one. The reasoning behind only using one texture image was that sampling a texture requires an overhead that quickly builds up, so storing too much data may offset any performance benefit.\newline
+
+The first distance estimate along the ray was intended to help determine if the current ray was close to an edge. As mentioned in section \ref{section:temporal-caching}, if some geometry occluded the ray, and the distance stored was greater than the distance to that geometry, artefacts would appear. A test was performed that would determine the risk that this had happened, based on the stored distance to an edge.\newline
+
+In the end, storing the true distance travelled for the last four frames worked the best for performance and for artefacts. The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.
 
 \section{Performance Measurement}
 

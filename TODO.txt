@@ -7,7 +7,7 @@ Set up flythrough animation (just one)	--> Almost done.
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
 Set up measurements for flythrough	-->
-Investigate why warm up isn't working	-->
+Investigate why warm up isn't working	--> Wrong, it is working.
 
 ----------------------------------------------------------------------------------------------------
 
@@ -41,12 +41,12 @@ Background - 2D fractals		--> Done.
 Background - 3D fractals		--> Done.
 Background - Sphere tracing		--> Done.
 Background - SDF			-->
-Background - Temporal Caching		-->
+Background - Temporal Caching		--> Done.
 
 Implementation - System + Vulkan	--> Done.
 Implementation - Fractals		--> Done.
 Implementation - SDF			-->
-Implementation - Temporal Caching	-->
+Implementation - Temporal Caching	--> Done.
 Implementation - Performance		-->
 Implementation - Debugging		--> Done.
 
