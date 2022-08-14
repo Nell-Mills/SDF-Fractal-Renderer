@@ -14,7 +14,9 @@ void update_animation_none(FracRenderProgramState *program_state)
 // Fly through Hall of Pillars:
 void update_animation_flythrough(FracRenderProgramState *program_state)
 {
-	int num_key_frames = 23;
+	// Total of 6000 frames here.
+
+	int num_key_frames = 25;
 
 	uint64_t key_frames[] = {
 		0,	//  0. Start.
@@ -36,10 +38,12 @@ void update_animation_flythrough(FracRenderProgramState *program_state)
 		200,	// 16. Level out.
 		300,	// 17. Move forward. Green archway.
 		200,	// 18. Turn right.
-		750,	// 19. Move forward.
-		150,	// 20. Go towards balls.
-		150,	// 21. Go into more tunnels.
-		250	// 22. Into round room.
+		200,	// 19. Turn right.
+		1000,	// 20. Move extra slowly forward back to orange archway.
+		100,	// 21. Start moving up into archway.
+		100,	// 22. "Aim towards that".
+		100,	// 23. "And that".
+		100	// 24. Go small.
 	};
 
 	uint64_t total_frames = 0;
@@ -66,10 +70,12 @@ void update_animation_flythrough(FracRenderProgramState *program_state)
 		initialize_vector_3(-2415.f, -1875.f, 6865.f),
 		initialize_vector_3(-5585.f, -1777.f, 6888.f),
 		initialize_vector_3(-6780.f, -1777.f, 5165.f),
-		initialize_vector_3(-6825.f, -1777.f, -10775.f),
-		initialize_vector_3(-5945.f, -1565.f, -17690.f),
-		initialize_vector_3(-6140.f, -1855.f, -27100.f),
-		initialize_vector_3(-9900.f, -2050.f, -30970.f)
+		initialize_vector_3(-6720.f, -1777.f, 4200.f),
+		initialize_vector_3(1715.f, -1777.f, 4200.f),
+		initialize_vector_3(1370.f, -2222.f, 4280.f),
+		initialize_vector_3(2000.f, -3120.f, 3400.f),
+		initialize_vector_3(2210.f, -3465.f, 2950.f),
+		initialize_vector_3(2490.f, -3625.f, 2700.f)
 	};
 
 	FracRenderVector3 key_fronts[] = {
@@ -92,10 +98,12 @@ void update_animation_flythrough(FracRenderProgramState *program_state)
 		normalize(initialize_vector_3(-1.f, 0.f, 0.f)),
 		normalize(initialize_vector_3(-1.f, 0.f, 0.f)),
 		normalize(initialize_vector_3(0.f, 0.f, -1.f)),
-		normalize(initialize_vector_3(0.f, 0.f, -1.f)),
-		normalize(initialize_vector_3(0.5f, 0.f, -0.85f)),
-		normalize(initialize_vector_3(-0.125, 0.f, -1.f)),
-		normalize(initialize_vector_3(-0.7f, 0.f, -0.7f))
+		normalize(initialize_vector_3(1.f, 0.f, 0.f)),
+		normalize(initialize_vector_3(1.f, 0.f, 0.f)),
+		normalize(initialize_vector_3(0.5f, -0.75f, -0.5f)),
+		normalize(initialize_vector_3(0.45f, -0.6f, -0.65f)),
+		normalize(initialize_vector_3(0.7f, -0.35f, -0.65f)),
+		normalize(initialize_vector_3(0.9f, -0.15f, 0.4f))
 	};
 
 	// Update the animation:

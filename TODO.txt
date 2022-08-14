@@ -2,12 +2,16 @@ Coding:
 
 Finish handle printing function		-->
 
-Set up flythrough animation (just one)	--> Almost done.
+Set up flythrough animation (just one)	--> Done.
 
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
 Set up measurements for flythrough	-->
 Investigate why warm up isn't working	--> Wrong, it is working.
+
+Go back to SDF around Mandelbulb + hybrid approach where you search through SDF until the cube
+index stops changing, then go to normal distance measurement. This is probably the best approach.
+Don't have the ray culling step, but do have the step with the ray-cube intersection and march.
 
 ----------------------------------------------------------------------------------------------------
 
