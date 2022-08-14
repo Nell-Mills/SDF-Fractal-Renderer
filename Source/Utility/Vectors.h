@@ -45,6 +45,9 @@ FracRenderVector3 multiply_vector_3_scalar(FracRenderVector3 vector, float scala
 // Add one vector to another:
 FracRenderVector3 add_vector_3(FracRenderVector3 vector_1, FracRenderVector3 vector_2);
 
+// Subtract one vector from another:
+FracRenderVector3 subtract_vector_3(FracRenderVector3 vector_1, FracRenderVector3 vector_2);
+
 // Clamp a vector to certain values:
 FracRenderVector3 clamp_vector_3(FracRenderVector3 vector, FracRenderVector3 clamp_min,
 							FracRenderVector3 clamp_max);

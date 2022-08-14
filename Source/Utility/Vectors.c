@@ -113,6 +113,17 @@ FracRenderVector3 add_vector_3(FracRenderVector3 vector_1, FracRenderVector3 vec
 	return result;
 }
 
+// Subtract one vector from another:
+FracRenderVector3 subtract_vector_3(FracRenderVector3 vector_1, FracRenderVector3 vector_2)
+{
+	FracRenderVector3 result;
+	result.x = vector_1.x - vector_2.x;
+	result.y = vector_1.y - vector_2.y;
+	result.z = vector_1.z - vector_2.z;
+
+	return result;
+}
+
 // Clamp a vector to certain values:
 FracRenderVector3 clamp_vector_3(FracRenderVector3 vector, FracRenderVector3 clamp_min,
 							FracRenderVector3 clamp_max)
