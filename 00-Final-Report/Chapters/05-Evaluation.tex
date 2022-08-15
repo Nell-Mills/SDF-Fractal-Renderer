@@ -1,0 +1,32 @@
+\chapter{Evaluation}
+\label{chapter5}
+
+\section{3D SDF}
+
+\subsection{Mandelbulb}
+
+\subsection{Hall of Pillars}
+
+\section{2D SDF}
+
+\subsection{Mandelbulb}
+
+\subsection{Hall of Pillars}
+
+Show four images:
+\begin{itemize}
+	\item Top-Left: No SDF, no movement.
+	\item Bottom-Left: No SDF, movement.
+	\item Top-Right: 2D SDF, no movement.
+	\item Bottom-Right: 2D SDF, movement.
+\end{itemize}
+
+Use these to demonstrate that the performance benefits only exist for still images generally.
+
+Also, have an image of the 2D SDF with movement and no checks for changes in distance travelled - show artefacts and performance. Explain that if you want a performance boost all the time, you need to put up with these artefacts.
+
+In "further work", maybe could say that it would be great to find a different method of removing artefacts without removing performance benefits of SDF. Mention that you tried sampling from an area but it was wobbly, and mention that adding a small decay didn't work either because of the difference in depth between the closer and farther parts of the image, and the performance benefit comes from skipping the edges anyway.
+
+Would have to find a way of detecting these artefacts and removing them.
+
+Include results separately for having the second timestamp before and after the image copying. Remark that the shader execution time is significantly smaller but that the copying offsets that. Also investigate why on earth the framerate is so much better, but the timestamps don't reflect this...

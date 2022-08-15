@@ -24,9 +24,17 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 	scene_uniform->x_axis = multiply_vector_3_scalar(scene_uniform->x_axis,
 						scene_uniform->aspect_ratio);
 
-	// Get fractal parameter if animation is on:
+	// Stop here if no animation:
 	if (program_state->animation == 0) { return; }
-	scene_uniform->fractal_parameter += program_state->delta_t * 0.1f *
+
+	// Determine speed of animation based on fractal type:
+	float scale;
+	if (program_state->fractal_type == 0) { scale = 0.1f; }
+	else if (program_state->fractal_type == 1) { scale = 0.005f; }
+	else { scale = 0.01f; }
+
+	// Get new fractal parameter:
+	scene_uniform->fractal_parameter += program_state->delta_t * scale *
 					(float)(program_state->animation);
 
 	// Check fractal parameter limits:

@@ -76,14 +76,14 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 float distance_estimator_hall_of_pillars(vec3 position)
 {
         vec3 z = position.xzy;
-        float scale = 1.f;
+        float scale = max(0.1f, u_scene.fractal_parameter - 1.f);
         vec3 size_clamp = vec3(1.f, 1.f, 1.3f);
 
         for (int i = 0; i < 12; i++)
         {
-                z = (2.f * clamp(z, -size_clamp, size_clamp)) - z;
+                z = (u_scene.fractal_parameter * clamp(z, -size_clamp, size_clamp)) - z;
                 float r2 = dot(z, z);
-                float k = max(2.f / r2, 0.027f);
+                float k = max(u_scene.fractal_parameter / r2, 0.027f);
                 z *= k;
                 scale *= k;
         }

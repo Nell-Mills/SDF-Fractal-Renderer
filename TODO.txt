@@ -2,27 +2,21 @@ Coding:
 
 Finish handle printing function		-->
 
-Set up flythrough animation (just one)	--> Done.
-
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
 Set up measurements for flythrough	-->
-Investigate why warm up isn't working	--> Wrong, it is working.
 
 Go back to SDF around Mandelbulb + hybrid approach where you search through SDF until the cube
 index stops changing, then go to normal distance measurement. This is probably the best approach.
 Don't have the ray culling step, but do have the step with the ray-cube intersection and march.
+
+					-->
 
 ----------------------------------------------------------------------------------------------------
 
 Coding if time:
 
 See if performance differences vary with resolution (apart from scaling proportionally).
-
-3D SDF moving with camera.
-3D SDF around Mandelbulb - do culling optimizations for main cube in ALL shaders.
-About above, do a single sample, also try getting as close to the surface as possible, then
-moving on to the regular distance function.
 
 Get rid of image copy - instead, swap G-Buffer image and texture image every frame.
 
@@ -53,6 +47,9 @@ Implementation - SDF			-->
 Implementation - Temporal Caching	--> Done.
 Implementation - Performance		-->
 Implementation - Debugging		--> Done.
+
+Results - 3D SDF			-->
+Results - Temporal Caching		-->
 
 Evaluation - 3D SDF			-->
 Evaluation - Temporal Caching		-->

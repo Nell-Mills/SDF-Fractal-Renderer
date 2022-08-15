@@ -50,9 +50,11 @@ void main()
 
 vec4 colour_function_mandelbrot(vec3 position)
 {
+	// Actually a Mandelbulb colouring function, but looks nice.
+
         int max_iterations = 4;
         float escape_radius = 2.f;
-        float parameter = u_scene.fractal_parameter;
+        float parameter = 8.f;
 
         vec3 z = position;      // Z = Z^2 + C.
         float dr = 1.f;

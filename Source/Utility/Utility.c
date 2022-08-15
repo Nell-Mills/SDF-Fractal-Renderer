@@ -118,11 +118,19 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of pillars:
-		program_state->position	= initialize_vector_3(25.f, 20.f, 9.f);
-		program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+		if (program_state->animation == 0)
+		{
+			program_state->position	= initialize_vector_3(25.f, 20.f, 9.f);
+			program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+		}
+		else
+		{
+			program_state->position	= initialize_vector_3(-1250.f, -1700.f, -1400.f);
+			program_state->front	= normalize(initialize_vector_3(0.9f, 0.f, 0.5f));
+		}
 
-		program_state->fractal_parameter_min	= 2.f;
-		program_state->fractal_parameter_max	= 16.f;
+		program_state->fractal_parameter_min	= 1.5f;
+		program_state->fractal_parameter_max	= 2.4f;
 	}
 	else
 	{
@@ -130,8 +138,8 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		program_state->position	= initialize_vector_3(0.25f, 0.f, 0.f);
 		program_state->front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
 
-		program_state->fractal_parameter_min	= 2.f;
-		program_state->fractal_parameter_max	= 16.f;
+		program_state->fractal_parameter_min	= -0.75f;
+		program_state->fractal_parameter_max	= 0.75f;
 	}
 
 	// Set up other initial values for program state:
@@ -176,13 +184,13 @@ void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of Pillars:
-		scene_uniform->fractal_parameter = 8.f;
+		scene_uniform->fractal_parameter = 2.f;
 		scene_uniform->view_distance = 16384.f;
 	}
 	else
 	{
 		// 2D Mandelbrot set:
-		scene_uniform->fractal_parameter = 8.f;
+		scene_uniform->fractal_parameter = 0.f;
 		scene_uniform->view_distance = 0.f;
 	}
 }

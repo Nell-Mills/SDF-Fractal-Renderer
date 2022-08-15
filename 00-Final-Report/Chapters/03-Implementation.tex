@@ -137,12 +137,7 @@ Centered around camera - Hall of Pillars?
 
 \section{Temporal Caching}
 
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=0.65\linewidth, frame]{Images/Distance-Test.png}
-	\caption{Test to determine if a pixel is invalid and the ray needs recasting.}
-	\label{figure:distance-test}
-\end{figure}
+\subsection{Data to Cache}
 
 The data chosen to persist across frames was the true distance travelled by the ray. The aim of this optimization method was to reduce the number of iterations in certain areas of the image, especially edges and holes, so just storing the first distance estimate was not the solution. In order to preserve depth data for multiple frames, a texture image with red, green, blue and alpha floating-point components was chosen. With this, the data for the last four frames was stored.\newline
 
@@ -150,7 +145,18 @@ Alternative data was experimented with as well, such as end position, end distan
 
 The first distance estimate along the ray was intended to help determine if the current ray was close to an edge. As mentioned in section \ref{section:temporal-caching}, if some geometry occluded the ray, and the distance stored was greater than the distance to that geometry, artefacts would appear. A test was performed that would determine the risk that this had happened, based on the stored distance to an edge.\newline
 
-In the end, storing the true distance travelled for the last four frames worked the best for performance and for artefacts. The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.\newline
+In the end, storing the true distance travelled for the last four frames worked the best for performance and for artefacts.
+
+\subsection{Camera Movement}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/Distance-Test.png}
+	\caption{Test to determine if a pixel is invalid and the ray needs recasting.}
+	\label{figure:distance-test}
+\end{figure}
+
+The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.\newline
 
 The distance values were written to the G-Buffer for the first render pass. Every frame, the values were shifted one place to the right, discarding the last (alpha) value each time, and the new value was written to the first slot. After the render pass, the G-Buffer image was the copied over to a texture image, ready for sampling from during the next frame. Each pixel only sampled from its own position in the texture. It could be possible to do a kind of edge detection based on the depth values in neighbouring pixels, but this was deemed too expensive.
 

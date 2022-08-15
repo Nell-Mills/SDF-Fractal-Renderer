@@ -49,30 +49,29 @@ vec2 square_complex(vec2 complex_number)
 {
 	vec2 result;
 	result.x = (complex_number.x * complex_number.x) - (complex_number.y * complex_number.y);
-	result.y = complex_number.x * complex_number.y * 2.0;
+	result.y = complex_number.x * complex_number.y * 2.f;
 
 	return result;
 }
 
 float mandelbrot_2d(vec4 pixel_location)
 {
+	float y_mult;
+	if (pixel_location.y < 0.f) { y_mult = -1.f; }
+	else { y_mult = 1.f; }
+
 	// Equation: z = z^2 + c
-	vec2 z = vec2(0.0, 0.0);
+	vec2 z = vec2(u_scene.fractal_parameter, u_scene.fractal_parameter * y_mult);
 	vec2 c = vec2(pixel_location.x, pixel_location.y);
 
 	int iterations_achieved = 0;
 	int max_iterations = 500;
-	float threshold_value = 2.0;
+	float threshold_value = 2.f;
 
 	for (int i = 0; i < max_iterations; i++)
 	{
 		z = square_complex(z) + c;
-
-		if (length(z) > threshold_value)
-		{
-			break;
-		}
-
+		if (length(z) > threshold_value) { break; }
 		iterations_achieved++;
 	}
 

@@ -62,13 +62,13 @@ vec4 colour_function_hall_of_pillars(vec3 position)
 
 	for (int i = 0; i < 5; i++)
 	{
-		vec3 z1 = (2.f * clamp(z, -size_clamp, size_clamp)) - z;
+		vec3 z1 = (u_scene.fractal_parameter * clamp(z, -size_clamp, size_clamp)) - z;
 		colour.x += abs(z.x - z1.z);
 		colour.y += abs(z.y - z1.x);
 		colour.z += abs(z.z + z1.y);
 		z = z1;
 		r2 = dot(z, z);
-		float k = max(2.f / r2, 0.027f);
+		float k = max(u_scene.fractal_parameter / r2, 0.027f);
 		z *= k;
 	}
 

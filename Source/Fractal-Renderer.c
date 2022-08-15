@@ -31,8 +31,8 @@ int main(int argc, char **argv)
 	}
 
 	// Animation function (choose none for no animation):
-	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
-	void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
+	void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
+	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
 
 	// Initialize program state:
 	FracRenderProgramState program_state;

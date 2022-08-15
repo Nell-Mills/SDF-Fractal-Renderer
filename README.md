@@ -1,15 +1,15 @@
 # SDF-Fractal-Renderer
 Rendering of 3D fractals, making use of either a Signed Distance Field or Temporal Caching.
 
-# Operating System:
+# Operating System
 Known to compile and run on Linux Mint 20.1. Written for Linux.
 
-# Libraries:
+# Libraries
 Need to install GLFW 3:
 
 sudo apt install libglfw3-dev
 
-# Compilation:
+# Compilation
 Run either:
 
 Make debug  
@@ -17,7 +17,7 @@ Make release
 
 Debug build has Vulkan validation layers enabled.
 
-# Arguments:
+# Arguments
 1. Type of fractal.  
 Default	-1 --> 2D Mandelbrot set.  
 	 0 --> Mandelbulb.  
