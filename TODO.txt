@@ -4,7 +4,7 @@ Finish handle printing function		-->
 
 Choose representative views		-->
 Performance measurements		--> Got method, need data.
-Set up measurements for flythrough	-->
+Set up measurements for flythrough	--> Fix this.
 
 Go back to SDF around Mandelbulb + hybrid approach where you search through SDF until the cube
 index stops changing, then go to normal distance measurement. This is probably the best approach.

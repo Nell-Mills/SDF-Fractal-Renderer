@@ -32,7 +32,7 @@ layout (set = 1, binding = 0) uniform sampler2D u_position_sampler;
 layout (location = 0) out vec4 out_colour;
 
 // Function prototypes:
-vec4 colour_function_mandelbrot(vec3 position);
+vec4 colour_function_mandelbulb(vec3 position);
 
 void main()
 {
@@ -41,18 +41,16 @@ void main()
 	// Special colouring for Mandelbrot 2D iterations:
 	//if (position.w < 0.f) { out_colour = vec4(1.f, 0.f, 1.f, 1.f); return; }
 
-	// Colour using colour function:
-	out_colour = colour_function_mandelbrot(position.xyz);
+	// Colour using colour function (Mandelbulb, from Chapter 33 of Ray Tracing Gems II):
+	out_colour = colour_function_mandelbulb(vec3(position.w));
 
 	// Colour based on iterations achieved:
 	//out_colour = vec4(vec3(position.w), 1.f);
 }
 
-vec4 colour_function_mandelbrot(vec3 position)
+vec4 colour_function_mandelbulb(vec3 position)
 {
-	// Actually a Mandelbulb colouring function, but looks nice.
-
-        int max_iterations = 4;
+	int max_iterations = 4;
         float escape_radius = 2.f;
         float parameter = 8.f;
 

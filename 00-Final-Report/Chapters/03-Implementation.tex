@@ -7,7 +7,7 @@ In terms of general optimizations, there were no specific efforts to optimize th
 
 \section{Operating System and Hardware}
 
-The operating system used was Linux Mint 20.1. The project compiles on Linux using Make. Considering that the project was written in C, it is likely very portable (as long as the system can use Vulkan as well), but compilation on other operating systems has not been tested, and may require changes to the method of compilation.\newline
+The operating system used was Linux Mint 20.1. No other operating system was tested.\newline
 
 The CPU used was an Intel\copyright Core$^{TM}$ i7-9750H with 6 cores.
 
@@ -16,6 +16,10 @@ The GPU used was an NVIDIA TU106M (GeForce RTX 2060 Mobile).
 The Vulkan version being used was 1.3.205.
 
 \section{Program Structure and Libraries}
+
+\subsection{Build System}
+
+The build system chosen was Make. The project is small in terms of the code base so writing a Makefile for compilation was simple. A shell script was also written, and run from Make, that used GLSLC to compile the shaders and place them in the appropriate directories. GLSLC is licensed under the Apache License Version 2.0 \cite{licensing-glslc}.
 
 \subsection{Language and Libraries Used}
 
@@ -120,12 +124,12 @@ For the Hall of Pillars fractal, the colour was obtained in each iteration by ge
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.65\linewidth, frame]{Images/Ambient-Occlusion.png}
-	\caption{Rendering of the Hall of Pillars fractal, coloured based on the number of iterations achieved before reaching the surface.}
+	\includegraphics[width=\linewidth, frame]{Images/Ambient-Occlusion.png}
+	\caption{Rendering of the Hall of Pillars fractal (left) and Mandelbulb (right), coloured based on the number of iterations achieved before reaching the surface.}
 	\label{figure:ambient-occlusion}
 \end{figure}
 
-One of the consequences of using sphere tracing of signed distance functions is that it gives an estimate of the complexity of the surface. If a point takes more iterations to reach, then it's likely in a more complex area, and will be occluded. For both fractals in the project, the final colour is multiplied by a value between zero and one, based on the number of iterations achieved before reaching the surface. Figure \ref{figure:ambient-occlusion} shows the Hall of Pillars fractal, coloured purely based on the number of iterations.\newline
+One of the consequences of using sphere tracing of signed distance functions is that it gives an estimate of the complexity of the surface. If a point takes more iterations to reach, then it's likely in a more complex area, and will be occluded. For both fractals in the project, the final colour is multiplied by a value between zero and one, based on the number of iterations achieved before reaching the surface. Figure \ref{figure:ambient-occlusion} shows renderings of the fractals used in this project, coloured purely based on the number of iterations.\newline
 
 This free ambient occlusion effect also gives an informal measure of performance. Brighter areas mean less iterations, so two identical views can be compared which are using different optimization methods, to see if one performs better in terms of the number of iterations. Since this was the aim of using temporal caching, this was used as a measure of performance, in addition to render pass timings.
 
@@ -145,7 +149,11 @@ Alternative data was experimented with as well, such as end position, end distan
 
 The first distance estimate along the ray was intended to help determine if the current ray was close to an edge. As mentioned in section \ref{section:temporal-caching}, if some geometry occluded the ray, and the distance stored was greater than the distance to that geometry, artefacts would appear. A test was performed that would determine the risk that this had happened, based on the stored distance to an edge.\newline
 
-In the end, storing the true distance travelled for the last four frames worked the best for performance and for artefacts.
+In the end, storing the true distance travelled for the last four frames was the most effective in terms of performance and artefacts.
+
+\subsection{Image Sampling}
+
+The distance values were written to the G-Buffer for the first render pass. Every frame, the values were shifted one place to the right, discarding the last (alpha) value each time, and the new value was written to the first slot. After the render pass, the G-Buffer image was the copied over to a texture image, ready for sampling from during the next frame. Each pixel only sampled from its own position in the texture. It could be possible to do a kind of edge detection based on the depth values in neighbouring pixels, but this was deemed too expensive.
 
 \subsection{Camera Movement}
 
@@ -156,9 +164,20 @@ In the end, storing the true distance travelled for the last four frames worked 
 	\label{figure:distance-test}
 \end{figure}
 
-The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.\newline
+The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.
 
-The distance values were written to the G-Buffer for the first render pass. Every frame, the values were shifted one place to the right, discarding the last (alpha) value each time, and the new value was written to the first slot. After the render pass, the G-Buffer image was the copied over to a texture image, ready for sampling from during the next frame. Each pixel only sampled from its own position in the texture. It could be possible to do a kind of edge detection based on the depth values in neighbouring pixels, but this was deemed too expensive.
+\subsection{Artefacts}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/Hall-Of-Pillars-Artefacts.png}
+	\caption{Artefacts generated in a render of the Hall of Pillars fractal, by slow sideways movement, at different pixel invalidation thresholds.}
+	\label{figure:hall-of-pillars-artefacts}
+\end{figure}
+
+The method for determining pixel invalidity was, unfortunately, not perfect. A balance had to be struck between maintaining a performance boost during camera movement, and reducing artefacts associated with overshooting the true distance. Particularly, since the method chosen relied on the fractal landscape changing in depth, when there were particularly smooth sections (such as when rays were hitting the view distance threshold), more artefacts appeared. Changing the threshold at which pixels are declared invalid can be done to balance artefacts and performance. Figure \ref{figure:hall-of-pillars-artefacts} shows how the severity of the artefacts varies with this threshold. It ranges from near-perfect (bottom image) to unacceptable degeneration of the scene (top image).\newline
+
+The artefacts in figure \ref{figure:hall-of-pillars-artefacts} were triggered by slow, sideways movement and no camera rotation. The scene was chosen because of the large portion that was outside the allowed view distance, the presence of flat areas within view range, and the large number of edges at different view distances. The value for the threshold settled on was 0.0001, as shown in the centre image. This image represents a worst-case scenario for this particular scene at the different thresholds. The movement employed to get these artefacts to appear was rather specific, and unnatural for a lot of use cases, such as a game or fractal exploration animation. This is why the threshold chosen was deemed acceptable for use in this project. Any more relaxed and artefacts began to appear during more `natural' movement. Any less relaxed, and the performance benefits were lost during any sort of movement.
 
 \section{Performance Measurement}
 

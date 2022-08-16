@@ -89,15 +89,17 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	}
 	if (argc > 3)
 	{
-		// Parameter "animation". 0 = No animation, -1 = Backwards, 1 = Forwards;
+		// Animation. 0 = No animation, -1 = Backwards, 1 = Forwards, 2 = Special.
 		if (argv[3][0] == '0') { program_state->animation = 0; }
 		else if (argv[3][0] == '1') { program_state->animation = 1; }
+		else if (argv[3][0] == '2') { program_state->animation = 2; }
 		else { program_state->animation = -1; }
 	}
 	if (argc > 4)
 	{
-		// Performance measurements. -1 = No measurements, 0 = Measurements.
+		// Performance. -1 = No measurements, 0 = One-Shot, 1 = Multiple.
 		if (argv[4][0] == '0') { program_state->performance = 0; }
+		else if (argv[4][0] == '1') { program_state->performance = 1; }
 	}
 
 	// Get performance file name:
@@ -109,37 +111,43 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	if (program_state->fractal_type == 0)
 	{
 		// Mandelbulb:
-		program_state->position	= initialize_vector_3(0.f, -2.f, -4.f);
-		program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+		program_state->position = initialize_vector_3(0.f, -2.f, -4.f);
+		program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 
-		program_state->fractal_parameter_min	= 2.f;
-		program_state->fractal_parameter_max	= 16.f;
+		program_state->fractal_parameter_min = 2.f;
+		program_state->fractal_parameter_max = 16.f;
 	}
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of pillars:
-		if (program_state->animation == 0)
+		if (program_state->animation > -1)
 		{
-			program_state->position	= initialize_vector_3(25.f, 20.f, 9.f);
-			program_state->front	= normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+			// Normal/flythrough:
+			program_state->position = initialize_vector_3(25.f, 20.f, 9.f);
+			program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+			// Used for artefact viewing:
+			//program_state->position = initialize_vector_3(560.f, -1885.f, 4180.f);
+			//program_state->front = normalize(initialize_vector_3(1.f, 0.f, 0.f));
 		}
 		else
 		{
-			program_state->position	= initialize_vector_3(-1250.f, -1700.f, -1400.f);
-			program_state->front	= normalize(initialize_vector_3(0.9f, 0.f, 0.5f));
+			// Position allows camera to be enclosed in shrinking room:
+			program_state->position = initialize_vector_3(-1250.f, -1700.f, -1400.f);
+			program_state->front = normalize(initialize_vector_3(0.9f, 0.f, 0.5f));
 		}
 
-		program_state->fractal_parameter_min	= 1.5f;
-		program_state->fractal_parameter_max	= 2.4f;
+		program_state->fractal_parameter_min = 1.5f;
+		program_state->fractal_parameter_max = 2.4f;
 	}
 	else
 	{
 		// 2D Mandelbrot set:
-		program_state->position	= initialize_vector_3(0.25f, 0.f, 0.f);
-		program_state->front	= normalize(initialize_vector_3(0.f, 0.f, 1.f));
+		program_state->position = initialize_vector_3(0.25f, 0.f, 0.f);
+		program_state->front = normalize(initialize_vector_3(0.f, 0.f, 1.f));
 
-		program_state->fractal_parameter_min	= -0.75f;
-		program_state->fractal_parameter_max	= 0.75f;
+		program_state->fractal_parameter_min = -0.75f;
+		program_state->fractal_parameter_max = 0.75f;
 	}
 
 	// Set up other initial values for program state:
@@ -150,6 +158,7 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	program_state->frames			= 0;
 	program_state->frame_time		= 0.0;
 	program_state->animation_frames		= 0;
+	program_state->max_animation_frames	= 0;
 	program_state->base_movement_speed	= 1.5f;
 	program_state->mouse_sensitivity	= 7.5f;
 }
@@ -488,7 +497,7 @@ int set_up_vulkan(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
 	}
 
 	// Set up performance measuring structures:
-	if (program_state->performance == 0)
+	if (program_state->performance > -1)
 	{
 		if (initialize_vulkan_performance(device, swapchain, performance) != 0)
 		{

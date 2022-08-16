@@ -22,4 +22,7 @@ void update_animation_none(FracRenderProgramState *program_state);
 // Fly through Hall of Pillars:
 void update_animation_flythrough(FracRenderProgramState *program_state);
 
+// Slowly slide to show artefacts:
+void update_animation_artefacts(FracRenderProgramState *program_state);
+
 #endif

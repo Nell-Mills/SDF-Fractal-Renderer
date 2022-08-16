@@ -25,13 +25,13 @@ void update_scene_uniform(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 						scene_uniform->aspect_ratio);
 
 	// Stop here if no animation:
-	if (program_state->animation == 0) { return; }
+	if ((program_state->animation != 1) && (program_state->animation != -1)) { return; }
 
 	// Determine speed of animation based on fractal type:
 	float scale;
 	if (program_state->fractal_type == 0) { scale = 0.1f; }
-	else if (program_state->fractal_type == 1) { scale = 0.005f; }
-	else { scale = 0.01f; }
+	else if (program_state->fractal_type == 1) { scale = 0.01f; }
+	else { scale = 0.005f; }
 
 	// Get new fractal parameter:
 	scene_uniform->fractal_parameter += program_state->delta_t * scale *
@@ -74,7 +74,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	}
 
 	// Reset performance query pool and write first timestamp:
-	if (program_state->performance == 0)
+	if (program_state->performance > -1)
 	{
 		vkCmdResetQueryPool(
 			commands->command_buffers[image_index],
@@ -205,7 +205,7 @@ int record_commands(FracRenderVulkanSwapchain *swapchain, FracRenderVulkanDescri
 	vkCmdEndRenderPass(commands->command_buffers[image_index]);
 
 	// Write second timestamp:
-	if (program_state->performance == 0)
+	if (program_state->performance > -1)
 	{
 		vkCmdWriteTimestamp(
 			commands->command_buffers[image_index],

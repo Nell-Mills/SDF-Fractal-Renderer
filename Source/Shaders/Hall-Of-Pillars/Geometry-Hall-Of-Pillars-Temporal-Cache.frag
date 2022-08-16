@@ -66,15 +66,10 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 					distance_sample.b), distance_sample.a);
 
 	// Check for excess camera movement, scaled by how far away the point is:
-	if (abs(distance_max - distance_min) > (distance_min * 0.0001f))
-	{
-		distance_travelled = 0.f;
-	}
-	else
-	{
-		distance_travelled = distance_min * 0.9f;
-	}
-
+	float invalidation_threshold = 0.0001f;
+	if (abs(distance_max - distance_min) > (distance_min * invalidation_threshold))
+	{ distance_travelled = 0.f; }
+	else { distance_travelled = distance_min * 0.9f; }
 
 	current_position = vec4(origin + (ray * distance_travelled), 1.f);
 

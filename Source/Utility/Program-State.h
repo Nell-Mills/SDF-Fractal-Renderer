@@ -25,6 +25,7 @@ typedef struct {
 
 	// Animation:
 	uint64_t animation_frames;
+	uint64_t max_animation_frames;
 
 	// Controls:
 	float base_movement_speed;

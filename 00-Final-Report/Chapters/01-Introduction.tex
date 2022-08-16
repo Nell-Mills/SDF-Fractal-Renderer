@@ -13,6 +13,8 @@ If fail, use temporal caching.
 
 Compare two methods.
 
+No. Improve the speed of rendering 3D fractals using precalculated information. Two ideas, 3D SDF and temporal caching. Idea is to provide clue in place of calculations, to save time and/or iterations. 3D SDF there to reduce calculations in favour of precalculated values, temporal caching there to reduce iterations by skipping some distance.
+
 \section{Deliverables}
 
 Report, code
@@ -21,7 +23,9 @@ Report, code
 
 Version control - GitHub
 
-Methodology - Waterfall, since all Vulkan setup needs doing first
+Methodology - Waterfall, Vulkan has to be done first before picture can be rendered, then optimizations have to be done before measurements can be taken.
+
+Show diagram of project stages, no Gantt chart.
 
 \section{Risks and Mitigation}
 

@@ -15,6 +15,8 @@ Run either:
 Make debug  
 Make release
 
+Default is debug.
+
 Debug build has Vulkan validation layers enabled.
 
 # Arguments
@@ -31,9 +33,10 @@ Default	-1 --> No optimization.
 3. Whether to gradually change a select parameter over time for the fractal:  
 	-1 --> Backwards animation (parameter decreasing).  
 Default	 0 --> No animation.  
-	 1 --> Forwards animation.
+	 1 --> Forwards animation.  
+	 2 --> Special saved animation. Choose animation in the code at the beginning of main().
 
 4. Whether to take performance measurements:  
 Default	-1 --> No measurements.  
 	 0 --> Measure 100 frames, stop. Take median, etc... repeat.  
-	 1 --> Measure every 1 frame, 100 times. Take median, etc.
+	 1 --> Measure every 1 frame, 100 times. Take median, etc. Meant for special animations.

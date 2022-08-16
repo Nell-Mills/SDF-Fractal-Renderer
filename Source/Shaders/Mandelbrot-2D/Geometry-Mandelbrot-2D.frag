@@ -27,11 +27,11 @@ layout (set = 0, binding = 0) uniform UScene
 	float view_distance;
 } u_scene;
 
-layout (location = 0) out vec4 out_iterations;
+layout (location = 0) out vec4 out_position;
 
 // 2D Mandelbrot function prototypes:
 vec2 square_complex(vec2 complex_number);
-float mandelbrot_2d(vec4 pixel_location);
+float mandelbrot_2d(vec2 pixel_location);
 bool is_iteration(vec2 pixel_location);
 
 // Main function:
@@ -41,8 +41,8 @@ void main()
 	//if (is_iteration(in_position.xy)) { out_iterations = vec4(-1.f); return; }
 
 	// Calculate Mandelbrot iterations and output to texture image:
-	float iterations_achieved = mandelbrot_2d(in_position);
-	out_iterations = vec4(iterations_achieved);
+	float iterations_achieved = mandelbrot_2d(in_position.xy);
+	out_position = vec4(in_position.xyz, iterations_achieved);
 }
 
 vec2 square_complex(vec2 complex_number)
@@ -54,7 +54,7 @@ vec2 square_complex(vec2 complex_number)
 	return result;
 }
 
-float mandelbrot_2d(vec4 pixel_location)
+float mandelbrot_2d(vec2 pixel_location)
 {
 	float y_mult;
 	if (pixel_location.y < 0.f) { y_mult = -1.f; }
@@ -62,10 +62,10 @@ float mandelbrot_2d(vec4 pixel_location)
 
 	// Equation: z = z^2 + c
 	vec2 z = vec2(u_scene.fractal_parameter, u_scene.fractal_parameter * y_mult);
-	vec2 c = vec2(pixel_location.x, pixel_location.y);
+	vec2 c = pixel_location;
 
 	int iterations_achieved = 0;
-	int max_iterations = 500;
+	int max_iterations = 250;
 	float threshold_value = 2.f;
 
 	for (int i = 0; i < max_iterations; i++)
@@ -75,7 +75,14 @@ float mandelbrot_2d(vec4 pixel_location)
 		iterations_achieved++;
 	}
 
-	return float(iterations_achieved) / float(max_iterations);
+	if (iterations_achieved == max_iterations) { return 1.f; }
+
+	// Banded colouring:
+	//return float(iterations_achieved) / float(max_iterations);
+
+	// Smooth colouring (based on: https://linas.org/art-gallery/escape/escape.html):
+	return (float(iterations_achieved) + 1.f - (log(log(length(z))) / log(2.f)))
+							/ float(max_iterations);
 }
 
 bool is_iteration(vec2 pixel_location)

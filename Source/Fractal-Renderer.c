@@ -31,12 +31,16 @@ int main(int argc, char **argv)
 	}
 
 	// Animation function (choose none for no animation):
-	void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
+	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
 	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
+	void (*animation_update_function)(FracRenderProgramState *) = update_animation_artefacts;
 
 	// Initialize program state:
 	FracRenderProgramState program_state;
 	set_up_program_state(argc, argv, &program_state);
+
+	// Run animation function once to get correct number of animation frames:
+	animation_update_function(&program_state);
 
 	// Initialize 3D SDF:
 	FracRenderSDF3D sdf_3d;
@@ -84,8 +88,8 @@ int main(int argc, char **argv)
 	if (program_state.optimize == 0) { destroy_sdf_3d(&sdf_3d); }
 
 	// Set up performance recording file (overwrite any old ones!):
-	FILE *performance_file;
-	if (program_state.performance == 0)
+	FILE *performance_file = NULL;
+	if (program_state.performance > -1)
 	{
 		performance_file = fopen(program_state.performance_file_name, "w");
 		if (!performance_file)
@@ -116,17 +120,41 @@ int main(int argc, char **argv)
 
 	// Tracking swapchain and performance measurements:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
-
-	int values_captured = 0;	// Capture a set number of values for performance.
-	int max_values = 10;		// Change this value to measure more times.
+	int values_captured = 0;	// Capture 100 values for performance.
 	int warm_up = 0;		// Start measuring after 1000 frames to allow warm up.
-	int order = 0;			// Whether to insert new measurements according to value.
-	int animation_tick_max = 1;	// How often to update animation.
-	int animation_tick = 0;		// Current animation update tick.
 
-	// Storing measurements for geometry render pass time over 100 frames:
-	double *shader_time = malloc(100 * sizeof(double));
-	memset(shader_time, 0, 100 * sizeof(double));
+	// Storing measurements for geometry render pass time:
+	double *shader_time = NULL;
+	double **multi_shader_time = NULL;
+	if (program_state.performance == 0)
+	{
+		shader_time = malloc(100 * sizeof(double));
+		memset(shader_time, 0, 100 * sizeof(double));
+	}
+	else if (program_state.performance == 1)
+	{
+		if (program_state.max_animation_frames == 0)
+		{
+			fprintf(stderr, "Error: Incompatible arguments. If performance is set to 1"
+				", animation should be 2 and there should be an animation function"
+				" selected!\n");
+			fclose(performance_file);
+			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
+							&framebuffers, &commands, &performance);
+			return -1;
+		}
+
+		multi_shader_time = malloc(100 * sizeof(double *));
+		for (int i = 0; i < 100; i++)
+		{
+			multi_shader_time[i] = malloc(program_state.max_animation_frames *
+									sizeof(double));
+			memset(multi_shader_time[i], 0, program_state.max_animation_frames *
+									sizeof(double));
+		}
+		printf("Collecting data for %ld frames, 100 times.\n\n",
+				program_state.max_animation_frames);
+	}
 
 	// Main loop:
 	while(!glfwWindowShouldClose(base.window))
@@ -283,19 +311,54 @@ int main(int argc, char **argv)
 		program_state.frames++;
 		program_state.frame_time += program_state.delta_t;
 
-		if ((program_state.performance == 0) && (warm_up >= 1000))
+		// Update animation:
+		if ((program_state.animation == 2) && (warm_up > 1000) &&
+			(program_state.animation_frames < program_state.max_animation_frames))
 		{
-			if (warm_up == 1000)
-			{
-				warm_up++;
-				printf("Starting performance measurements...\n\n");
-			}
+			animation_update_function(&program_state);
+			program_state.animation_frames++;
 
 			// Get geometry render pass execution time:
-			get_shader_time(shader_time, program_state.frames,
-				image_index, order, &device, &performance);
+			if (program_state.performance == 1)
+			{
+				get_shader_time(multi_shader_time[values_captured],
+					program_state.animation_frames, image_index,
+					1, &device, &performance);
+			}
+
+			if (program_state.animation_frames == program_state.max_animation_frames)
+			{
+				// Move on to next runthrough:
+				if (program_state.performance == 1)
+				{
+					values_captured++;
+					printf("Captured: %d\n", values_captured);
+				}
+				if ((values_captured == 100) && (program_state.performance == 1))
+				{
+					printf("\nFinished performance measurements.\n\n");
+
+					// Write out performance measurements:
+					write_measurements(performance_file, multi_shader_time,
+							program_state.max_animation_frames);
+
+					break;
+				}
+				else
+				{
+					program_state.animation_frames = 0;
+				}
+			}
 		}
 
+		// Get geometry render pass execution time:
+		if ((program_state.performance == 0) && (warm_up > 1000))
+		{
+			get_shader_time(shader_time, program_state.frames, image_index,
+							0, &device, &performance);
+		}
+
+		// Get frame rate and change window title:
 		if (program_state.frames == 100)
 		{
 			// Get current frame rate (for last 100 frames):
@@ -310,15 +373,12 @@ int main(int argc, char **argv)
 				break;
 			}
 			glfwSetWindowTitle(base.window, window_title);
-		}
 
-		if (program_state.frames == 100)
-		{
 			// Write out performance measurements:
 			if ((program_state.performance == 0) && (warm_up > 1000))
 			{
 				// Take median (ns), min (ns), max (ns) and frame time (s):
-				fprintf(performance_file, "R %d\t", values_captured + 1);
+				fprintf(performance_file, "%d\t", values_captured + 1);
 				fprintf(performance_file, "%.1lf\t", shader_time[50]);
 				fprintf(performance_file, "%.1lf\t", shader_time[0]);
 				fprintf(performance_file, "%.1lf\t", shader_time[99]);
@@ -330,10 +390,11 @@ int main(int argc, char **argv)
 
 				// If enough values have been captured, turn off performance:
 				values_captured++;
-				if (values_captured == max_values)
+				printf("Captured: %d\n", values_captured);
+				if (values_captured == 100)
 				{
-					printf("Finished performance measurements.\n\n");
-					program_state.performance = -1;
+					printf("\nFinished performance measurements.\n\n");
+					break;
 				}
 			}
 
@@ -341,17 +402,20 @@ int main(int argc, char **argv)
 			program_state.frame_time = 0.0;
 		}
 
-		if (warm_up < 1000) { warm_up++; }
-
-		// Update animation:
-		if (warm_up >= 1000)
+		if (warm_up < 1000)
 		{
-			animation_tick++;
-			if (animation_tick == animation_tick_max)
+			warm_up++;
+			if (warm_up == 1000)
 			{
-				animation_update_function(&program_state);
-				program_state.animation_frames++;
-				animation_tick = 0;
+				if (program_state.performance > -1)
+				{
+					printf("Starting performance measurements...\n\n");
+				}
+				if (program_state.animation == 2)
+				{
+					printf("Starting animation...\n\n");
+				}
+				warm_up++;
 			}
 		}
 	}
@@ -359,15 +423,23 @@ int main(int argc, char **argv)
 	// Wait for Vulkan commands to finish:
 	vkDeviceWaitIdle(device.logical_device);
 
-	// Close performance file:
-	if (program_state.performance == 0) { fclose(performance_file); }
-
-	// Free memory:
-	free(shader_time);
-
 	// Destroy Vulkan structs:
 	destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline, &framebuffers,
 									&commands, &performance);
+
+	// Close performance file:
+	if (program_state.performance > -1) { fclose(performance_file); }
+
+	// Free memory:
+	if (shader_time) { free(shader_time); }
+	if (multi_shader_time)
+	{
+		for (int i = 0; i < 100; i++)
+		{
+			free(multi_shader_time[i]);
+		}
+		free(multi_shader_time);
+	}
 
 	return 0;
 }
