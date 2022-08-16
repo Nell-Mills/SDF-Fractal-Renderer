@@ -119,8 +119,8 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	if (program_state->fractal_type == 0)
 	{
 		// Mandelbulb:
-		program_state->position = initialize_vector_3(0.f, -2.f, -4.f);
-		program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+		program_state->position = initialize_vector_3(-1.3f, -1.2f, 2.f);
+		program_state->front = normalize(initialize_vector_3(0.5f, 0.45f, -0.75f));
 
 		program_state->fractal_parameter = 8.f;
 		program_state->fractal_parameter_start = 10.f;
