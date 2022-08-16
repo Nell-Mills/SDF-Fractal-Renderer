@@ -30,14 +30,27 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// Animation function (choose none for no animation):
-	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_none;
-	//void (*animation_update_function)(FracRenderProgramState *) = update_animation_flythrough;
-	void (*animation_update_function)(FracRenderProgramState *) = update_animation_artefacts;
-
 	// Initialize program state:
 	FracRenderProgramState program_state;
 	set_up_program_state(argc, argv, &program_state);
+
+	// Animation function:
+	void (*animation_update_function)(FracRenderProgramState *);
+	if (program_state.animation == -1) { animation_update_function = update_animation_none; }
+	else if (program_state.animation == 0)
+	{
+		animation_update_function = update_animation_parameter;
+	}
+	else if (program_state.animation == 1)
+	{
+		// Special flythrough animation for Hall of Pillars:
+		animation_update_function = update_animation_flythrough;
+	}
+	else
+	{
+		// Animation to show artefacts in Hall of Pillars:
+		animation_update_function = update_animation_artefacts;
+	}
 
 	// Run animation function once to get correct number of animation frames:
 	animation_update_function(&program_state);
@@ -99,8 +112,16 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		// Write column headers:
-		fprintf(performance_file, "Frame\tMedian(ns)\t\tMin(ns)\t\t"
-					"Max(ns)\t\tFrame Time(s)\n\n");
+		if (program_state.performance == 1)
+		{
+			fprintf(performance_file, "Frame\tMedian(ns)\tMin(ns)\t\t"
+						"Max(ns)\n\n");
+		}
+		else
+		{
+			fprintf(performance_file, "Frame\tMedian(ns)\tMin(ns)\t\t"
+						"Max(ns)\t\tFrame Time(s)\n\n");
+		}
 	}
 
 	// Set GLFW callback functions (no mouse movement for 2D Mandelbrot):
@@ -121,7 +142,9 @@ int main(int argc, char **argv)
 	// Tracking swapchain and performance measurements:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
 	int values_captured = 0;	// Capture 100 values for performance.
-	int warm_up = 0;		// Start measuring after 1000 frames to allow warm up.
+	int warm_up;			// Start measuring after 1000 frames to allow warm up.
+	if (program_state.performance > -1) { warm_up = 0; }
+	else { warm_up = 1001; }
 
 	// Storing measurements for geometry render pass time:
 	double *shader_time = NULL;
@@ -135,9 +158,8 @@ int main(int argc, char **argv)
 	{
 		if (program_state.max_animation_frames == 0)
 		{
-			fprintf(stderr, "Error: Incompatible arguments. If performance is set to 1"
-				", animation should be 2 and there should be an animation function"
-				" selected!\n");
+			fprintf(stderr, "Error: Incompatible arguments. If performance"
+				" is set to 1, animation should not be off!\n");
 			fclose(performance_file);
 			destroy_vulkan_structs(&base, &device, &swapchain, &descriptors, &pipeline,
 							&framebuffers, &commands, &performance);
@@ -312,7 +334,7 @@ int main(int argc, char **argv)
 		program_state.frame_time += program_state.delta_t;
 
 		// Update animation:
-		if ((program_state.animation == 2) && (warm_up > 1000) &&
+		if ((program_state.animation > -1) && (warm_up > 1000) &&
 			(program_state.animation_frames < program_state.max_animation_frames))
 		{
 			animation_update_function(&program_state);
@@ -411,7 +433,7 @@ int main(int argc, char **argv)
 				{
 					printf("Starting performance measurements...\n\n");
 				}
-				if (program_state.animation == 2)
+				if (program_state.animation > -1)
 				{
 					printf("Starting animation...\n\n");
 				}

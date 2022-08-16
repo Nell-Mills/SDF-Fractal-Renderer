@@ -19,6 +19,9 @@
 // Dummy function:
 void update_animation_none(FracRenderProgramState *program_state);
 
+// Vary fractal parameter over time:
+void update_animation_parameter(FracRenderProgramState *program_state);
+
 // Fly through Hall of Pillars:
 void update_animation_flythrough(FracRenderProgramState *program_state);
 

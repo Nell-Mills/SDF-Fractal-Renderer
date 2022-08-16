@@ -41,6 +41,8 @@ typedef struct {
 	char performance_file_name[256];
 
 	// Fractal parameter:
+	float fractal_parameter;
+	float fractal_parameter_start;
 	float fractal_parameter_min;
 	float fractal_parameter_max;
 } FracRenderProgramState;

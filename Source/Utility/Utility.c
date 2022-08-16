@@ -73,7 +73,7 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 {
 	program_state->fractal_type = -1;
 	program_state->optimize = -1;
-	program_state->animation = 0;
+	program_state->animation = -1;
 	program_state->performance = -1;
 	if (argc > 1)
 	{
@@ -89,17 +89,25 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	}
 	if (argc > 3)
 	{
-		// Animation. 0 = No animation, -1 = Backwards, 1 = Forwards, 2 = Special.
+		// Animation. -1 = No animation, 0 = Parameter, 1 = Flythrough, 2 = Artefacts.
 		if (argv[3][0] == '0') { program_state->animation = 0; }
 		else if (argv[3][0] == '1') { program_state->animation = 1; }
 		else if (argv[3][0] == '2') { program_state->animation = 2; }
-		else { program_state->animation = -1; }
 	}
 	if (argc > 4)
 	{
 		// Performance. -1 = No measurements, 0 = One-Shot, 1 = Multiple.
 		if (argv[4][0] == '0') { program_state->performance = 0; }
 		else if (argv[4][0] == '1') { program_state->performance = 1; }
+	}
+
+	// Check fractal type and animation (no special animations for Mandelbrot and Mandelbulb):
+	if ((program_state->fractal_type != 1) && (program_state->animation > 0))
+	{
+		// Revert to parameter animation:
+		printf("Warning: No special animation exists for selected fractal"
+				" type. Falling back to parameter animation.\n");
+		program_state->animation = 0;
 	}
 
 	// Get performance file name:
@@ -114,30 +122,30 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		program_state->position = initialize_vector_3(0.f, -2.f, -4.f);
 		program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
 
-		program_state->fractal_parameter_min = 2.f;
+		program_state->fractal_parameter = 8.f;
+		program_state->fractal_parameter_start = 10.f;
+		program_state->fractal_parameter_min = 4.f;
 		program_state->fractal_parameter_max = 16.f;
 	}
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of pillars:
-		if (program_state->animation > -1)
-		{
-			// Normal/flythrough:
-			program_state->position = initialize_vector_3(25.f, 20.f, 9.f);
-			program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
-
-			// Used for artefact viewing:
-			//program_state->position = initialize_vector_3(560.f, -1885.f, 4180.f);
-			//program_state->front = normalize(initialize_vector_3(1.f, 0.f, 0.f));
-		}
-		else
+		if (program_state->animation == 0)
 		{
 			// Position allows camera to be enclosed in shrinking room:
 			program_state->position = initialize_vector_3(-1250.f, -1700.f, -1400.f);
 			program_state->front = normalize(initialize_vector_3(0.9f, 0.f, 0.5f));
 		}
+		else
+		{
+			// Normal:
+			program_state->position = initialize_vector_3(25.f, 20.f, 9.f);
+			program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+		}
 
-		program_state->fractal_parameter_min = 1.5f;
+		program_state->fractal_parameter = 2.f;
+		program_state->fractal_parameter_start = 2.f;
+		program_state->fractal_parameter_min = 1.6f;
 		program_state->fractal_parameter_max = 2.4f;
 	}
 	else
@@ -146,6 +154,8 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		program_state->position = initialize_vector_3(0.25f, 0.f, 0.f);
 		program_state->front = normalize(initialize_vector_3(0.f, 0.f, 1.f));
 
+		program_state->fractal_parameter = 0.f;
+		program_state->fractal_parameter_start = 0.f;
 		program_state->fractal_parameter_min = -0.75f;
 		program_state->fractal_parameter_max = 0.75f;
 	}
@@ -187,19 +197,16 @@ void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D
 	if (program_state->fractal_type == 0)
 	{
 		// Mandelbulb:
-		scene_uniform->fractal_parameter = 8.f;
 		scene_uniform->view_distance = 256.f;
 	}
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of Pillars:
-		scene_uniform->fractal_parameter = 2.f;
 		scene_uniform->view_distance = 16384.f;
 	}
 	else
 	{
 		// 2D Mandelbrot set:
-		scene_uniform->fractal_parameter = 0.f;
 		scene_uniform->view_distance = 0.f;
 	}
 }

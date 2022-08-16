@@ -12,6 +12,69 @@ void update_animation_none(FracRenderProgramState *program_state)
 	program_state->max_animation_frames = 0;
 }
 
+// Vary fractal parameter over time:
+void update_animation_parameter(FracRenderProgramState *program_state)
+{
+	int num_key_frames = 4;
+
+	// If Mandelbrot is being shown, slow down animation:
+	uint64_t key_frames[4];
+
+	if (program_state->fractal_type == -1)
+	{
+		key_frames[0] = 0;	//  0. Start.
+		key_frames[1] = 9000;	//  1. Parameter increasing to top.
+		key_frames[2] = 18000;	//  2. Parameter decreasing to bottom.
+		key_frames[3] = 9000;	//  3. Parameter increasing to start.
+	}
+	else
+	{
+		key_frames[0] = 0;	//  0. Start.
+		key_frames[1] = 2000;	//  1. Parameter increasing to top.
+		key_frames[2] = 4000;	//  2. Parameter decreasing to bottom.
+		key_frames[3] = 2000;	//  3. Parameter increasing to start.
+	}
+
+	// Get total frames:
+	uint64_t total_frames = 0;
+	for (int i = 0; i < num_key_frames; i++) { total_frames += key_frames[i]; }
+	program_state->max_animation_frames = total_frames;
+	if (program_state->animation_frames > total_frames) { return; }
+
+	float key_parameter_values[] = {
+		program_state->fractal_parameter_start,
+		program_state->fractal_parameter_max,
+		program_state->fractal_parameter_min,
+		program_state->fractal_parameter_start
+	};
+
+	if (program_state->animation_frames == 0)
+	{
+		program_state->fractal_parameter = program_state->fractal_parameter_start;
+		return;
+	}
+
+	// Update the animation:
+	uint64_t frames = 0;
+	for (int i = 1; i < num_key_frames; i++)
+	{
+		frames += key_frames[i];
+		if (program_state->animation_frames < frames)
+		{
+			program_state->fractal_parameter += (key_parameter_values[i] -
+				key_parameter_values[i - 1]) / (float)(key_frames[i]);
+
+			break;
+		}
+		else if (program_state->animation_frames == key_frames[i])
+		{
+			// Set position and front manually to keep on track:
+			program_state->fractal_parameter = key_parameter_values[i];
+			break;
+		}
+	}
+}
+
 // Fly through Hall of Pillars:
 void update_animation_flythrough(FracRenderProgramState *program_state)
 {
