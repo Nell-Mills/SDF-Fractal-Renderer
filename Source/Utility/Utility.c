@@ -734,12 +734,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (swapchain->swapchain_images[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> Swapchain Image %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> Swapchain Image %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> Swapchain Image %d\t---> %p\n",
-					swapchain->swapchain_images[i]);
+					i, swapchain->swapchain_images[i]);
 			}
 		}
 	}
@@ -756,29 +756,29 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (swapchain->swapchain_image_views[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> Swapchain Image View %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> Swapchain Image View %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> Swapchain Image View %d\t---> %p\n",
-					swapchain->swapchain_image_views[i]);
+					i, swapchain->swapchain_image_views[i]);
 			}
 		}
 	}
 
 	// Format:
-	if (swapchain->format == VK_FORMAT_UNDEFINED)
+	if (swapchain->swapchain_format == VK_FORMAT_UNDEFINED)
 	{
 		printf("Swapchain Format\t\t---> VK_FORMAT_UNDEFINED\n");
 	}
 	else
 	{
-		printf("Swapchain Format\t\t---> %d\n", swapchain->format);
+		printf("Swapchain Format\t\t---> %d\n", swapchain->swapchain_format);
 	}
 
 	// Extent:
-	printf("Swapchain Width\t\t---> %d\n", swapchain->extent.width);
-	printf("Swapchain Height\t\t---> %d\n", swapchain->extent.height);
+	printf("Swapchain Width\t\t---> %d\n", swapchain->swapchain_extent.width);
+	printf("Swapchain Height\t\t---> %d\n", swapchain->swapchain_extent.height);
 
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
@@ -875,12 +875,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (descriptors->g_buffer_descriptors[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> G-Buffer Descriptor %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> G-Buffer Descriptor %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> G-Buffer Descriptor %d\t---> %p\n",
-					descriptors->g_buffer_descriptors[i]);
+					i, descriptors->g_buffer_descriptors[i]);
 			}
 		}
 	}
@@ -1083,18 +1083,18 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (framebuffers->framebuffers[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> Framebuffer %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> Framebuffer %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> Framebuffer %d\t---> %p\n",
-					framebuffers->framebuffers[i]);
+					i, framebuffers->framebuffers[i]);
 			}
 		}
 	}
 
 	// G-Buffer:
-	if (framebuffer->g_buffer == VK_NULL_HANDLE)
+	if (framebuffers->g_buffer == VK_NULL_HANDLE)
 	{
 		printf("G-Buffer\t---> VK_NULL_HANDLE\n");
 	}
@@ -1118,12 +1118,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (framebuffers->g_buffer_images[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> G-Buffer Image %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> G-Buffer Image %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> G-Buffer Image %d\t---> %p\n",
-					framebuffers->g_buffer_images[i]);
+					i, framebuffers->g_buffer_images[i]);
 			}
 		}
 	}
@@ -1140,12 +1140,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (framebuffers->g_buffer_image_memory[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> G-Buffer Image Memory %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> G-Buffer Image Memory %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> G-Buffer Image Memory %d\t---> %p\n",
-					framebuffers->g_buffer_image_memory[i]);
+					i, framebuffers->g_buffer_image_memory[i]);
 			}
 		}
 	}
@@ -1162,12 +1162,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (framebuffers->g_buffer_image_views[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> G-Buffer Image View %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> G-Buffer Image View %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> G-Buffer Image View %d\t---> %p\n",
-					framebuffers->g_buffer_image_views[i]);
+					i, framebuffers->g_buffer_image_views[i]);
 			}
 		}
 	}
@@ -1234,12 +1234,12 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (commands->command_buffers[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> Command Buffer %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> Command Buffer %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
 				printf(" ---> Command Buffer %d\t---> %p\n",
-						commands->command_buffers[i]);
+					i, commands->command_buffers[i]);
 			}
 		}
 	}
@@ -1256,11 +1256,11 @@ void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *de
 		{
 			if (commands->fences[i] == VK_NULL_HANDLE)
 			{
-				printf(" ---> Fence %d\t---> VK_NULL_HANDLE\n");
+				printf(" ---> Fence %d\t---> VK_NULL_HANDLE\n", i);
 			}
 			else
 			{
-				printf(" ---> Fence %d\t---> %p\n", commands->fences[i]);
+				printf(" ---> Fence %d\t---> %p\n", i, commands->fences[i]);
 			}
 		}
 	}
