@@ -570,3 +570,743 @@ void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 	printf("----------------------------------------");
 	printf("----------------------------------------\n\n");
 }
+
+// Print all Vulkan handles for debugging:
+void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+		FracRenderVulkanPerformance *performance)
+{
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Structure contents:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Base:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Instance:
+	if (base->instance == VK_NULL_HANDLE)
+	{
+		printf("Instance\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Instance\t\t---> %p\n", base->instance);
+	}
+
+	// Window:
+	if (base->window == NULL)
+	{
+		printf("Window\t\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Window\t\t\t---> %p\n", base->window);
+	}
+
+	// Surface:
+	if (base->surface == VK_NULL_HANDLE)
+	{
+		printf("Surface\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Surface\t\t\t---> %p\n", base->surface);
+	}
+
+	// Debug Messenger:
+	if (base->debug_messenger == VK_NULL_HANDLE)
+	{
+		printf("Debug Messenger\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Debug Messenger\t\t---> %p\n", base->debug_messenger);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Device:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Physical Device:
+	if (device->physical_device == VK_NULL_HANDLE)
+	{
+		printf("Physical Device\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Physical Device\t\t\t---> %p\n", device->physical_device);
+	}
+
+	// Logical Device:
+	if (device->logical_device == VK_NULL_HANDLE)
+	{
+		printf("Logical Device\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Logical Device\t\t\t---> %p\n", device->logical_device);
+	}
+
+	// Number of Device Extensions:
+	printf("Number of Device Extensions\t---> %d\n", device->num_device_extensions);
+
+	// Device Extensions:
+	if (device->device_extensions == NULL)
+	{
+		printf("Device Extensions\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Device Extensions\t\t---> %p\n", device->device_extensions);
+	}
+
+	// Graphics Family Index:
+	printf("Graphics Family Index\t\t---> %d\n", device->graphics_family_index);
+
+	// Graphics Queue:
+	if (device->graphics_queue == VK_NULL_HANDLE)
+	{
+		printf("Graphics Queue\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Graphics Queue\t\t\t---> %p\n", device->graphics_queue);
+	}
+
+	// Present Family Index:
+	printf("Present Family Index\t\t---> %d\n", device->present_family_index);
+
+	// Present Queue:
+	if (device->present_queue == VK_NULL_HANDLE)
+	{
+		printf("Present Queue\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Present Queue\t\t\t---> %p\n", device->present_queue);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	// Validation already printed out previously so skip.
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Swapchain:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Swapchain:
+	if (swapchain->swapchain == VK_NULL_HANDLE)
+	{
+		printf("Swapchain\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Swapchain\t\t\t---> %p\n", swapchain->swapchain);
+	}
+
+	// Number of Swapchain Images:
+	printf("Number of Swapchain Images\t\t---> %d\n", swapchain->num_swapchain_images);
+
+	// Swapchain Images:
+	if (!swapchain->swapchain_images)
+	{
+		printf("Swapchain Images\t\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Swapchain Images\t\t\t---> %p\n", swapchain->swapchain_images);
+		for (int i = 0; i < swapchain->num_swapchain_images; i++)
+		{
+			if (swapchain->swapchain_images[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> Swapchain Image %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> Swapchain Image %d\t---> %p\n",
+					swapchain->swapchain_images[i]);
+			}
+		}
+	}
+
+	// Swapchain Image Views:
+	if (!swapchain->swapchain_image_views)
+	{
+		printf("Swapchain Image Views\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Swapchain Image Views\t\t---> %p\n", swapchain->swapchain_image_views);
+		for (int i = 0; i < swapchain->num_swapchain_images; i++)
+		{
+			if (swapchain->swapchain_image_views[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> Swapchain Image View %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> Swapchain Image View %d\t---> %p\n",
+					swapchain->swapchain_image_views[i]);
+			}
+		}
+	}
+
+	// Format:
+	if (swapchain->format == VK_FORMAT_UNDEFINED)
+	{
+		printf("Swapchain Format\t\t---> VK_FORMAT_UNDEFINED\n");
+	}
+	else
+	{
+		printf("Swapchain Format\t\t---> %d\n", swapchain->format);
+	}
+
+	// Extent:
+	printf("Swapchain Width\t\t---> %d\n", swapchain->extent.width);
+	printf("Swapchain Height\t\t---> %d\n", swapchain->extent.height);
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Descriptors:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Descriptor Pool:
+	if (descriptors->descriptor_pool == VK_NULL_HANDLE)
+	{
+		printf("Descriptor Pool\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Descriptor Pool\t\t---> %p\n", descriptors->descriptor_pool);
+	}
+
+	// Sampler:
+	if (descriptors->sampler == VK_NULL_HANDLE)
+	{
+		printf("Sampler\t\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Sampler\t\t\t---> %p\n", descriptors->sampler);
+	}
+
+	// Scene Descriptor Layout:
+	if (descriptors->scene_descriptor_layout == VK_NULL_HANDLE)
+	{
+		printf("Scene Descriptor Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Scene Descriptor Layout\t---> %p\n", descriptors->scene_descriptor_layout);
+	}
+
+	// Scene Descriptor:
+	if (descriptors->scene_descriptor == VK_NULL_HANDLE)
+	{
+		printf("Scene Descriptor\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Scene Descriptor\t---> %p\n", descriptors->scene_descriptor);
+	}
+
+	// Scene Buffer:
+	if (descriptors->scene_buffer == VK_NULL_HANDLE)
+	{
+		printf("Scene Buffer\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Scene Buffer\t\t---> %p\n", descriptors->scene_buffer);
+	}
+
+	// Scene Memory:
+	if (descriptors->scene_memory == VK_NULL_HANDLE)
+	{
+		printf("Scene Memory\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Scene Memory\t\t---> %p\n", descriptors->scene_memory);
+	}
+
+	// Number of G-Buffer Descriptors:
+	printf("Number of G-Buffer Descriptors\t---> %d\n", descriptors->num_g_buffer_descriptors);
+
+	// G-Buffer Descriptor Layout:
+	if (descriptors->g_buffer_descriptor_layout == VK_NULL_HANDLE)
+	{
+		printf("G-Buffer Descriptor Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("G-Buffer Descriptor Layout\t---> %p\n",
+			descriptors->g_buffer_descriptor_layout);
+	}
+
+	// G-Buffer Descriptors:
+	if (!descriptors->g_buffer_descriptors)
+	{
+		printf("G-Buffer Descriptors\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("G-Buffer Descriptors\t\t---> %p\n", descriptors->g_buffer_descriptors);
+		for (int i = 0; i < descriptors->num_g_buffer_descriptors; i++)
+		{
+			if (descriptors->g_buffer_descriptors[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> G-Buffer Descriptor %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> G-Buffer Descriptor %d\t---> %p\n",
+					descriptors->g_buffer_descriptors[i]);
+			}
+		}
+	}
+
+	// 3D SDF Descriptor Layout:
+	if (descriptors->sdf_3d_descriptor_layout == VK_NULL_HANDLE)
+	{
+		printf("3D SDF Descriptor Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("3D SDF Descriptor Layout\t---> %p\n",
+			descriptors->sdf_3d_descriptor_layout);
+	}
+
+	// 3D SDF Descriptor:
+	if (descriptors->sdf_3d_descriptor == VK_NULL_HANDLE)
+	{
+		printf("3D SDF Descriptor\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("3D SDF Descriptor\t---> %p\n", descriptors->sdf_3d_descriptor);
+	}
+
+	// 3D SDF Buffer:
+	if (descriptors->sdf_3d_buffer == VK_NULL_HANDLE)
+	{
+		printf("3D SDF Buffer\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("3D SDF Buffer\t---> %p\n", descriptors->sdf_3d_buffer);
+	}
+
+	// 3D SDF Buffer Memory:
+	if (descriptors->sdf_3d_memory == VK_NULL_HANDLE)
+	{
+		printf("3D SDF Buffer Memory\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("3D SDF Buffer Memory\t---> %p\n",
+			descriptors->sdf_3d_memory);
+	}
+
+	// Temporal Cache Descriptor Layout:
+	if (descriptors->temporal_cache_descriptor_layout == VK_NULL_HANDLE)
+	{
+		printf("Temporal Cache Descriptor Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Temporal Cache Descriptor Layout\t---> %p\n",
+			descriptors->temporal_cache_descriptor_layout);
+	}
+
+	// Temporal Cache Descriptor:
+	if (descriptors->temporal_cache_descriptor == VK_NULL_HANDLE)
+	{
+		printf("Temporal Cache Descriptor\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Temporal Cache Descriptor\t---> %p\n",
+			descriptors->temporal_cache_descriptor);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Pipeline:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Geometry Pipeline Layout:
+	if (pipeline->geometry_pipeline_layout == VK_NULL_HANDLE)
+	{
+		printf("Geometry Pipeline Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Geometry Pipeline Layout\t---> %p\n", pipeline->geometry_pipeline_layout);
+	}
+
+	// Colour Pipeline Layout:
+	if (pipeline->colour_pipeline_layout == VK_NULL_HANDLE)
+	{
+		printf("Colour Pipeline Layout\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Colour Pipeline Layout\t---> %p\n", pipeline->colour_pipeline_layout);
+	}
+
+	// Geometry Pipeline:
+	if (pipeline->geometry_pipeline == VK_NULL_HANDLE)
+	{
+		printf("Geometry Pipeline\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Geometry Pipeline\t---> %p\n", pipeline->geometry_pipeline);
+	}
+
+	// Colour Pipeline:
+	if (pipeline->colour_pipeline == VK_NULL_HANDLE)
+	{
+		printf("Colour Pipeline\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Colour Pipeline\t---> %p\n", pipeline->colour_pipeline);
+	}
+
+	// Geometry Render Pass:
+	if (pipeline->geometry_render_pass == VK_NULL_HANDLE)
+	{
+		printf("Geometry Render Pass\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Geometry Render Pass\t---> %p\n", pipeline->geometry_render_pass);
+	}
+
+	// Colour Render Pass:
+	if (pipeline->colour_render_pass == VK_NULL_HANDLE)
+	{
+		printf("Colour Render Pass\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Colour Render Pass\t---> %p\n", pipeline->colour_render_pass);
+	}
+
+	// Geometry Vertex Shader and Path:
+	if (pipeline->geometry_vertex_shader == VK_NULL_HANDLE)
+	{
+		printf("Geometry Vertex Shader\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Geometry Vertex Shader\t---> %p\n", pipeline->geometry_vertex_shader);
+	}
+	printf("Shader Path:\t---> %s\n", pipeline->geometry_vertex_shader_path);
+
+	// Geometry Fragment Shader and Path:
+	if (pipeline->geometry_fragment_shader == VK_NULL_HANDLE)
+	{
+		printf("Geometry Fragment Shader\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Geometry Fragment Shader\t---> %p\n", pipeline->geometry_fragment_shader);
+	}
+	printf("Shader Path:\t---> %s\n", pipeline->geometry_fragment_shader_path);
+
+	// Colour Vertex Shader and Path:
+	if (pipeline->colour_vertex_shader == VK_NULL_HANDLE)
+	{
+		printf("Colour Vertex Shader\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Colour Vertex Shader\t---> %p\n", pipeline->colour_vertex_shader);
+	}
+	printf("Shader Path:\t---> %s\n", pipeline->colour_vertex_shader_path);
+
+	// Colour Fragment Shader and Path:
+	if (pipeline->colour_fragment_shader == VK_NULL_HANDLE)
+	{
+		printf("Colour Fragment Shader\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Colour Fragment Shader\t---> %p\n", pipeline->colour_fragment_shader);
+	}
+	printf("Shader Path:\t---> %s\n", pipeline->colour_fragment_shader_path);
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Framebuffers:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Framebuffers:
+	if (!framebuffers->framebuffers)
+	{
+		printf("Framebuffers\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Framebuffers\t\t---> %p\n", framebuffers->framebuffers);
+		for (int i = 0; i < swapchain->num_swapchain_images; i++)
+		{
+			if (framebuffers->framebuffers[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> Framebuffer %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> Framebuffer %d\t---> %p\n",
+					framebuffers->framebuffers[i]);
+			}
+		}
+	}
+
+	// G-Buffer:
+	if (framebuffer->g_buffer == VK_NULL_HANDLE)
+	{
+		printf("G-Buffer\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("G-Buffer\t---> %p\n", framebuffers->g_buffer);
+	}
+
+	// Number of G-Buffer Images:
+	printf("Number of G-Buffer Images\t---> %d\n", framebuffers->num_g_buffer_images);
+
+	// G-Buffer Images:
+	if (!framebuffers->g_buffer_images)
+	{
+		printf("G-Buffer Images\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("G-Buffer Images\t\t---> %p\n", framebuffers->g_buffer_images);
+		for (int i = 0; i < framebuffers->num_g_buffer_images; i++)
+		{
+			if (framebuffers->g_buffer_images[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> G-Buffer Image %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> G-Buffer Image %d\t---> %p\n",
+					framebuffers->g_buffer_images[i]);
+			}
+		}
+	}
+
+	// G-Buffer Image Memory:
+	if (!framebuffers->g_buffer_image_memory)
+	{
+		printf("G-Buffer Image Memory\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("G-Buffer Image Memory\t\t---> %p\n", framebuffers->g_buffer_image_memory);
+		for (int i = 0; i < framebuffers->num_g_buffer_images; i++)
+		{
+			if (framebuffers->g_buffer_image_memory[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> G-Buffer Image Memory %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> G-Buffer Image Memory %d\t---> %p\n",
+					framebuffers->g_buffer_image_memory[i]);
+			}
+		}
+	}
+
+	// G-Buffer Image Views:
+	if (!framebuffers->g_buffer_image_views)
+	{
+		printf("G-Buffer Image Views\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("G-Buffer Image Views\t\t---> %p\n", framebuffers->g_buffer_image_views);
+		for (int i = 0; i < framebuffers->num_g_buffer_images; i++)
+		{
+			if (framebuffers->g_buffer_image_views[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> G-Buffer Image View %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> G-Buffer Image View %d\t---> %p\n",
+					framebuffers->g_buffer_image_views[i]);
+			}
+		}
+	}
+
+	// Temporal Cache Image:
+	if (framebuffers->temporal_cache_image == VK_NULL_HANDLE)
+	{
+		printf("Temporal Cache Image\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Temporal Cache Image\t---> %p\n", framebuffers->temporal_cache_image);
+	}
+
+	// Temporal Cache Memory:
+	if (framebuffers->temporal_cache_memory == VK_NULL_HANDLE)
+	{
+		printf("Temporal Cache Memory\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Temporal Cache Memory\t---> %p\n", framebuffers->temporal_cache_memory);
+	}
+
+	// Temporal Cache Image View:
+	if (framebuffers->temporal_cache_image_view == VK_NULL_HANDLE)
+	{
+		printf("Temporal Cache Image View\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Temporal Cache Image View\t---> %p\n",
+			framebuffers->temporal_cache_image_view);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Performance:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Command Pool:
+	if (commands->command_pool == VK_NULL_HANDLE)
+	{
+		printf("Command Pool\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Command Pool\t---> %p\n", commands->command_pool);
+	}
+
+	// Command Buffers:
+	if (!commands->command_buffers)
+	{
+		printf("Command Buffers\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Command Buffers\t\t---> %p\n", commands->command_buffers);
+		for (int i = 0; i < swapchain->num_swapchain_images; i++)
+		{
+			if (commands->command_buffers[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> Command Buffer %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> Command Buffer %d\t---> %p\n",
+						commands->command_buffers[i]);
+			}
+		}
+	}
+
+	// Fences:
+	if (!commands->fences)
+	{
+		printf("Fences\t\t---> NULL\n");
+	}
+	else
+	{
+		printf("Fences\t\t---> %p\n", commands->fences);
+		for (int i = 0; i < swapchain->num_swapchain_images; i++)
+		{
+			if (commands->fences[i] == VK_NULL_HANDLE)
+			{
+				printf(" ---> Fence %d\t---> VK_NULL_HANDLE\n");
+			}
+			else
+			{
+				printf(" ---> Fence %d\t---> %p\n", commands->fences[i]);
+			}
+		}
+	}
+
+	// Image Available Semaphore:
+	if (commands->image_available == VK_NULL_HANDLE)
+	{
+		printf("Image Available Semaphore\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Image Available Semaphore\t---> %p\n", commands->image_available);
+	}
+
+	// Render Finished Semaphore:
+	if (commands->render_finished == VK_NULL_HANDLE)
+	{
+		printf("Render Finished Semaphore\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Render Finished Semaphore\t---> %p\n", commands->render_finished);
+	}
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+	printf("Vulkan Performance:\n");
+	printf("----------------------------------------");
+	printf("----------------------------------------\n");
+
+	// Query Pool:
+	if (performance->query_pool == VK_NULL_HANDLE)
+	{
+		printf("Query Pool\t\t---> VK_NULL_HANDLE\n");
+	}
+	else
+	{
+		printf("Query Pool\t\t---> %p\n", performance->query_pool);
+	}
+
+	// Timestamp Period:
+	printf("Timestamp Period\t---> %f\n", performance->timestamp_period);
+
+	printf("----------------------------------------");
+	printf("----------------------------------------\n\n");
+}

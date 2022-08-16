@@ -57,4 +57,11 @@ void destroy_vulkan_structs(FracRenderVulkanBase *base, FracRenderVulkanDevice *
 		FracRenderVulkanPipeline *pipeline, FracRenderVulkanFramebuffers *framebuffers,
 		FracRenderVulkanCommands *commands, FracRenderVulkanPerformance *performance);
 
+// Print all Vulkan handles for debugging:
+void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
+		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
+		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
+		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
+		FracRenderVulkanPerformance *performance);
+
 #endif

@@ -183,41 +183,37 @@ The artefacts in figure \ref{figure:hall-of-pillars-artefacts} were triggered by
 
 This section will go over how performance differences were measured, and how different scenarios were captured.
 
+\subsection{Preparation for Data Collection}
+
+In order to make sure the data collected was consistent, the following measures were taken:
+
+\begin{itemize}
+	\item Waited 1000 frames before starting any measurements, to give the GPU time to `warm up'.
+	\item For static images, take measurements for 1000 frames, then take measurements over the whole set, such as median.
+	\item For animated images, ran the animation 25 times, then took measurements over sets of matching frames. 25 was chosen because the animations are of considerable length; the longest would have taken approximately 5 hours to run 100 times, but the chosen 1.25 hours was tolerable.
+	\item Closed all other running programs to minimize interrupts.
+	\item Turned off the screensaver.
+\end{itemize}
+
 \subsection{Data Types Collected}
 
 The main value taken to measure performance was the execution time of the geometry render pass. To accomplish this, a Vulkan query pool was used to collect timestamps at two different stages each frame. One stage was at the beginning of the render pass and one was at the end, in order to make sure the timestamps were taken at the correct times (Vulkan commands in a command buffer may execute in any order unless specific synchronization is added), and consistently, with flags specifying the pipeline stages at which to take the measurements.\newline
 
-Measurements were gathered over a total of one hundred frames before being written out to file. This was to reduce the likelihood of outliers in the data. The minimum, median and maximum values of these sets were taken, as well as the average frame time over the one hundred frames. The median was of the most interest here, as it represents the most likely case, but differences between the other measurements across optimization methods were interesting to look at as well.\newline
+Measurements of static scenes were gathered over a total of one thousand frames before being written out to file. This was to reduce the likelihood of outliers in the data. The minimum, median and maximum values of these sets were taken, as well as the average frame time over the one thousand frames. The median was of the most interest here, as it represents the most likely case, but differences between the other measurements across optimization methods were interesting to look at as well.\newline
 
 The time it took to copy the image after the render pass was not included in the measurements, because copying the image could have been avoided by swapping the G-Buffer image and texture image after the render pass.
 
 \subsection{Representative Views}
 
-Hall of Pillars - Room with archway
+In order to obtain a useful set of data for performance differences, a set of representative views was chosen. They were selected to provide variety in the complexity of the scene, to see if either of the optimization methods chosen performed better under certain circumstances than in others. For example, the temporal caching method was theorized to give the most benefit in situations where there are a lot of holes and edges in the scene, so views were chosen to represent best and worst case scenarios for this theory.\newline
 
-Hall of Pillars - Flat ground
-
-Hall of Pillars - Room with huge distance differences and bottlenecks
-
-Hall of Pillars - Same view as in AO image - lots of holes, very intricate.
-
-Mandelbulb - Full view, lots of white space
-
-Mandelbulb - Zoomed in so it covers the screen
-
-Mandelbulb - Try to find a view with bottleneck
-
-Mandelbulb - Zoom in to get detail
+The views will be displayed in the results section, next to the data collected for each one, so the two can be looked at together.
 
 \subsection{Animation}
 
-Hall of Pillars - Flythrough
+As well as static scenes, animated scenes were created. For the Hall of Pillars fractal, a fly-through of the scene was created, varying the speed of the camera. This was intended to test the performance of the temporal caching method during movement of the camera, to see if there was still a benefit to using it while moving under different circumstances. A much smaller flythrough was created for the three-dimensional signed distance field. Much smaller, since the range of the field was somewhat limited by available memory.\newline
 
-Hall of Pillars - Varying parameter?
-
-Mandelbulb - Varying parameter
-
-Mandelbulb - Fly across? Probably not.
+The other type of animation was accomplished by varying a parameter used in the calculation of the distance function for each fractal, which resulted in smooth changes in geometry. This was done for both fractals. This type of animation was not done for the three-dimensional signed distance field optimization method, since any change in the geometry invalided the data that had been calculated.
 
 \section{Debugging}
 

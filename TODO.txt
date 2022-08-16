@@ -1,9 +1,11 @@
 Coding:
 
-Finish handle printing function		-->
+Finish handle printing function		--> Done.
 
 Choose representative views		--> Done.
 Gather performance measurements		-->
+
+Make short animation for 3D SDF		-->
 
 Get measurements for multi-mandelbulb	-->
 
@@ -14,11 +16,11 @@ Report:
 Proofreading				-->
 Final extra proofreading		-->
 
-Extras (like title)			-->
+Extras (like title)			--> Done.
 
 Starting summary			-->
 
-Introduction				-->
+Introduction				--> Done.
 
 Background - 2D fractals		--> Done.
 Background - 3D fractals		--> Done.
@@ -30,7 +32,7 @@ Implementation - System + Vulkan	--> Done.
 Implementation - Fractals		--> Done.
 Implementation - SDF			-->
 Implementation - Temporal Caching	--> Done.
-Implementation - Performance		-->
+Implementation - Performance		--> Done.
 Implementation - Debugging		--> Done.
 
 Results - 3D SDF			-->
@@ -40,3 +42,5 @@ Evaluation - 3D SDF			-->
 Evaluation - Temporal Caching		-->
 
 Conclusion				-->
+
+Appendices				-->

@@ -68,7 +68,7 @@ void update_animation_parameter(FracRenderProgramState *program_state)
 		}
 		else if (program_state->animation_frames == key_frames[i])
 		{
-			// Set position and front manually to keep on track:
+			// Set parameter manually to keep on track:
 			program_state->fractal_parameter = key_parameter_values[i];
 			break;
 		}

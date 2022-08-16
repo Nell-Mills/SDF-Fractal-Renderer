@@ -43,11 +43,4 @@ int present_results(FracRenderVulkanDevice *device, FracRenderVulkanSwapchain *s
 int copy_g_buffer_image(FracRenderVulkanSwapchain *swapchain,
 	FracRenderVulkanFramebuffers *framebuffers, VkCommandBuffer command_buffer);
 
-// Print all Vulkan handles for debugging:
-void print_vulkan_handles(FracRenderVulkanBase *base, FracRenderVulkanDevice *device,
-		FracRenderVulkanValidation *validation, FracRenderVulkanSwapchain *swapchain,
-		FracRenderVulkanDescriptors *descriptors, FracRenderVulkanPipeline *pipeline,
-		FracRenderVulkanFramebuffers *framebuffers, FracRenderVulkanCommands *commands,
-		FracRenderVulkanPerformance *performance);
-
 #endif

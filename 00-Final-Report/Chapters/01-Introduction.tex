@@ -1,32 +1,56 @@
 \chapter{Introduction}
 \label{chapter1}
 
-<Brief introduction to project>
+This project aims to implement two different methods to improve the speed of rendering three-dimensional fractals (or indeed any shape that can be described with a signed distance function). Both methods rely on using precalculated information to speed up the process of sphere tracing of the scene. One method used will be a three-dimensional signed distance field, which calculates the approximate distance to the surface offline, and stores it in a grid structure. The other method will be a form of temporal caching, which stores the calculated distance from four of the previous frames, and uses it to speed up calculation in the next.\newline
 
-<Brief introduction to report and report structure>
+This report will be structured as follows:\newline
+
+This chapter will describe the overall project aim, deliverables and methodology, as well as potential risks and their mitigations.\newline
+
+Chapter 2: Background Research. An overview of the theory behind the project, starting with information about fractals themselves, and ending with research on the optimization methods used.\newline
+
+Chapter 3: Implementation. A description of the application written, along with the methods of measuring success, and testing the program for errors.\newline
+
+Chapter 4: Results. A collection of performance measurements and comparisons, along with explanations of the choices made with regards to representative views.\newline
+
+Chapter 5: Evaluation. A discussion of the results obtained, and explanations of why they turned out as they did.\newline
+
+Chapter 6: Conclusion. A summary of the achievements of the project and an overview of plans for future work.
 
 \section{Project Aim}
 
-Improve the speed of rendering 3D fractals using 3D SDF.
-
-If fail, use temporal caching.
-
-Compare two methods.
-
-No. Improve the speed of rendering 3D fractals using precalculated information. Two ideas, 3D SDF and temporal caching. Idea is to provide clue in place of calculations, to save time and/or iterations. 3D SDF there to reduce calculations in favour of precalculated values, temporal caching there to reduce iterations by skipping some distance.
+The aim of the project is to produce software to render three-dimensional fractals in real time using sphere tracing, and implement two methods of improving the speed of doing so. Success will be measured in terms of program features, and measurements of rendering performance to compare the optimization methods.
 
 \section{Deliverables}
 
-Report, code
+There are two deliverables in the project. One is this report, and the other is access (through a link) to a repository containing the program code.
 
 \section{Methodology and Version Control}
 
-Version control - GitHub
+The version control system to use will be Git, through GitHub. This was chosen for its ease of use, and the fact that the repository is stored off-site, making it a very useful backup.\newline
 
-Methodology - Waterfall, Vulkan has to be done first before picture can be rendered, then optimizations have to be done before measurements can be taken.
+This project will involve three main stages:
 
-Show diagram of project stages, no Gantt chart.
+\begin{itemize}
+	\item Renderer that is capable of sphere tracing three-dimensional fractals.
+	\item Two optimization methods that attempt to improve the speed of rendering.
+	\item Performance measuring system to capture performance differences between methods.
+\end{itemize}
+
+Each stage depends on the last, so a Waterfall methodology will be employed. A full chart of the stages is shown below.
 
 \section{Risks and Mitigation}
 
-Risk that 3D SDF won't work - mitigation is temporal caching
+The table below summarizes the risks involved with this project, along with their mitigation strategies.
+
+\begin{tabular}{||c|c||}
+	\hline
+	\hline
+	Run out of time before implementing both optimization methods. & Implement the methods one after the other so that one can be discarded if necessary.\\
+	\hline
+	Failure to increase performance using one or both methods. & Provide detailed explanations as to why this happened. If there is time, experiment with changes to either method.\\
+	\hline
+	Technological failure. & Keep code repository up to date in GitHub to avoid loss of progress. Make sure I have access to a backup machine if possibl, either borrowing one or using a machine on campus.\\
+	\hline
+	\hline
+\end{tabular}
