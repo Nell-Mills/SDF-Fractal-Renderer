@@ -36,8 +36,9 @@ layout (location = 0) out vec4 out_position;
 
 // Function prototypes:
 vec4 sphere_trace(vec3 origin, vec3 ray);
-vec2 sdf_3d_lookup(vec3 position);
+uint sdf_3d_lookup(vec3 position);
 bool in_cube(vec3 cube_centre, float cube_size, vec3 point);
+float ray_cube(vec3 origin, vec3 ray, float cube_size);
 float distance_estimator_hall_of_pillars(vec3 position);
 
 // Main function:
@@ -58,15 +59,45 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	float distance_estimate;
 	float distance_travelled = 0.f;
 	float distance_threshold = 0.001f;
+	uint voxel_lookup;
+	float cube_size = u_scene.sdf_3d_size / pow(2.f, u_scene.sdf_3d_levels);
 
-	// Look up distance estimate and update total distance travelled:
-	vec2 distance_lookup = sdf_3d_lookup(origin);
+	int steps_taken = 0;
+	for (; steps_taken <= max_steps; steps_taken++)
+	{
+		// Look up which voxel the point is in:
+		voxel_lookup = sdf_3d_lookup(current_position.xyz);
 
-	// Update distance travelled and current position:
-	distance_travelled += distance_lookup.x;
-	current_position = vec4(origin + (ray * distance_travelled), 1.f);
+		// If voxel is invalid (0), check for main cube intersection:
+		if (voxel_lookup == 0)
+		{
+			distance_estimate = ray_cube(origin, ray, u_scene.sdf_3d_size);
+			if (distance_estimate >= 0.f)
+			{
+				distance_travelled += distance_estimate * 1.01f;
+			}
+			else
+			{
+				distance_estimate =
+					distance_estimator_hall_of_pillars(current_position.xyz);
+				distance_travelled += distance_estimate;
+			}
+		}
+		else
+		{
+			distance_estimate = b_voxels.voxels[voxel_lookup];
+			distance_travelled += distance_estimate;
+		}
 
-	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
+		current_position = vec4(origin + (ray * distance_travelled),
+			1.f - (float(steps_taken) / float(max_steps)));
+
+		if (abs(distance_estimate) <= cube_size) { break; }
+
+		if (abs(distance_travelled) >= u_scene.view_distance) { break; }
+	}
+
+	for (; steps_taken <= max_steps; steps_taken++)
 	{
 		// Get distance estimate and update total distance travelled:
 		distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);
@@ -87,7 +118,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	return current_position;
 }
 
-vec2 sdf_3d_lookup(vec3 position)
+uint sdf_3d_lookup(vec3 position)
 {
 	// Ordering of sub-cubes (looking top-down, upper/lower is y-coordinate):
 	vec3 sub_cubes[] = {
@@ -108,7 +139,7 @@ vec2 sdf_3d_lookup(vec3 position)
 	// Check if point is in main cube:
 	if (!in_cube(centre, size, position))
 	{
-		return vec2(0.f, -1.f);
+		return 0;
 	}
 
 	// Find out which cube the point is in:
@@ -125,7 +156,7 @@ vec2 sdf_3d_lookup(vec3 position)
 			if (in_cube(new_centre, size, position))
 			{
 				if (level == max_level) {
-					return vec2(b_voxels.voxels[index + i], 1.f);
+					return index + i;
 				}
 
 				// Move to sub-cubes:
@@ -135,7 +166,7 @@ vec2 sdf_3d_lookup(vec3 position)
 			}
 		}
 
-		if (level == max_level) { return vec2(0.f, -1.f); }
+		if (level == max_level) { 0; }
 		level++;
 	}
 }
@@ -153,6 +184,20 @@ bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
 	}
 
 	return false;
+}
+
+float ray_cube(vec3 origin, vec3 ray, float cube_size)
+{
+	// Function from: https://iquilezles.org/articles/intersectors/
+	vec3 m = 1.f / ray;
+	vec3 n = m * origin;
+	vec3 k = abs(m) * vec3(cube_size);
+	vec3 t1 = -n - k;
+	vec3 t2 = -n + k;
+	float tN = max(max(t1.x, t1.y), t1.z);
+	float tF = min(min(t2.x, t2.y), t2.z);
+	if ((tN > tF) || (tF < 0.f)) { return -1.f; }	// Doesn't intersect.
+	return tN;	// Nearest intersection distance.
 }
 
 float distance_estimator_hall_of_pillars(vec3 position)

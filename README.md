@@ -24,24 +24,24 @@ Default is debug.
 
 Debug build has Vulkan validation layers enabled.
 
-# Arguments
+# Arguments (all default to -1)
 1. Type of fractal.  
-Default	-1 --> 2D Mandelbrot set.  
+	-1 --> 2D Mandelbrot set.  
 	 0 --> Mandelbulb.  
 	 1 --> "Hall of Pillars".
 
 2. Type of optimization.  
-Default	-1 --> No optimization.  
+	-1 --> No optimization.  
 	 0 --> 3D SDF.  
 	 1 --> Temporal Caching.
 
 3. Whether to animate the fractal:  
-	-1 --> Backwards animation (parameter decreasing).  
-Default	 0 --> No animation.  
-	 1 --> Forwards animation (parameter increasing).  
-	 2 --> Special saved animation.
+	-1 --> No animation.  
+	 0 --> Animate by changing fractal parameter over time.  
+	 1 --> Special saved animation for Hall of Pillars - flythrough.  
+	 2 --> Special saved animation for Hall of Pillars - artefacts.
 
 4. Whether to take performance measurements:  
-Default	-1 --> No measurements.  
+	-1 --> No measurements.  
 	 0 --> Measure 100 frames, stop. Take median, etc... repeat.  
 	 1 --> Measure every 1 frame, 100 times. Take median, etc. Meant for animations.

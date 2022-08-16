@@ -46,14 +46,13 @@ void main()
 	}
 
 	// Colour using colour function:
-	//out_colour = colour_function_mandelbulb(position.xyz);
+//	out_colour = colour_function_mandelbulb(position.xyz);
 
 	// Colour using colour function, with iterations achieved for AO effect:
 	out_colour = (colour_function_mandelbulb(position.xyz) * pow(position.w, 20));
 
 	// Colour based on iterations achieved:
-	//out_colour = vec4(vec3(position.w), 1.f);
-	//out_colour = vec4(vec3(pow(position.w, 20)), 1.f);
+//	out_colour = vec4(vec3(pow(position.w, 20)), 1.f);
 }
 
 vec4 colour_function_mandelbulb(vec3 position)

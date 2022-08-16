@@ -11,15 +11,21 @@ void set_up_sdf_3d(FracRenderProgramState *program_state, FracRenderSDF3D *sdf_3
 	{
 		sdf_3d->levels		= 8;
 		sdf_3d->num_voxels	= pow(8, sdf_3d->levels);
-		sdf_3d->size		= 2.f;
+		sdf_3d->size		= 1.2f;
+
+		sdf_3d->centre		= initialize_vector_3(0.f, 0.f, 0.f);
 	}
 	else
 	{
-		sdf_3d->levels		= 8;
+		sdf_3d->levels		= 4;
 		sdf_3d->num_voxels	= pow(8, sdf_3d->levels);
-		sdf_3d->size		= 2.f;
+		sdf_3d->size		= 500.f;
+
+		sdf_3d->centre = add_vector_3(program_state->position,
+				multiply_vector_3_scalar(normalize(initialize_vector_3(
+				program_state->front.x, 0.f, program_state->front.z)), 500.f));
 	}
-	sdf_3d->centre		= program_state->position;
+
 	sdf_3d->fractal_type	= program_state->fractal_type;
 	sdf_3d->voxels		= NULL;
 
@@ -82,14 +88,22 @@ int create_sdf_3d_helper(FracRenderSDF3D *sdf_3d, float size, FracRenderVector3 
 		if (sdf_3d->fractal_type == 1)
 		{
 			// Hall of Pillars:
-			sdf_3d->voxels[*current_index] =
-				signed_distance_function_hall_of_pillars(centre);
+			float distance_estimate = signed_distance_function_hall_of_pillars(centre);
+
+			// To guarantee underestimate, take away half length of diagonal of cube:
+			distance_estimate -= (distance_estimate / fabs(distance_estimate)) *
+									sqrt(3.f) * size;
+			sdf_3d->voxels[*current_index] = distance_estimate;
 		}
 		else
 		{
 			// Default to Mandelbulb:
-			sdf_3d->voxels[*current_index] =
-				signed_distance_function_mandelbulb(centre);
+			float distance_estimate = signed_distance_function_mandelbulb(centre);
+
+			// To guarantee underestimate, take away half length of diagonal of cube:
+			distance_estimate -= (distance_estimate / fabs(distance_estimate)) *
+									sqrt(3.f) * size;
+			sdf_3d->voxels[*current_index] = distance_estimate;
 		}
 		*current_index += 1;
 	}

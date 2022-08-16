@@ -2,26 +2,10 @@ Coding:
 
 Finish handle printing function		-->
 
-Choose representative views		-->
+Choose representative views		--> Done.
 Gather performance measurements		-->
 
 Get measurements for multi-mandelbulb	-->
-
-Go back to SDF around Mandelbulb + hybrid approach where you search through SDF until the cube
-index stops changing, then go to normal distance measurement. This is probably the best approach.
-Don't have the ray culling step, but do have the step with the ray-cube intersection and march.
-
-					-->
-
-----------------------------------------------------------------------------------------------------
-
-Coding if time:
-
-See if performance differences vary with resolution (apart from scaling proportionally).
-
-Get rid of image copy - instead, swap G-Buffer image and texture image every frame.
-
-Maybe try implementing sparse octree again.
 
 ----------------------------------------------------------------------------------------------------
 

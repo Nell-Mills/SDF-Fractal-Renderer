@@ -134,27 +134,31 @@ void get_shader_time(double *shader_time, int num_frames, uint32_t image_index, 
 }
 
 // Write measurements to file:
-void write_measurements(FILE *performance_file, double **multi_shader_time, int num_frames)
+void write_measurements(FILE *performance_file, double **multi_shader_time, int num_frames,
+									int max_values)
 {
 	// Gather nth frames from each animation runthrough and write to file:
-	double frame[100];
+	double *frame = malloc(max_values * sizeof(double));
 	for (int i = 0; i < num_frames; i++)
 	{
 		// Gather ith frame:
-		for (int j = 0; j < 100; j++)
+		for (int j = 0; j < max_values; j++)
 		{
 			frame[j] = multi_shader_time[j][i];
 		}
 
 		// Sort array ascending:
-		sort_array_ascending(frame, 100);
+		sort_array_ascending(frame, max_values);
 
 		// Take median, min and max:
 		fprintf(performance_file, "%d\t", i);
-		fprintf(performance_file, "%.1lf\t", frame[50]);
+		fprintf(performance_file, "%.1lf\t", frame[max_values / 2]);
 		fprintf(performance_file, "%.1lf\t", frame[0]);
-		fprintf(performance_file, "%.1lf\n", frame[99]);
+		fprintf(performance_file, "%.1lf\n", frame[max_values - 1]);
 	}
+
+	// Free memory:
+	free(frame);
 }
 
 // Sort elements of array in ascending order:

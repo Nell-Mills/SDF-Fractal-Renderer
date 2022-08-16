@@ -39,7 +39,8 @@ void get_shader_time(double *shader_time, int num_frames, uint32_t image_index, 
 		FracRenderVulkanDevice *device, FracRenderVulkanPerformance *performance);
 
 // Write measurements to file:
-void write_measurements(FILE *performance_file, double **multi_shader_time, int num_frames);
+void write_measurements(FILE *performance_file, double **multi_shader_time, int num_frames,
+									int max_values);
 
 // Sort elements of array in ascending order:
 void sort_array_ascending(double *array, int num_elements);

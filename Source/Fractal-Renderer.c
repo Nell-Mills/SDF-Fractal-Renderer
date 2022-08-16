@@ -114,13 +114,12 @@ int main(int argc, char **argv)
 		// Write column headers:
 		if (program_state.performance == 1)
 		{
-			fprintf(performance_file, "Frame\tMedian(ns)\tMin(ns)\t\t"
-						"Max(ns)\n\n");
+			fprintf(performance_file, "Frame\tMedian(ns)\tMin(ns)\t\tMax(ns)\n\n");
 		}
 		else
 		{
-			fprintf(performance_file, "Frame\tMedian(ns)\tMin(ns)\t\t"
-						"Max(ns)\t\tFrame Time(s)\n\n");
+			fprintf(performance_file, "Median(ns)\tMin(ns)\t\t"
+						"Max(ns)\t\tFrame Time(ns)\n\n");
 		}
 	}
 
@@ -141,8 +140,12 @@ int main(int argc, char **argv)
 
 	// Tracking swapchain and performance measurements:
 	int recreate_swapchain = -1;	// 0 = Yes, -1 = No.
-	int values_captured = 0;	// Capture 100 values for performance.
-	int warm_up;			// Start measuring after 1000 frames to allow warm up.
+	double total_frame_time = 0.0;
+	int values_captured = 0;	// Capture a certain number of values for performance.
+	int max_values = 25;		// Animations take a long time to capture, only get 25.
+
+	// Start measuring after 1000 frames to allow warm up:
+	int warm_up;
 	if (program_state.performance > -1) { warm_up = 0; }
 	else { warm_up = 1001; }
 
@@ -151,8 +154,8 @@ int main(int argc, char **argv)
 	double **multi_shader_time = NULL;
 	if (program_state.performance == 0)
 	{
-		shader_time = malloc(100 * sizeof(double));
-		memset(shader_time, 0, 100 * sizeof(double));
+		shader_time = malloc(1000 * sizeof(double));
+		memset(shader_time, 0, 1000 * sizeof(double));
 	}
 	else if (program_state.performance == 1)
 	{
@@ -166,16 +169,16 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		multi_shader_time = malloc(100 * sizeof(double *));
-		for (int i = 0; i < 100; i++)
+		multi_shader_time = malloc(max_values * sizeof(double *));
+		for (int i = 0; i < max_values; i++)
 		{
 			multi_shader_time[i] = malloc(program_state.max_animation_frames *
 									sizeof(double));
 			memset(multi_shader_time[i], 0, program_state.max_animation_frames *
 									sizeof(double));
 		}
-		printf("Collecting data for %ld frames, 100 times.\n\n",
-				program_state.max_animation_frames);
+		printf("Collecting data for %ld frames, %d times.\n\n",
+			program_state.max_animation_frames, max_values);
 	}
 
 	// Main loop:
@@ -356,13 +359,14 @@ int main(int argc, char **argv)
 					values_captured++;
 					printf("Captured: %d\n", values_captured);
 				}
-				if ((values_captured == 100) && (program_state.performance == 1))
+				if ((values_captured == max_values) &&
+					(program_state.performance == 1))
 				{
 					printf("\nFinished performance measurements.\n\n");
 
 					// Write out performance measurements:
 					write_measurements(performance_file, multi_shader_time,
-							program_state.max_animation_frames);
+						program_state.max_animation_frames, max_values);
 
 					break;
 				}
@@ -376,8 +380,8 @@ int main(int argc, char **argv)
 		// Get geometry render pass execution time:
 		if ((program_state.performance == 0) && (warm_up > 1000))
 		{
-			get_shader_time(shader_time, program_state.frames, image_index,
-							0, &device, &performance);
+			get_shader_time(shader_time, (100 * values_captured) +
+				program_state.frames, image_index, 0, &device, &performance);
 		}
 
 		// Get frame rate and change window title:
@@ -399,22 +403,23 @@ int main(int argc, char **argv)
 			// Write out performance measurements:
 			if ((program_state.performance == 0) && (warm_up > 1000))
 			{
-				// Take median (ns), min (ns), max (ns) and frame time (s):
-				fprintf(performance_file, "%d\t", values_captured + 1);
-				fprintf(performance_file, "%.1lf\t", shader_time[50]);
-				fprintf(performance_file, "%.1lf\t", shader_time[0]);
-				fprintf(performance_file, "%.1lf\t", shader_time[99]);
-				fprintf(performance_file, "%.1lf\n\n", program_state.frame_time
-										* 1000000000.0);
-
-				// Reset times:
-				memset(shader_time, 0, 100 * sizeof(double));
+				total_frame_time += program_state.frame_time;
 
 				// If enough values have been captured, turn off performance:
 				values_captured++;
-				printf("Captured: %d\n", values_captured);
-				if (values_captured == 100)
+				printf("Progress: %d%%\n", values_captured * 10);
+				if (values_captured == 10)
 				{
+					// Get average frame time:
+					total_frame_time /= 100.0;
+					total_frame_time *= 1000000000.0;
+
+					// Take median, min, max and frame time, all in ns:
+					fprintf(performance_file, "%.1lf\t", shader_time[500]);
+					fprintf(performance_file, "%.1lf\t", shader_time[0]);
+					fprintf(performance_file, "%.1lf\t", shader_time[999]);
+					fprintf(performance_file, "%.1lf\n", total_frame_time);
+
 					printf("\nFinished performance measurements.\n\n");
 					break;
 				}
@@ -456,7 +461,7 @@ int main(int argc, char **argv)
 	if (shader_time) { free(shader_time); }
 	if (multi_shader_time)
 	{
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < max_values; i++)
 		{
 			free(multi_shader_time[i]);
 		}
