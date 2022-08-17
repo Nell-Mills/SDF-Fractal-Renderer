@@ -1,28 +1,31 @@
 \chapter{Results}
 \label{chapter4}
 
-This chapter will focus on the data obtained in the project. For clarity, there is a separate section on each fractal, as they are quite different and had their own sets of representative views. Some performance tests were not applicable to both optimization methods, so these have been separated into different sub-sections, one for each method, with a final sub-section focusing on tests applied to both methods, so that they can be compared with each other. A small explanation of the expected results will be given for each fractal.
+This chapter will focus on the data obtained in the project. For clarity, there is a separate section on each fractal, as they are quite different and had their own sets of representative views. A small explanation of the expected results will be given for each fractal. For the temporal caching, there were some tests that could be performed, that could not be performed with the signed distance field, because they involved animations that either changed the geometry or travelled far outside acceptable range for the signed distance field. These will be explained in their own section for each fractal.
 
 \section{Mandelbulb Tests}
 
 The view of the Mandelbulb fractal involves quite a bit of empty space, unlike the Hall of Pillars fractal, which contains none. The expected result is that the Temporal caching method will give a slight performance boost to views with empty space, especially around the edges of the fractal, where more iterations would normally occur, but huge boosts are not expected. For still images, especially, the temporal caching should give a boost no matter what is being looked at, as long as the camera does not move.\newline
 
-For the signed distance field, it entirely depends on whether searching through the three-dimensional grid is less expensive than calculating the signed distance function or not, as the signed distance field is intended to provide a cheaper alternative every iteration, not to reduce the number of iterations as the temporal caching is supposed to do. Because of this, different subdivision levels are experimented with (how many voxels there are in the signed distance field) to see if there is an optimal level. There is no solid prediction for this method.
+For the signed distance field, it entirely depends on whether searching through the three-dimensional grid is less expensive than calculating the signed distance function or not, as the signed distance field is intended to provide a cheaper alternative every iteration, not to reduce the number of iterations as the temporal caching is supposed to do. Because of this, different subdivision levels are experimented with (how many voxels there are in the signed distance field) to see if there is an optimal level. An attempt is also made to make the Mandelbulb distance estimator more expensive. The prediction is that the more costly the function, the more benefit will be seen, but that, since the Mandelbulb function is relatively cheap, there won't be much benefit, if any, with the standard function used here.
 
-\subsection{Three-Dimensional Signed Distance Field}
+\subsection{View: Zoomed out}
 
-\subsection{Temporal Caching}
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/Mandelbrot-2D-Full.png}
+	\caption{The Mandelbrot set. The white points in the centre are inside the set.}
+	\label{figure:mandelbrot-2d-full}
+\end{figure}
 
-\subsection{Comparison Between the Methods}
+\subsection{Temporal Caching Exclusive}
 
 \section{Hall of Pillars Tests}
 
 This fractal contains many bottlenecks (the ray has to pass close to lots of geometry before reaching any surface), so the temporal caching method is expected to perform better here than with the Mandelbulb, in terms of performance difference. A view with very simple geometry was also chosen because of this, as the prediction is that the temporal caching method will provide minimal benefit where these bottlenecks don't exist, the surface is very smooth, or the distance to the surface is very small.\newline
 
-The signed distance field was very tricky to test, since the fractal does not fit neatly into a small box, like the Mandelbulb. Because of this, during tests for the signed distance field, a ray culling step was added. Any ray not destined to intersect with the main signed distance field area is not followed. This gives a sort of cross-section of the fractal, and this was what was used. Again, no solid prediction can be made, as it depends on the relative expense of the signed distance function for this fractal.
+The signed distance field was very tricky to test, since the fractal does not fit neatly into a small box, like the Mandelbulb. Because of this, during tests for the signed distance field, a ray culling step was added. Any ray not destined to intersect with the main signed distance field area is not followed. This gives a sort of cross-section of the fractal, and this was what was used. This step was added to all tests to be compared with the test for the signed distance field, for consistency. The signed distance field is not expected to give a huge benefit here, as the relative expense of the distance estimator is not very high.
 
-\subsection{Three-Dimensional Signed Distance Field}
+\subsection{View:}
 
-\subsection{Temporal Caching}
-
-\subsection{Comparison Between the Methods}
+\subsection{Temporal Caching Exclusive}

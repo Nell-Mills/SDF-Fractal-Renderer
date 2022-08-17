@@ -17,10 +17,10 @@ sudo apt install libglfw3-dev
 # Compilation
 Run either:
 
-Make debug  
-Make release
+Make release  
+Make debug
 
-Default is debug.
+Default is release.
 
 Debug build has Vulkan validation layers enabled.
 

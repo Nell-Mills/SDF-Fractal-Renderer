@@ -168,7 +168,7 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 			//program_state->position = initialize_vector_3(-100.f, -1850.f, 2500.f);
 			//program_state->front = normalize(initialize_vector_3(-0.4f, 0.f, -0.9f));
 
-			// Loads of bottlenecks and depth:
+			// Corridor of bottlenecks:
 			//program_state->position = initialize_vector_3(330.f, -145.f, 110.f);
 			//program_state->front = normalize(initialize_vector_3(-1.f, 0.f, 0.f));
 

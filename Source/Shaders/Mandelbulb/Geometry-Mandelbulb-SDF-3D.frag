@@ -203,6 +203,7 @@ float ray_cube(vec3 origin, vec3 ray, float cube_size)
 float distance_estimator_mandelbulb(vec3 position)
 {
 	int max_iterations = 4;
+	//int max_iterations = 2500; // Make function more expensive.
 	float escape_radius = 2.f;
 	float parameter = u_scene.fractal_parameter;
 
