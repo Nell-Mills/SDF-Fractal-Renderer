@@ -66,10 +66,10 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	for (; steps_taken <= max_steps; steps_taken++)
 	{
 		// Extra ray culling step to limit view to SDF cube:
-		if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
-		{
-			return vec4(1.f);
-		}
+		//if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
+		//{
+		//	return vec4(1.f);
+		//}
 
 		// Look up which voxel the point is in:
 		voxel_lookup = sdf_3d_lookup(current_position.xyz);
@@ -101,10 +101,10 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	for (; steps_taken <= max_steps; steps_taken++)
 	{
 		// Extra ray culling step to limit view to SDF cube:
-		if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
-		{
-			return vec4(1.f);
-		}
+		//if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
+		//{
+		//	return vec4(1.f);
+		//}
 
 		// Get distance estimate and update total distance travelled:
 		distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);

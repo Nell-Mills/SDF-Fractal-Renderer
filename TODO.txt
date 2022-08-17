@@ -1,18 +1,3 @@
-Coding:
-
-*Gather performance measurements	-->
-
-Make short animation for 3D SDF		-->
-
-Change ray-cube function		--> Done.
-
-Get rid of ray-culling shader stuff	-->
-Change SDF settings back in Utility.c	-->
-
-----------------------------------------------------------------------------------------------------
-
-Report:
-
 Proofreading				-->
 Final extra proofreading		-->
 
