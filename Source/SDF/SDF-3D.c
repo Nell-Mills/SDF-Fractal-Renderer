@@ -17,13 +17,11 @@ void set_up_sdf_3d(FracRenderProgramState *program_state, FracRenderSDF3D *sdf_3
 	}
 	else
 	{
-		sdf_3d->levels		= 4;
+		sdf_3d->levels		= 8;
 		sdf_3d->num_voxels	= pow(8, sdf_3d->levels);
 		sdf_3d->size		= 500.f;
 
-		sdf_3d->centre = add_vector_3(program_state->position,
-				multiply_vector_3_scalar(normalize(initialize_vector_3(
-				program_state->front.x, 0.f, program_state->front.z)), 500.f));
+		sdf_3d->centre = program_state->position;
 	}
 
 	sdf_3d->fractal_type	= program_state->fractal_type;

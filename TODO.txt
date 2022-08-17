@@ -1,10 +1,8 @@
 Coding:
 
-*Gather performance measurements		-->
+*Gather performance measurements	-->
 
 Make short animation for 3D SDF		-->
-
-Get measurements for multi-mandelbulb	-->
 
 Change ray-cube function		-->
 

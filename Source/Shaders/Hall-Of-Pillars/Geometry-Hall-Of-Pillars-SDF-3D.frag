@@ -76,12 +76,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 			{
 				distance_travelled += distance_estimate * 1.01f;
 			}
-			else
-			{
-				distance_estimate =
-					distance_estimator_hall_of_pillars(current_position.xyz);
-				distance_travelled += distance_estimate;
-			}
+			else { break; }
 		}
 		else
 		{

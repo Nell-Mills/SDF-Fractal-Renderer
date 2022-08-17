@@ -9,14 +9,58 @@ The view of the Mandelbulb fractal involves quite a bit of empty space, unlike t
 
 For the signed distance field, it entirely depends on whether searching through the three-dimensional grid is less expensive than calculating the signed distance function or not, as the signed distance field is intended to provide a cheaper alternative every iteration, not to reduce the number of iterations as the temporal caching is supposed to do. Because of this, different subdivision levels are experimented with (how many voxels there are in the signed distance field) to see if there is an optimal level. An attempt is also made to make the Mandelbulb distance estimator more expensive. The prediction is that the more costly the function, the more benefit will be seen, but that, since the Mandelbulb function is relatively cheap, there won't be much benefit, if any, with the standard function used here.
 
-\subsection{View: Zoomed out}
+\subsection{Representative Views}
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.65\linewidth, frame]{Images/Mandelbrot-2D-Full.png}
-	\caption{The Mandelbrot set. The white points in the centre are inside the set.}
-	\label{figure:mandelbrot-2d-full}
+
+	\begin{subfigure}[c]{0.45\linewidth}
+		\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-View-01-Default}
+		\caption{Mandelbulb: Default View.}
+		\label{figure:mandelbulb-view-01-default}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[c]{0.45\linewidth}
+		\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-View-02-Empty-Space}
+		\caption{Mandelbulb: Zoomed Out View.}
+		\label{figure:mandelbulb-view-02-empty-space}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[c]{0.45\linewidth}
+		\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-View-03-No-Space}
+		\caption{Mandelbulb: Zoomed In View.}
+		\label{figure:mandelbulb-view-03-no-space}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[c]{0.45\linewidth}
+		\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-View-04-Bottleneck}
+		\caption{Mandelbulb: Bottleneck View.}
+		\label{figure:mandelbulb-view-04-bottleneck}
+	\end{subfigure}
+
+	\caption{Four representative views of the Mandelbulb fractal, used in performance tests.}
+	\label{figure:mandelbulb-views}
 \end{figure}
+
+Figure \ref{figure:mandelbulb-views} shows the four representative views used for performance measurements. Figure \ref{figure:mandelbulb-view-01-default} shows the default view, which is not expected to be particularly well suited to any performance measurement, to get a general-case overview of the performance differences between the methods used. Figure \ref{figure:mandelbulb-view-02-empty-space} is the view intended to include the most empty space (short of simply turning around and not looking at the fractal at all), and by contract figure \ref{figure:mandelbulb-view-03-no-space} is intended to include the least. Lastly, figure \ref{figure:mandelbulb-view-04-bottleneck} includes a mix of depth, smoothness and some bottlenecks.
+
+\subsubsection{Results}
+
+Table <ref> below shows the raw performance for these static images, using unoptimized rendering, the signed distance field and the temporal cache, as well as performance differences. Differences are measured in terms of the positive or negative performance difference, in percent, achieved by each optimization method.
+
+\begin{tabular}{||p{0.2\linewidth}|p{0.3\linewidth}|p{0.225\linewidth}|p{0.225\linewidth}||}
+	\hline
+	View & Unoptimized Time (ns) & SDF Time (ns) & SDF Difference (\%)\\
+	\hline\hline
+	Default & 0 & 0 & 0\\
+	\hline
+	Zoomed Out & 0 & 0 & 0\\
+	\hline
+	Zoomed In & 0 & 0 & 0\\
+	\hline
+	Bottleneck & 0 & 0 & 0\\
+	\hline
+\end{tabular}
 
 \subsection{Temporal Caching Exclusive}
 
