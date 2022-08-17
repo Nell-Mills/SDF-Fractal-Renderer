@@ -118,10 +118,28 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 	// Set up initial position, camera front and fractal parameter range:
 	if (program_state->fractal_type == 0)
 	{
-		// Mandelbulb:
+		/************************
+		 * Mandelbulb           *
+		 * Representative views *
+		 ************************/
+
+		// Default view:
 		program_state->position = initialize_vector_3(-1.3f, -1.2f, 2.f);
 		program_state->front = normalize(initialize_vector_3(0.5f, 0.45f, -0.75f));
 
+		// Lots of empty space:
+		//program_state->position = initialize_vector_3(-2.3f, -2.f, 3.5f);
+		//program_state->front = normalize(initialize_vector_3(0.5f, 0.45f, -0.75f));
+
+		// No empty space:
+		//program_state->position = initialize_vector_3(-0.3f, 0.f, 1.4f);
+		//program_state->front = normalize(initialize_vector_3(0.25f, 0.f, -1.f));
+
+		// Bottleneck to space:
+		//program_state->position = initialize_vector_3(-0.704f, 0.193f, -0.713f);
+		//program_state->front = normalize(initialize_vector_3(0.62f, 0.72f, -0.32f));
+
+		// Fractal Parameter:
 		program_state->fractal_parameter = 8.f;
 		program_state->fractal_parameter_start = 10.f;
 		program_state->fractal_parameter_min = 4.f;
@@ -138,11 +156,32 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		}
 		else
 		{
-			// Normal:
+			/************************
+			 * Representative views *
+			 ************************/
+
+			// Default view:
 			program_state->position = initialize_vector_3(25.f, 20.f, 9.f);
 			program_state->front = normalize(initialize_vector_3(0.f, 0.45f, 1.f));
+
+			// Few, large bottlenecks and great depth:
+			//program_state->position = initialize_vector_3(-100.f, -1850.f, 2500.f);
+			//program_state->front = normalize(initialize_vector_3(-0.4f, 0.f, -0.9f));
+
+			// Loads of bottlenecks and depth:
+			//program_state->position = initialize_vector_3(330.f, -145.f, 110.f);
+			//program_state->front = normalize(initialize_vector_3(-1.f, 0.f, 0.f));
+
+			// Intricate geometry:
+			//program_state->position = initialize_vector_3(-400.f, 55.f, 850.f);
+			//program_state->front = normalize(initialize_vector_3(0.45f, 0.f, -0.9f));
+
+			// Simple geometry:
+			//program_state->position = initialize_vector_3(49.64f, 1.4f, 733.35f);
+			//program_state->front = normalize(initialize_vector_3(0.25f, 0.9f, 0.25f));
 		}
 
+		// Fractal Parameter:
 		program_state->fractal_parameter = 2.f;
 		program_state->fractal_parameter_start = 2.f;
 		program_state->fractal_parameter_min = 1.6f;
@@ -154,6 +193,7 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		program_state->position = initialize_vector_3(0.25f, 0.f, 0.f);
 		program_state->front = normalize(initialize_vector_3(0.f, 0.f, 1.f));
 
+		// Fractal Parameter:
 		program_state->fractal_parameter = 0.f;
 		program_state->fractal_parameter_start = 0.f;
 		program_state->fractal_parameter_min = -0.75f;
