@@ -42,9 +42,6 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 	static double last_x = 0.0;
 	static double last_y = 0.0;
 
-	static double pitch = 20.5;
-	static double yaw = 89.0;
-
 	if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 	{
 		// Get program state:
@@ -62,20 +59,24 @@ void glfw_callback_mouse_position(GLFWwindow *window, double x_pos, double y_pos
 		double dy = y_pos - last_y;
 
 		// Update pitch and clamp:
-		pitch += dy * program_state->delta_t * program_state->mouse_sensitivity;
-		if (pitch > 89.0) { pitch = 89.0; }
-		if (pitch < -89.0) { pitch = -89.0; }
+		program_state->pitch += dy * program_state->delta_t *
+					program_state->mouse_sensitivity;
+		if (program_state->pitch > 89.0) { program_state->pitch = 89.0; }
+		if (program_state->pitch < -89.0) { program_state->pitch = -89.0; }
 
 		// Update yaw:
-		yaw += (dx * program_state->delta_t * program_state->mouse_sensitivity) / aspect;
+		program_state->yaw += (dx * program_state->delta_t *
+			program_state->mouse_sensitivity) / aspect;
 
 		// Calculate rotation values:
 		FracRenderVector3 camera_direction;
-		camera_direction.x = (float)(cos(radians(yaw)) * cos(radians(pitch)));
+		camera_direction.x = (float)(cos(radians(program_state->yaw)) *
+					cos(radians(program_state->pitch)));
 
-		camera_direction.y = (float)(sin(radians(pitch)));
+		camera_direction.y = (float)(sin(radians(program_state->pitch)));
 
-		camera_direction.z = (float)(sin(radians(yaw)) * cos(radians(pitch)));
+		camera_direction.z = (float)(sin(radians(program_state->yaw)) *
+					cos(radians(program_state->pitch)));
 
 		program_state->front = normalize(camera_direction);
 	}

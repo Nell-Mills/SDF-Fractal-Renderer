@@ -1,30 +1,28 @@
 \chapter{Results}
 \label{chapter4}
 
-\section{3D SDF}
+This chapter will focus on the data obtained in the project. For clarity, there is a separate section on each fractal, as they are quite different and had their own sets of representative views. Some performance tests were not applicable to both optimization methods, so these have been separated into different sub-sections, one for each method, with a final sub-section focusing on tests applied to both methods, so that they can be compared with each other. A small explanation of the expected results will be given for each fractal.
 
-\subsection{Mandelbulb}
+\section{Mandelbulb Tests}
 
-Remark on results for different SDF levels (1 - 9).
+The view of the Mandelbulb fractal involves quite a bit of empty space, unlike the Hall of Pillars fractal, which contains none. The expected result is that the Temporal caching method will give a slight performance boost to views with empty space, especially around the edges of the fractal, where more iterations would normally occur, but huge boosts are not expected. For still images, especially, the temporal caching should give a boost no matter what is being looked at, as long as the camera does not move.\newline
 
-\subsection{Hall of Pillars}
+For the signed distance field, it entirely depends on whether searching through the three-dimensional grid is less expensive than calculating the signed distance function or not, as the signed distance field is intended to provide a cheaper alternative every iteration, not to reduce the number of iterations as the temporal caching is supposed to do. Because of this, different subdivision levels are experimented with (how many voxels there are in the signed distance field) to see if there is an optimal level. There is no solid prediction for this method.
 
-Remark on results for different SDF levels (1 - 9).
+\subsection{Three-Dimensional Signed Distance Field}
 
-\section{Temporal Caching}
+\subsection{Temporal Caching}
 
-\subsection{Mandelbulb}
+\subsection{Comparison Between the Methods}
 
-\subsection{Hall of Pillars}
+\section{Hall of Pillars Tests}
 
-Show four images, displaying iterations with fog:
-\begin{itemize}
-	\item Top-Left: No SDF, no movement.
-	\item Bottom-Left: No SDF, movement.
-	\item Top-Right: Temporal Caching, no movement.
-	\item Bottom-Right: Temporal Caching, movement.
-\end{itemize}
+This fractal contains many bottlenecks (the ray has to pass close to lots of geometry before reaching any surface), so the temporal caching method is expected to perform better here than with the Mandelbulb, in terms of performance difference. A view with very simple geometry was also chosen because of this, as the prediction is that the temporal caching method will provide minimal benefit where these bottlenecks don't exist, the surface is very smooth, or the distance to the surface is very small.\newline
 
-Show two graphs for animations. Show one for raw measurements, and then show one for percentage difference. Have y = 0 as a line in the middle so positive or negative performance differences can be seen.\newline
+The signed distance field was very tricky to test, since the fractal does not fit neatly into a small box, like the Mandelbulb. Because of this, during tests for the signed distance field, a ray culling step was added. Any ray not destined to intersect with the main signed distance field area is not followed. This gives a sort of cross-section of the fractal, and this was what was used. Again, no solid prediction can be made, as it depends on the relative expense of the signed distance function for this fractal.
 
-For static images, show a table for each relevant separate set of measurements.
+\subsection{Three-Dimensional Signed Distance Field}
+
+\subsection{Temporal Caching}
+
+\subsection{Comparison Between the Methods}

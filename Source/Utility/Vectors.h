@@ -17,6 +17,9 @@ typedef struct {
 // Convert degrees into radians:
 float radians(float degrees);
 
+// Convert radians into degrees:
+float degrees(float radians);
+
 // Get axes in coordinate system of input:
 void get_axes(FracRenderVector3 position, FracRenderVector3 forward, FracRenderVector3 up,
 				FracRenderVector3 *x_axis, FracRenderVector3 *y_axis);

@@ -14,6 +14,10 @@ typedef struct {
 	FracRenderVector3 front;
 	FracRenderVector3 up;
 
+	// Rotation:
+	double pitch;
+	double yaw;
+
 	// Time:
 	double last_update;
 	double current_update;

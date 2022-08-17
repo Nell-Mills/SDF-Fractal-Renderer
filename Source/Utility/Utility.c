@@ -200,6 +200,10 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 		program_state->fractal_parameter_max = 0.75f;
 	}
 
+	// Rotation:
+	program_state->pitch = degrees(asin(program_state->front.y));
+	program_state->yaw = degrees(atan2(program_state->front.z, program_state->front.x));
+
 	// Set up other initial values for program state:
 	program_state->up			= initialize_vector_3(0.f, 1.f, 0.f);
 	program_state->last_update		= 0.0;
