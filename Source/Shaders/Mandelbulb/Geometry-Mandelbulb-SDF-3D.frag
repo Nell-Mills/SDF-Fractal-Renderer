@@ -38,7 +38,7 @@ layout (location = 0) out vec4 out_position;
 vec4 sphere_trace(vec3 origin, vec3 ray);
 uint sdf_3d_lookup(vec3 position);
 bool in_cube(vec3 cube_centre, float cube_size, vec3 point);
-float ray_cube(vec3 origin, vec3 ray, float cube_size);
+float ray_cube(vec3 origin, vec3 ray);
 float distance_estimator_mandelbulb(vec3 position);
 
 // Main function:
@@ -71,7 +71,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 		// If voxel is invalid (0), check for main cube intersection:
 		if (voxel_lookup == 0)
 		{
-			distance_estimate = ray_cube(origin, ray, u_scene.sdf_3d_size);
+			distance_estimate = ray_cube(origin, ray);
 			if (distance_estimate >= 0.f)
 			{
 				distance_travelled += distance_estimate * 1.01f;
@@ -181,11 +181,16 @@ bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
 	return false;
 }
 
-float ray_cube(vec3 origin, vec3 ray, float cube_size)
+float ray_cube(vec3 origin, vec3 ray)
 {
+	// Function is meant for cube centered on origin. Move ray origin to compensate:
+	float cube_size = u_scene.sdf_3d_size;
+	vec3 cube_centre = u_scene.sdf_3d_centre;
+	vec3 new_origin = origin - cube_centre;
+
 	// Function from: https://iquilezles.org/articles/intersectors/
 	vec3 m = 1.f / ray;
-	vec3 n = m * origin;
+	vec3 n = m * new_origin;
 	vec3 k = abs(m) * vec3(cube_size);
 	vec3 t1 = -n - k;
 	vec3 t2 = -n + k;

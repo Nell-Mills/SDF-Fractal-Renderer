@@ -4,7 +4,10 @@ Coding:
 
 Make short animation for 3D SDF		-->
 
-Change ray-cube function		-->
+Change ray-cube function		--> Done.
+
+Get rid of ray-culling shader stuff	-->
+Change SDF settings back in Utility.c	-->
 
 ----------------------------------------------------------------------------------------------------
 

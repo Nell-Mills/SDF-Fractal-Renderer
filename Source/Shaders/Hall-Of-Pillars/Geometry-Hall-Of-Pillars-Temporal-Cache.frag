@@ -36,6 +36,7 @@ layout (location = 1) out vec4 out_distance;
 // Function prototypes:
 vec4 sphere_trace(vec3 origin, vec3 ray);
 float distance_estimator_hall_of_pillars(vec3 position);
+bool in_cube(vec3 cube_centre, float cube_size, vec3 point);
 
 // Main function:
 void main()
@@ -75,6 +76,12 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 
 	for (int steps_taken = 0; steps_taken <= max_steps; steps_taken++)
 	{
+		// Extra ray culling step to limit view to SDF cube:
+		if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
+		{
+			return vec4(1.f);
+		}
+
 		// Get distance estimate and update total distance travelled:
 		distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);
 		distance_travelled += distance_estimate;
@@ -118,4 +125,19 @@ float distance_estimator_hall_of_pillars(vec3 position)
         rxy = max(rxy, -n / 4.f);
 
         return rxy / abs(scale);
+}
+
+bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
+{
+	if (	(point.x >= (cube_centre.x - cube_size)) &&
+		(point.x <= (cube_centre.x + cube_size)) &&
+		(point.y >= (cube_centre.y - cube_size)) &&
+		(point.y <= (cube_centre.y + cube_size)) &&
+		(point.z >= (cube_centre.z - cube_size)) &&
+		(point.z <= (cube_centre.z + cube_size)))
+	{
+		return true;
+	}
+
+	return false;
 }

@@ -177,8 +177,8 @@ void set_up_program_state(int argc, char **argv, FracRenderProgramState *program
 			//program_state->front = normalize(initialize_vector_3(0.45f, 0.f, -0.9f));
 
 			// Simple geometry:
-			//program_state->position = initialize_vector_3(49.64f, 1.4f, 733.35f);
-			//program_state->front = normalize(initialize_vector_3(0.25f, 0.9f, 0.25f));
+			//program_state->position = initialize_vector_3(0.f, 3.25f, 785.f);
+			//program_state->front = normalize(initialize_vector_3(0.f, 0.65f, -0.75f));
 		}
 
 		// Fractal Parameter:
@@ -232,8 +232,13 @@ void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D
 	else
 	{
 		// No 3D SDF:
-		scene_uniform->sdf_3d_centre	= initialize_vector_3(0.f, 0.f, 0.f);
-		scene_uniform->sdf_3d_size	= 0.f;
+		//scene_uniform->sdf_3d_centre	= initialize_vector_3(0.f, 0.f, 0.f);
+		//scene_uniform->sdf_3d_size	= 0.f;
+		//scene_uniform->sdf_3d_levels	= 0;
+
+		// No 3D SDF, but have a size and centre anyway for ray culling (Hall of Pillars):
+		scene_uniform->sdf_3d_centre	= program_state->position;
+		scene_uniform->sdf_3d_size	= 500.f;
 		scene_uniform->sdf_3d_levels	= 0;
 	}
 

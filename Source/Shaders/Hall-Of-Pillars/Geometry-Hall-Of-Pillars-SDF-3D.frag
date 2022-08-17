@@ -38,7 +38,7 @@ layout (location = 0) out vec4 out_position;
 vec4 sphere_trace(vec3 origin, vec3 ray);
 uint sdf_3d_lookup(vec3 position);
 bool in_cube(vec3 cube_centre, float cube_size, vec3 point);
-float ray_cube(vec3 origin, vec3 ray, float cube_size);
+float ray_cube(vec3 origin, vec3 ray);
 float distance_estimator_hall_of_pillars(vec3 position);
 
 // Main function:
@@ -65,13 +65,19 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 	int steps_taken = 0;
 	for (; steps_taken <= max_steps; steps_taken++)
 	{
+		// Extra ray culling step to limit view to SDF cube:
+		if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
+		{
+			return vec4(1.f);
+		}
+
 		// Look up which voxel the point is in:
 		voxel_lookup = sdf_3d_lookup(current_position.xyz);
 
 		// If voxel is invalid (0), check for main cube intersection:
 		if (voxel_lookup == 0)
 		{
-			distance_estimate = ray_cube(origin, ray, u_scene.sdf_3d_size);
+			distance_estimate = ray_cube(origin, ray);
 			if (distance_estimate >= 0.f)
 			{
 				distance_travelled += distance_estimate * 1.01f;
@@ -94,6 +100,12 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 
 	for (; steps_taken <= max_steps; steps_taken++)
 	{
+		// Extra ray culling step to limit view to SDF cube:
+		if (!in_cube(u_scene.sdf_3d_centre, u_scene.sdf_3d_size, current_position.xyz))
+		{
+			return vec4(1.f);
+		}
+
 		// Get distance estimate and update total distance travelled:
 		distance_estimate = distance_estimator_hall_of_pillars(current_position.xyz);
 		distance_travelled += distance_estimate;
@@ -181,11 +193,16 @@ bool in_cube(vec3 cube_centre, float cube_size, vec3 point)
 	return false;
 }
 
-float ray_cube(vec3 origin, vec3 ray, float cube_size)
+float ray_cube(vec3 origin, vec3 ray)
 {
+	// Function is meant for cube centered on origin. Move ray origin to compensate:
+	float cube_size = u_scene.sdf_3d_size;
+	vec3 cube_centre = u_scene.sdf_3d_centre;
+	vec3 new_origin = origin - cube_centre;
+
 	// Function from: https://iquilezles.org/articles/intersectors/
 	vec3 m = 1.f / ray;
-	vec3 n = m * origin;
+	vec3 n = m * new_origin;
 	vec3 k = abs(m) * vec3(cube_size);
 	vec3 t1 = -n - k;
 	vec3 t2 = -n + k;
