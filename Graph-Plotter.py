@@ -101,12 +101,12 @@ if plot_difference == 0:
 	plt.title("")
 	plt.ylim((y_min, y_max))
 	plt.xlabel("Frame")
-	plt.ylabel("Median")
+	plt.ylabel("Render Pass Time (ns)")
 else:
+	second_file = 0
+
 	# Calculate percentage difference:
-	plot_y = plot_y / plot_y_2
-	plot_y = plot_y - 1
-	plot_y = plot_y * 100
+	plot_y = ((plot_y - plot_y_2) / plot_y) * 100
 
 	# Plot difference line:
 	plt.plot(plot_x, plot_y, 'b')
@@ -129,7 +129,7 @@ else:
 	plt.xlim((min(plot_x) - 500, max(plot_x) + 500))
 
 	plt.xlabel("Frame")
-	plt.ylabel("Percentage Difference in Median")
+	plt.ylabel("Percentage Difference in Median Render Pass Time")
 
 # Line of best fit. First eliminate the outlier section in data (may not have been done already):
 if (plot_best_fit == 1):
@@ -145,4 +145,6 @@ if (plot_best_fit == 1):
 
 	plt.plot(plot_x, line_of_best_fit, 'r')
 
+if second_file > 0:
+	plt.legend(['Unoptimized', 'Temporal Cache'])
 plt.show()
