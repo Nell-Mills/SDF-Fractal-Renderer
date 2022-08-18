@@ -269,7 +269,6 @@ void destroy_sdf_3d(FracRenderSDF3D *sdf_3d)
 float signed_distance_function_mandelbulb(FracRenderVector3 position)
 {
 	int max_iterations = 4;
-	//int max_iterations = 2500; // Make function more expensive.
 	float escape_radius = 2.f;
 	float parameter = 8.f;
 
@@ -277,7 +276,7 @@ float signed_distance_function_mandelbulb(FracRenderVector3 position)
 	float dr = 1.f;
 	float r = 0.f;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < max_iterations; i++)
 	{
 		r = length(z);
 		if (r > escape_radius) { break; }
