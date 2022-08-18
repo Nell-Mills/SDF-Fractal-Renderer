@@ -10,18 +10,18 @@ Introduction				--> Done.
 Background - 2D fractals		--> Done.
 Background - 3D fractals		--> Done.
 Background - Sphere tracing		--> Done.
-*Background - SDF			-->
+Background - SDF			--> Done.
 Background - Temporal Caching		--> Done.
 
 Implementation - System + Vulkan	--> Done.
 Implementation - Fractals		--> Done.
-*Implementation - SDF			-->
+Implementation - SDF			--> Done.
 Implementation - Temporal Caching	--> Done.
 Implementation - Performance		--> Done.
 Implementation - Debugging		--> Done.
 
-*Results - 3D SDF			-->
-*Results - Temporal Caching		-->
+Results - 3D SDF			-->
+Results - Temporal Caching		-->
 
 Evaluation - 3D SDF			-->
 Evaluation - Temporal Caching		-->

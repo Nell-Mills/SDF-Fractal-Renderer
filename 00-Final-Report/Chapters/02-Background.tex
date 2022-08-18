@@ -1,5 +1,5 @@
 \chapter{Background}
-\label{chapter2}
+\label{chapter:background}
 
 This project aims to improve the efficiency of real-time rendering of 3D fractals. This chapter will focus on background theory for fractals, signed distance functions and sphere tracing. Afterwards, two possible methods of improving efficiency will be discussed, namely signed distance fields and temporal caching.
 
@@ -163,26 +163,33 @@ See figure \ref{figure:sphere-tracing}. This shows three scenarios for tracing a
 
 \section{Signed Distance Fields}
 
-Papers:
-\begin{itemize}
-	\item Signed distance fields: A natural representation for both mapping and planning \cite{oleynikova2016signed}.
-	\item Hierarchical hp-adaptive signed distance fields \cite{koschier2016hierarchical}.
-	\item Interactive ray tracing of distance fields (page 91) \cite{jamrivska2010interactive}.
-\end{itemize}
+A signed distance field is the result of discretizing a signed distance function over a finite space. The aim of the signed distance field is to reduce the need for evaluating potentially expensive signed distance functions for use in, for example, collision detection or ray tracing. Samples of the distance are taken at each point of the field (for example, at every voxel in a three-dimensional grid, as the case will be in this project) and stored for later use. Often, these samples are taken at the vertices of the grid, and when they are read, they are interpolated to get an approximation of the value at the specific point in the voxel \cite{koschier2016hierarchical}.\newline
 
-- Stored values from signed distance function, stored as 2D texture or 3D grid.
+Memory usage is a concern when using a signed distance field, especially if the shape requires high accuracy, as it will require a greater concentration of samples, especially near the surface. Some methods try to deal with this by increasing the amount of subdivision close to the surface or in areas with more complex geometry, and reducing it elswhere \cite{frisken2000adaptively}.\newline
 
-- Saves having to recompute SDF all the time.
+\subsection{Storage Methods}
 
-- Fractal scenes with high view distance could benefit from some pre-calculated values to give them a head start - show room of pillars and remark on frame rate (no SDF).
+A common representation scheme for signed distance fields, and the one chosen for this project, is an eight-dimensional binary tree, also known as an octree. The nodes of the tree represent areas of the space, and at each level of the tree, these area get exponentially smaller. Leaf nodes contain the information necessary for construction of the scene. Other nodes point to eight child nodes each, so that leaf nodes can be reached by searching the tree, starting with the root \cite{meagher1982geometric}.\newline
 
-- Remark on memory costs.
+This structure, being constructed out of cubes, is simple to manipulate and search. All of the nodes of the tree can be kept in a specific order, which makes indexing very simple, since the tree can just be traversed in a specific order, rather than searching the space itself for the correct cube \cite{meagher1982geometric}.\newline
 
-- Briefly talk about storage methods - octrees.
+\subsection{Application to this Project}
 
-- Talk about 2D methods - particularly used for fonts.
+The use of a signed distance field is intended to provide a cheaper way of evaluating the distance at any point around the fractal shape than calculating the signed distance using the given function. If evaluating the signed distance field is indeed cheaper than evaluating the signed distance function, then performance boosts will be expected when rendering the fractals in real time.\newline
+
+The octree data structure has been chosen for this project for its simplicity, and for the ability to be selective about when to perform a memory read, which is expensive compared to calculations on the GPU. Memory usage will need to be considered, as a very high resolution representation of the space will be costly. For this project, very fine detail is not needed, so a relatively coarse field can be used. However, accuracy is still a concern. Chapter \ref{chapter:implementation} on implementation will discuss decisions made to tackle this problem.
 
 \section{Temporal Caching} \label{section:temporal-caching}
+
+Temporal caching methods rely on the idea that the contents of an image don't change much from frame to frame; they are temporally coherent. With this in mind, a possible performance booster can be implemented for ray tracing, which uses information (such as colours, lighting data or positions) from previous states to speed up or provide a hint for calculations in the current frame \cite{cosenza2008estimating}.\newline
+
+Taking advantage of temporal coherence in ray tracing is of special interest in the case of global illumination data, which is very expensive to calculate. In order to maintain spatial coherence between frames, methods often perform temporal reprojection, which maps the location of the point on the surface from the current frame to the previous frame, so that it samples from similar areas in the scene \cite{scherzer2012temporal}.\newline
+
+Consider the scenario in which a ray travels through a room, hitting the back wall. In the next frame, the camera has moved, and the same ray now intersects a closer object, say a chair. However, the sampled distance from the previous frame already places the point behind the chair, rendering the chair invisible. This is not a problem if the current true distance is greater than the previous, as the sphere tracing algorithm can be used to march along the ray further with no loss of accuracy, and in fact potential gains in performance. The method used in this project needs to take this problem into account, since the camera position and rotation will change.\newline
+
+Determining whether a pixel value is invalid can be done in a few ways. For example, testing the angle between the normal of the previous frame and the current ray, and recasting the ray if the angle exceeds some threshold. It could also be done by comparing the depth of previous frames with the depth of the current frame, though this would likely work better for mesh geometry, as it requires knowing the exact depth in the current frame, the calculation of which this project is trying to avoid \cite{weier2016foveated}.
+
+\subsection{Application to this Project}
 
 \begin{figure} [ht]
 	\centering
@@ -191,16 +198,8 @@ Papers:
 	\label{figure:sphere-tracing-bottleneck}
 \end{figure}
 
-Temporal caching methods rely on the idea that the contents of an image don't change much from frame to frame; they are temporally coherent. With this in mind, a possible performance booster can be implemented for ray tracing, which uses information (such as colours, lighting data or positions) from previous states to speed up or provide a hint for calculations in the current frame \cite{cosenza2008estimating}.\newline
+The goal of using temporal caching for rendering three-dimensional fractals is to reduce the number of iterations required to get to the surface. This is a different approach than using a signed distance field, which is intended to reduce the cost of the iterations themselves.\newline
 
-Taking advantage of temporal coherence in ray tracing is of special interest in the case of global illumination data, which is very expensive to calculate. In order to maintain spatial coherence between frames, methods often perform temporal reprojection, which maps the location of the point on the surface from the current frame to the previous frame, so that it samples from similar areas in the scene \cite{scherzer2012temporal}.\newline
+The information required to render the scenes in this project is the distance travelled by each ray. For a still image (no camera movement), the result of the last frame can be sampled and used again exactly the same in the next frame, skipping all sphere tracing iterations. Of course for real time rendering, an image is likely to change, either because of moving geometry, or camera changes. To tackle this, a test will be performed to see if the camera has moved too much, and a effort will be made to have a consistent, but preferably small, underestimate of the true distance, so that the rays don't overshoot.\newline
 
-In the context of this paper, the information required to render the scene is the distance travelled by each ray. For a still image (no camera movement), the result of the last frame can be sampled and used again exactly the same in the next frame, skipping all sphere tracing iterations. Of course for real time rendering, an image is likely to change, either because of moving geometry, or camera changes.\newline
-
-Consider the scenario in which a ray travels through a room, hitting the back wall. In the next frame, the camera has moved, and the same ray now intersects a closer object, say a chair. However, the sampled distance from the previous frame already places the point behind the chair, rendering the chair invisible. This is not a problem if the current true distance is greater than the previous, as the sphere tracing algorithm can be used to march along the ray further with no loss of accuracy, and in fact potential gains in performance. The method used in this project needs to take this problem into account, since the camera position and rotation will change.\newline
-
-One scenario of interest in this paper is illustrated in figure \ref{figure:sphere-tracing-bottleneck}. The ray passes very close to the surface of the shape along its path, but never intersects that part of the shape. This results in smaller steps for the sphere tracing algorithm, and a loss of performance, as a significant number of iterations are expended getting past the bottleneck in the scene. This paper proposes that a temporal caching method could be employed that provides a significant performance boost by bypassing the bottlenecks in these scenarios.\newline
-
-The reconstruction of surface positions from previous frames will not be done in this project. This is because the relative expense of the signed distance calculations compared to global illumination ray tracing is tiny. Reprojection itself has an overhead, and the technique would require storing position data, and possibly ray data as well, and sampling during the render pass, which may result in a performance loss, rather than gain.\newline
-
-Determining whether a pixel value is invalid can be done in a few ways. For example, testing the angle between the normal of the previous frame and the current ray, and recasting the ray if the angle exceeds some threshold. It could also be done by comparing the depth of previous frames with the depth of the current frame, though this would likely work better for mesh geometry, as it requires knowing the exact depth in the current frame, the calculation of which this project is trying to avoid \cite{weier2016foveated}.
+One scenario of interest in this project is illustrated in figure \ref{figure:sphere-tracing-bottleneck}. The ray passes very close to the surface of the shape along its path, but never intersects that part of the shape. This results in smaller steps for the sphere tracing algorithm, and a loss of performance, as a significant number of iterations are expended getting past the bottleneck in the scene. This paper proposes that a temporal caching method could be employed that provides a significant performance boost by bypassing the bottlenecks in these scenarios.

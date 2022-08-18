@@ -87,7 +87,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 		current_position = vec4(origin + (ray * distance_travelled),
 			1.f - (float(steps_taken) / float(max_steps)));
 
-		if (abs(distance_estimate) <= cube_size) { break; }
+		if (abs(distance_estimate) <= (sqrt(3.f) * cube_size)) { break; }
 
 		if (abs(distance_travelled) >= u_scene.view_distance) { break; }
 	}
@@ -132,10 +132,7 @@ uint sdf_3d_lookup(vec3 position)
 	float size = u_scene.sdf_3d_size;
 
 	// Check if point is in main cube:
-	if (!in_cube(centre, size, position))
-	{
-		return 0;
-	}
+	if (!in_cube(centre, size, position)) { return 0; }
 
 	// Find out which cube the point is in:
 	uint level = 1;

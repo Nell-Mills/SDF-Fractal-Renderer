@@ -1,5 +1,5 @@
 \chapter{Introduction}
-\label{chapter1}
+\label{chapter:introduction}
 
 This project aims to implement two different methods to improve the speed of rendering three-dimensional fractals (or indeed any shape that can be described with a signed distance function). Both methods rely on using precalculated information to speed up the process of sphere tracing of the scene. One method used will be a three-dimensional signed distance field, which calculates the approximate distance to the surface offline, and stores it in a grid structure. The other method will be a form of temporal caching, which stores the calculated distance from four of the previous frames, and uses it to speed up calculation in the next.\newline
 
@@ -37,18 +37,22 @@ This project will involve three main stages:
 	\item Performance measuring system to capture performance differences between methods.
 \end{itemize}
 
-Each stage depends on the last, so a Waterfall methodology will be employed. A full chart of the stages is shown below.
+Each stage depends on the last, so a Waterfall methodology will be employed.%A full chart of the stages is shown below.
+
+%<Maybe actually include a chart>
 
 \section{Risks and Mitigation}
 
-The table below summarizes the risks involved with this project, along with their mitigation strategies.
+The table below summarizes the risks involved with this project, along with their mitigation strategies.\newline
 
-\begin{tabular}{||c|c||}
+\begin{tabular}{||p{0.45\linewidth}|p{0.45\linewidth}||}
+	\hline
+	Risk & Mitigation Strategy\\
 	\hline\hline
 	Run out of time before implementing both optimization methods. & Implement the methods one after the other so that one can be discarded if necessary.\\
 	\hline
 	Failure to increase performance using one or both methods. & Provide detailed explanations as to why this happened. If there is time, experiment with changes to either method.\\
 	\hline
-	Technological failure. & Keep code repository up to date in GitHub to avoid loss of progress. Make sure I have access to a backup machine if possibl, either borrowing one or using a machine on campus.\\
-	\hline\hline
+	Technological failure. & Keep code repository up to date in GitHub to avoid loss of progress. Make sure I have access to a backup machine if possible, either borrowing one or using a machine on campus.\\
+	\hline
 \end{tabular}

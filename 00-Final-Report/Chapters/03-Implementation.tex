@@ -1,5 +1,5 @@
 \chapter{Implementation}
-\label{chapter3}
+\label{chapter:implementation}
 
 This chapter will go through the implementation of the project. First, the system information and general program structure will be looked at. Then, the rendering of fractals will be covered, followed by the attempts at improving performance, and the method of measuring performance. Finally, there will be a section on debugging.\newline
 
@@ -135,9 +135,46 @@ This free ambient occlusion effect also gives an informal measure of performance
 
 \section{3D Signed Distance Field}
 
-Centered around fractal - Mandelbulb
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/SDF-Hybrid-Comparison.png}
+	\caption{Rendering of the Mandelbulb (top) and Hall of Pillars fractal (bottom), using the signed distance field alone (left) and the hybrid approach (right). The Mandelbulb is rendered with 8 levels of subdivision (256$^3$ voxels), and the Hall of Pillars is rendered with 9 levels (512$^3$ voxels).}
+	\label{figure:sdf-hybrid-comparison}
+\end{figure}
 
-Centered around camera - Hall of Pillars?
+\subsection{Structure and Usage}
+
+The signed distance field represented a three-dimensional grid. Samples were taken at the centre of each voxel in the grid. To obtain a guaranteed underestimate here, the length of the line between the centre and corner of the voxel was taken away from this distance (or added, if the distance was negative). The more common approach is to sample the distance at the corners of the voxels and interpolate based on the location inside. The decision to only take the centre value was made to reduce memory reads, as the signed distance functions for the fractals are cheap in comparison to, say, the signed distance function for an arbitrary polyhedral shape.\newline
+
+Another design decision that was made was to take a hybrid approach. Rather than try to obtain as much detail as possible (and use a lot of memory) in the signed distance field, the program performed sphere tracing through the field, until the sampled distance was smaller than the size of the diagonal between the voxel centre and corner; the largest distance possible from the centre before leaving the voxel. Obtaining a value such as this means that the surface is likely within the voxel. When this happens, the program reverts to using the signed distance function to obtain the finer detail. This provides a balance between speed, memory use and accuracy. Figure \ref{figure:sdf-hybrid-comparison} shows a comparison of visual quality for both fractals used in the project when using a signed distance field with the signed distance field alone, and using the hybrid approach.\newline
+
+For the Hall of Pillars fractal particularly, the signed distance field does not have nearly the required level of detail, despite it having one more level of subdivision than the Mandelbulb. This is because this fractal has a much larger scale, so in order to cover a reasonable area of the fractal with the field, each voxel must be much larger. For the Mandelbulb, the whole shape can be contained in a small box, approximately 2.2 units along each edge. The Hall of Pillars fractal seems to be infinitely large. This difference makes the signed distance field very limited for use in large fractals.
+
+\subsection{Octree Storage}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.45\linewidth, frame]{Images/Octree-Structure.png}
+	\caption{Structure of the signed distance field octree. Only child nodes of traversed nodes are shown.}
+	\label{figure:octree-structure}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.65\linewidth, frame]{Images/Octree-Traversal.png}
+	\caption{Code snippets from the octree traversal function. Only significant parts are shown.}
+	\label{figure:octree-traversal}
+\end{figure}
+
+The signed distance field is represented as an octree. Figure \ref{figure:octree-structure} shows the layout. Only the leaf nodes hold data, and the higher level nodes aren't represented at all. The decision was made not to adaptively subdivide the tree to make a sparse layout. This is because it was desirable to reduce the number of memory reads, and instead calculate the index of the desired voxel by its depth and position inside the bottom level of the tree. This ruled out the use of adaptive sparse structures, as they would require more information on the subdivision of voxels, and so need to store information for higher-level voxels.\newline
+
+The child nodes of every parent node are stored in the same order, which is what makes it possible to calculate the index without explicitly storing information about non-leaf voxels. In memory, the whole structure is represented as an array of floating point numbers; the calculated distances at the centre of each voxel. Additional, vital information is given in the scene uniform. This includes the size and centre of the root voxel, and the total number of subdivisions of the signed distance field. The values in the array are ordered left to right, as the leaf nodes would be if the whole tree was expanded.\newline
+
+Figure \ref{figure:octree-traversal} shows a snippet of shader code for traversing the tree. No memory reads are required until the index of the leaf voxel is found (this function returns said index, which is used to fetch the data in the main sphere tracing function), so most of the effort is spent traversing the tree and calculating the index. This is in line with the goal of introducing as few memory reads as possible, since they are comparatively slow. As mentioned, for an arbitrary, complex polyhedral shape, this might not be a problem, but the fractals are fairly efficient to calculate, so the signed distance field traversal needs to be competitive, even at the expense of accuracy (hence the hybrid approach mentioned above).\newline
+
+The calculation of the voxel index is based on its current level in the tree, compared to the maximum level, and its current position in the group of eight child voxels (see the lower image in figure \ref{figure:octree-traversal}). The centre positions of each voxel are calculated based on the position in the group of child voxels (the index of the loop is used to get a value from the array of positions, seen in the top of figure \ref{figure:octree-traversal}), and the current voxel size, which begins equal to the total signed distance field size, and is halved upon entering each new level.\newline
+
+A further explanation on the calculation of the index will be given. Refer to figure \ref{figure:octree-structure}. The index of the current voxel begins at 0, which corresponds to taking the leftmost path until a leaf node is reached. In this case, the third voxel in the first level after the root is taken. This means that the index must be incremented by the number of leaf voxels that come before the leftmost path possible following this third voxel. Each voxel before this one has 8 child nodes, giving 8 * 2 = 16 nodes. Each of those 16 nodes divides into 8 as well, giving 16 * 8 = 128 leaf nodes that have been skipped. To calculate this, one must look at the number of levels left before the leaf level is reached. This is 3 - 1; the maximum level, which is 3, minus the current level, which is 1. This means that there are 2 subdivisions, which matches the amount counted when traversing the tree. Then, one must see how many nodes come before the current node, in the current level. This is equal to the current index, which is 2 (beginning at 0). This matches what is seen here. All that needs to be done now is calculating the number of leaf nodes. This is done by multiplying the number of previous nodes on the current level by the number of leaf nodes each one contains. This is 2 * 8$^2$ = 128, as expected.
 
 \section{Temporal Caching}
 
@@ -188,19 +225,19 @@ This section will go over how performance differences were measured, and how dif
 In order to make sure the data collected was consistent, the following measures were taken:
 
 \begin{itemize}
-	\item Waited 1000 frames before starting any measurements, to give the GPU time to `warm up'.
-	\item For static images, take measurements for 1000 frames, then take measurements over the whole set, such as median.
-	\item For animated images, ran the animation 25 times, then took measurements over sets of matching frames. 25 was chosen because the animations are of considerable length; the longest would have taken approximately 5 hours to run 100 times, but the chosen 1.25 hours was tolerable.
-	\item Closed all other running programs to minimize interrupts.
-	\item Turned off the screensaver.
-	\item Made all measurements at the same image resolution: 1280 by 720.
+	\item Wait 1000 frames before starting any measurements, to give the GPU time to `warm up'.
+	\item For static images, take measurements for 1000 frames, then choose data based on the whole set, such as median.
+	\item For animated images, run the animation 25 times, then take measurements over sets of matching frames. 25 was chosen because the animations are of considerable length; the longest would have taken approximately 5 hours to run 100 times, but the chosen 1.25 hours was tolerable.
+	\item Close all other running programs to minimize interrupts.
+	\item Turn off the screensaver.
+	\item Make all measurements at the same image resolution: 1280 by 720.
 \end{itemize}
 
 \subsection{Data Types Collected}
 
 The main value taken to measure performance was the execution time of the geometry render pass. To accomplish this, a Vulkan query pool was used to collect timestamps at two different stages each frame. One stage was at the beginning of the render pass and one was at the end, in order to make sure the timestamps were taken at the correct times (Vulkan commands in a command buffer may execute in any order unless specific synchronization is added), and consistently, with flags specifying the pipeline stages at which to take the measurements.\newline
 
-Measurements of static scenes were gathered over a total of one thousand frames before being written out to file. This was to reduce the likelihood of outliers in the data. The minimum, median and maximum values of these sets were taken, as well as the average frame time over the one thousand frames. The median was of the most interest here, as it represents the most likely case, but differences between the other measurements across optimization methods were interesting to look at as well.\newline
+Measurements of static scenes were gathered over a total of one thousand frames before being written out to file. This was to reduce the likelihood of outliers in the data. The median value of the data was taken, as it reliably cuts out outliers and represents a sort of `average case'.\newline
 
 The time it took to copy the image after the render pass was not included in the measurements, because copying the image could have been avoided by swapping the G-Buffer image and texture image after the render pass.
 
@@ -208,13 +245,13 @@ The time it took to copy the image after the render pass was not included in the
 
 In order to obtain a useful set of data for performance differences, a set of representative views was chosen. They were selected to provide variety in the complexity of the scene, to see if either of the optimization methods chosen performed better under certain circumstances than in others. For example, the temporal caching method was theorized to give the most benefit in situations where there are a lot of holes and edges in the scene, so views were chosen to represent best and worst case scenarios for this theory.\newline
 
-The views will be displayed in the results section, next to the data collected for each one, so the two can be looked at together.
+The views will be displayed in chapter \ref{chapter:results}, next to the data collected for each one, so the two can be looked at together.
 
 \subsection{Animation}
 
-As well as static scenes, animated scenes were created. For the Hall of Pillars fractal, a fly-through of the scene was created, varying the speed of the camera. This was intended to test the performance of the temporal caching method during movement of the camera, to see if there was still a benefit to using it while moving under different circumstances. A much smaller flythrough was created for the three-dimensional signed distance field. Much smaller, since the range of the field was somewhat limited by available memory.\newline
+As well as static scenes, animated scenes were created. For the Hall of Pillars fractal, a fly-through of the scene was created, varying the speed of the camera. This was intended to test the performance of the temporal caching method during movement of the camera, to see if there was still a benefit to using it while moving under different circumstances. Camera movement did not affect the signed distance field, so an animation was not created. Additionally since the range of the signed distance field was so small (especially for the Hall of Pillars fractal), an animation would have been rather limited.\newline
 
-The other type of animation was accomplished by varying a parameter used in the calculation of the distance function for each fractal, which resulted in smooth changes in geometry. This was done for both fractals. This type of animation was not done for the three-dimensional signed distance field optimization method, since any change in the geometry invalided the data that had been calculated.
+The other type of animation was accomplished by varying a parameter used in the calculation of the distance function for each fractal, which resulted in smooth changes in geometry. This was done for both fractals. This type of animation was not done for the signed distance field optimization method, since any change in the geometry invalided the data that had been calculated.
 
 \section{Debugging}
 
