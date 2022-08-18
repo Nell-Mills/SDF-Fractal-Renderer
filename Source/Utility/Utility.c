@@ -232,13 +232,8 @@ void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D
 	else
 	{
 		// No 3D SDF:
-		//scene_uniform->sdf_3d_centre	= initialize_vector_3(0.f, 0.f, 0.f);
-		//scene_uniform->sdf_3d_size	= 0.f;
-		//scene_uniform->sdf_3d_levels	= 0;
-
-		// No 3D SDF, but have a size and centre anyway for ray culling (Hall of Pillars):
-		scene_uniform->sdf_3d_centre	= program_state->position;
-		scene_uniform->sdf_3d_size	= 500.f;
+		scene_uniform->sdf_3d_centre	= initialize_vector_3(0.f, 0.f, 0.f);
+		scene_uniform->sdf_3d_size	= 0.f;
 		scene_uniform->sdf_3d_levels	= 0;
 	}
 

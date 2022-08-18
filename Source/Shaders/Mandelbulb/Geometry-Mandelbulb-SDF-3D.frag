@@ -74,7 +74,7 @@ vec4 sphere_trace(vec3 origin, vec3 ray)
 			distance_estimate = ray_cube(origin, ray);
 			if (distance_estimate >= 0.f)
 			{
-				distance_travelled += distance_estimate * 1.01f;
+				distance_travelled += distance_estimate + distance_threshold;
 			}
 			else { break; }
 		}

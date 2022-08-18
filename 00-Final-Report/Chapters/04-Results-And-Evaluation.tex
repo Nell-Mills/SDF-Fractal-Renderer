@@ -6,8 +6,10 @@ This chapter will focus on the data obtained in the project. For clarity, there 
 The unoptimized time given is the time taken to execute the entire geometry render pass, in nanoseconds. The performance gain (or loss) is measured by obtaining the percentage difference between the unoptimized method, and the optimized one, with this equation:
 
 \begin{equation}
-	diff = ((unopt / opt) - 1) * 100
+	diff = \frac{unopt - opt}{unopt} * 100
 \end{equation}
+
+where unopt and opt are the unoptimized time and optimized time, respectively.
 
 \section{Mandelbulb Static Image Tests}
 
@@ -54,7 +56,7 @@ For the signed distance field, it entirely depends on whether searching through 
 
 \subsection{Results}
 
-Table \ref{table:mandelbulb-4-iterations} shows the results obtained for the base distance estimator function, allowing 4 iterations in total before a point is declared inside the set.
+Table \ref{table:mandelbulb-static-results} shows the results obtained for the four representative views of the Mandelbulb fractal. SDF stands for signed distance field, and TC stands for temporal caching.
 
 \begin{table}[ht]
 	\centering
@@ -62,60 +64,24 @@ Table \ref{table:mandelbulb-4-iterations} shows the results obtained for the bas
 		\hline
 		View & Unoptimized Time (ns) & SDF Difference (\%) & TC Difference (\%)\\
 		\hline\hline
-		Default & 1272832 & -77.68 & 2.10\\
+		Default & 1272832 & -152.40 & 22.26\\
 		\hline
-		Zoomed Out & 1083328 & -63.85 & 9.49\\
+		Zoomed Out &1083328  & -196.82 & 8.67\\
 		\hline
-		Zoomed In & 1241088 & -87.09 & -2.25\\
+		Zoomed In & 1241088 & -33.81 & -2.30\\
 		\hline
-		Bottleneck & 1593888 & -4.40 & 7.53\\
-		\hline
-	\end{tabular}
-	\caption{A table showing the performance differences between the two optimization methods and the base, unoptimized rendering, for the Mandelbulb at 4 iterations.}
-	\label{table:mandelbulb-4-iterations}
-\end{table}
-
-Table \ref{table:mandelbulb-4-iterations} shows the results for a more expensive distance estimator, allowing 625 iterations.
-
-\begin{table}[ht]
-	\centering
-	\begin{tabular}{||p{0.2\linewidth}|p{0.29\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}||}
-		\hline
-		View & Unoptimized Time (ns) & SDF Difference (\%) & TC Difference (\%)\\
-		\hline\hline
-		Default & 7709536 & -23.95 & 10.94\\
-		\hline
-		Zoomed Out & 2553408 & -49.82 & 5.48\\
-		\hline
-		Zoomed In & 114631392 & 625.10 & -50.99\\
-		\hline
-		Bottleneck & 7759616 & -1.97 & -1.24\\
+		Bottleneck & 1593888 & -6.94 & 7.01\\
 		\hline
 	\end{tabular}
-	\caption{A table showing the performance differences between the two optimization methods and the base, unoptimized rendering, for the Mandelbulb at 625 iterations.}
-	\label{table:mandelbulb-4-iterations}
-\end{table}
-
-\begin{table}[ht]
-	\centering
-	\begin{tabular}{||p{0.2\linewidth}|p{0.29\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}||}
-		\hline
-		View & Unoptimized Time (ns) & SDF Difference (\%) & TC Difference (\%)\\
-		\hline\hline
-		Default & 0 & 0 & 0\\
-		\hline
-		Zoomed Out & 0 & 0 & 0\\
-		\hline
-		Zoomed In & 0 & 0 & 0\\
-		\hline
-		Bottleneck & 0 & 0 & 0\\
-		\hline
-	\end{tabular}
-	\caption{A table showing the performance differences between the two optimization methods and the base, unoptimized rendering, for the Mandelbulb at 625 iterations.}
-	\label{table:mandelbulb-4-iterations}
+	\caption{A table showing the performance differences between the two optimization methods and the base, unoptimized rendering, for four different views of the Mandelbulb.}
+	\label{table:mandelbulb-static-results}
 \end{table}
 
 \subsection{Evaluation}
+
+\subsubsection{Signed Distance Field}
+
+Clearly, the signed distance field did not do well for this fractal. The biggest negative difference was for the zoomed out view. This may be because most of the rays would have been destined to fall outside of the boundary of the field, so they would have fallen back on the regular signed distance field
 
 \section{Mandelbulb Animation Tests}
 
@@ -138,6 +104,25 @@ This fractal contains many bottlenecks (the ray has to pass close to lots of geo
 The signed distance field was very tricky to test, since the fractal does not fit neatly into a small box, like the Mandelbulb. Because of this, during tests for the signed distance field, a ray culling step was added. Any ray not destined to intersect with the main signed distance field area is not followed. This gives a sort of cross-section of the fractal, and this was what was used. This step was added to all tests to be compared with the test for the signed distance field, for consistency. The signed distance field is not expected to give a huge benefit here, as the relative expense of the distance estimator is not very high.
 
 \subsection{Results}
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{||p{0.2\linewidth}|p{0.29\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}||}
+		\hline
+		View & Unoptimized Time (ns) & SDF Difference (\%) & TC Difference (\%)\\
+		\hline\hline
+		Default &  &  & \\
+		\hline
+		Zoomed Out &  &  & \\
+		\hline
+		Zoomed In &  &  & \\
+		\hline
+		Bottleneck &  &  & \\
+		\hline
+	\end{tabular}
+	\caption{A table showing the performance differences between the two optimization methods and the base, unoptimized rendering, for five different views of the Hall of Pillars fractal.}
+	\label{table:hall-of-pillars-static-results}
+\end{table}
 
 \subsection{Evaluation}
 

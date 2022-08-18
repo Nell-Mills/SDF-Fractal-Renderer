@@ -1,3 +1,0 @@
-Median(ns)	Min(ns)		Max(ns)		Frame Time(ns)
-
-12879840.0	12455872.0	13481152.0	1406286.5
