@@ -25,7 +25,7 @@ Results and Evaluation - Mandelbulb		--> Done.
 Results and Evaluation - Mandelbulb Anim	--> Done.
 Results and Evaluation - Hall of Pillars	--> Done.
 Results and Evaluation - Hall of Pillars Anim 1	--> Done.
-Results and Evaluation - Hall of Pillars Anim 2	-->
+Results and Evaluation - Hall of Pillars Anim 2	--> Done.
 
 Conclusion					-->
 

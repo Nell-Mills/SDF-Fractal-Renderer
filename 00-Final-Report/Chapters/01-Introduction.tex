@@ -1,56 +1,37 @@
 \chapter{Introduction}
 \label{chapter:introduction}
 
-This project aims to implement two different methods to improve the speed of rendering three-dimensional fractals (or indeed any shape that can be described with a signed distance function). Both methods rely on using precalculated information to speed up the process of sphere tracing of the scene. One method used will be a three-dimensional signed distance field, which calculates the approximate distance to the surface offline, and stores it in a grid structure. The other method will be a form of temporal caching, which stores the calculated distance from four of the previous frames, and uses it to speed up calculation in the next.\newline
-
-This report will be structured as follows:\newline
-
-This chapter will describe the overall project aim, deliverables and methodology, as well as potential risks and their mitigations.\newline
-
-Chapter \ref{chapter:background}: Background Research. An overview of the theory behind the project, starting with information about fractals themselves, and ending with research on the optimization methods used.\newline
-
-Chapter \ref{chapter:implementation}: Implementation. A description of the application written, along with the methods of measuring success, and testing the program for errors.\newline
-
-Chapter \ref{chapter:results-and-evaluation}: Results and Evaluation. A collection of performance measurements and comparisons, along with explanations of the choices made with regards to representative views. Also in this chapter will be an evaluation of the results, as they are shown. This is to avoid going back and forth between figures and their explanation, as some of the results are visual.\newline
-
-Chapter \ref{chapter:conclusion}: Conclusion. A summary of the achievements of the project and an overview of plans for future work.
+Fractals are self-similar patterns generated using iterative formulae, and have captured the imaginations of many with their beauty and complexity. Generation of three-dimensional fractals has applications in generative artwork, games and even films. This project will focus on improving the performance of real time rendering of 3D fractals, with the eventual motivation to incorporate them into terrain generation for games.
 
 \section{Project Aim}
 
-The aim of the project is to produce software to render three-dimensional fractals in real time using sphere tracing, and implement two methods of improving the speed of doing so. Success will be measured in terms of program features, and measurements of rendering performance to compare the optimization methods.
+The aim of this project is to produce software to render 3D fractals in real time using sphere tracing, and implement two methods of improving the speed of doing so. Success will be measured in terms of program features, measurements of render pass times, and visual evidence of performance differences.\newline
+
+Sphere tracing is a form of ray marching, that relies on calculating the approximate difference to the nearest surface in order to suggest a marching distance in each step.\newline
+
+The first optimization method to be investigated is a Signed Distance Field (referred to as an SDF from this point on), which calculates the approximate distance to the surface offline, and stores it in a grid structure. The second optimization method will be a form of temporal caching, which stores the calculated distance from four of the previous frames, and uses it to speed up calculation in the next.
+
+\section{Objectives}
+
+This project will involve four main stages:
+
+\begin{itemize}
+	\item Write a renderer that is capable of sphere tracing three-dimensional fractals.
+	\item Implement two optimization methods that attempt to improve the rendering speed.
+	\item Implement a performance measuring system to capture performance differences.
+	\item Measure the performance differences between the optimized and unoptimized rendering.
+\end{itemize}
 
 \section{Deliverables}
 
-There are two deliverables in the project. One is this report, and the other is access (through a link) to a repository containing the program code.
-
-\section{Methodology and Version Control}
-
-The version control system to use will be Git, through GitHub. This was chosen for its ease of use, and the fact that the repository is stored off-site, making it a very useful backup.\newline
-
-This project will involve three main stages:
+The main deliverables of this project are:
 
 \begin{itemize}
-	\item Renderer that is capable of sphere tracing three-dimensional fractals.
-	\item Two optimization methods that attempt to improve the speed of rendering.
-	\item Performance measuring system to capture performance differences between methods.
+	\item A piece of software capable of rendering 3D fractals, with two optimization methods to choose from.
+	\item The source code for the software, in the form of a GitHub link (in Appendix \ref{appendix:code-repository}).
+	\item The report for the MSc project.
 \end{itemize}
 
-Each stage depends on the last, so a Waterfall methodology will be employed.%A full chart of the stages is shown below.
+\section{Ethical, Legal and Social Issues}
 
-%<Maybe actually include a chart>
-
-\section{Risks and Mitigation}
-
-The table below summarizes the risks involved with this project, along with their mitigation strategies.\newline
-
-\begin{tabular}{||p{0.45\linewidth}|p{0.45\linewidth}||}
-	\hline
-	Risk & Mitigation Strategy\\
-	\hline\hline
-	Run out of time before implementing both optimization methods. & Implement the methods one after the other so that one can be discarded if necessary.\\
-	\hline
-	Failure to increase performance using one or both methods. & Provide detailed explanations as to why this happened. If there is time, experiment with changes to either method.\\
-	\hline
-	Technological failure. & Keep code repository up to date in GitHub to avoid loss of progress. Make sure I have access to a backup machine if possible, either borrowing one or using a machine on campus.\\
-	\hline
-\end{tabular}
+The only ethical or legal issue that this project may encounter is the use of third-party software to implement the project aims. To deal with this, the licensing of each piece of third-party software used will be made clear.
