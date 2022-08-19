@@ -1,23 +1,15 @@
 \chapter{Conclusion}
 \label{chapter:conclusion}
 
-This chapter will summarize the paper by giving an overall impression of the two optimization techniques implemented, comparing the project's end products with the initial goals, discussing any difficulties encountered, and describing plans for further work.
+This chapter will summarize the paper by giving an overall impression of the two optimization techniques implemented, comparing the project's end product with the initial goals, discussing any difficulties encountered, and describing plans for further work.
 
-\section{Summary of Results}
+\section{Conclusions}
 
 The results indicate a clear winner in terms of the optimization techniques; the temporal cache. It gave performance benefits in almost all situations it was tested in, even during movement, which was its biggest weakness. The SDF, on the other hand, performed poorly in all situations it was tested in. I think this was because the signed distance functions used were simply not computationally expensive enough to justify the use of an SDF. Additionally, the range of the SDF was so limited in the case of the Hall of Pillars fractal, it wasn't worth using at all. I do think, however, that there are some things I could do to try to make the method more viable. These will be discussed in the section \ref{section:further-work}, below.
 
-\section{Project Completion}
+\section{Project Goals}
 
-The table below summarizes the main goals laid out at the start of the project, along with their completion level.\newline
-
-\begin{tabular}{||p{0.25\linewidth}|p{0.2\linewidth}|p{0.45\linewidth}||}
-	\hline
-	Goal & Completion Level & Evidence\\
-	\hline\hline
-	Project & Complete & Project\\
-	\hline
-\end{tabular}
+The aim of this project was to attempt to improve the performance when rendering 3D fractals. Two methods were employed in order to explore this idea; a 3D Signed Distance Field, and a temporal caching method. The software is configurable through its arguments, which were decided as part of the software design and aided in the construction of the project's layout. The software is capable of measuring the performance of the rendering, by means of the render pass time, and writing data out to file to be processed. Overall, the original goals of the project have been met. It was unfortunate that one of the optimization methods turned out to be inadequate, but the other one turned out to have a lot of potential.
 
 \section{Difficulties}
 
