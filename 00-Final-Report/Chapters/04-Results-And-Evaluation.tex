@@ -270,9 +270,20 @@ Figure \ref{figure:hall-of-pillars-flythrough-guide} provides a guide to the pro
 
 \subsubsection{Parameter Animation}
 
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Guide.png}
+	\caption{Key stages in the Hall of Pillars parameter animation. The parameter values are as follows, left to right, top to bottom: 1.6, 1.8, 2.0, 2.2 and 2.4.}
+	\label{figure:hall-of-pillars-parameter-guide}
+\end{figure}
+
+Figure \ref{figure:hall-of-pillars-parameter-guide} shows a guide for the stages of the parameter animation. The sequence starts in the middle (the third image) and moves towards the scene in the last image. Then, the animation reverses and morphs in to the first image. Finally, it moves back to the start. The first image is so dark because the scene takes progressively more iterations to render as the parameter decreases, and these images are rendered with the `ambient occlusion' effect previously mentioned.
+
 \subsection{Expected Results}
 
-I expect to see a performance gain over some of the animation - particularly sequences in which movement is slow, and there is no camera movement. I don't expect to see a gain where there is movement, combined with complex geometry, or a lot of camera movement; recipes for lots of occlusion and ray recasting.
+I expect to see a performance gain over some of the flythrough animation - particularly sequences in which movement is slow, and there is no camera movement. I don't expect to see a gain where there is movement, combined with complex geometry, or a lot of camera movement; recipes for lots of occlusion and ray recasting.\newline
+
+For the parameter animation, the view is much more stable, given that the camera doesn't move at all, but the geometry changes. With this in mind, I expect performance somewhere between the static images and the flythrough animation.
 
 \subsection{Results - Flythrough}
 
@@ -312,18 +323,30 @@ Overall the temporal cache holds up well with movement and doesn't completely de
 
 \subsection{Results - Parameter Animation}
 
-%\begin{figure}[ht]
-%	\centering
-%	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation.png}
-%	\caption{A graph showing the render pass time during an animation of the Hall of Pillars parameter, for both unoptimized rendering and rendering using the temporal cache.}
-%	\label{figure:hall-of-pillars-parameter-animation}
-%\end{figure}
-%
-%\begin{figure}[ht]
-%	\centering
-%	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation-Gain.png}
-%	\caption{A graph showing the performance difference during an animation of the Hall of Pillars parameter, between unoptimized rendering and rendering using the temporal cache. Positive values mean that the temporal cache performs better.}
-%	\label{figure:hall-of-pillars-parameter-animation-gain}
-%\end{figure}
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation.png}
+	\caption{A graph showing the render pass time during an animation of the Hall of Pillars parameter, for both unoptimized rendering and rendering using the temporal cache.}
+	\label{figure:hall-of-pillars-parameter-animation}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation-Gain.png}
+	\caption{A graph showing the performance difference during an animation of the Hall of Pillars parameter, between unoptimized rendering and rendering using the temporal cache. Positive values mean that the temporal cache performs better.}
+	\label{figure:hall-of-pillars-parameter-animation-gain}
+\end{figure}
+
+Figures \ref{figure:hall-of-pillars-parameter-animation} and \ref{figure:hall-of-pillars-parameter-animation-gain} show the render pass time and performance difference for this animation, respectively. The performance difference is much easier to see this time, even in figure \ref{figure:hall-of-pillars-parameter-animation}. Still, this view is a bit misleading, as the performance gain is higher in the noisier areas near the start of the animation.
 
 \subsection{Evaluation - Parameter Animation}
+
+The temporal cache performs very well in this animation. Overall, I think this is because the camera never moves, only the geometry, resulting in a much more temporally stable image.\newline
+
+As mentioned, the number of iterations required to render the image increases as the parameter decreases. This is why the overall render time changes. The parameter increases first, reaching the peak at 2000 frames, then it decreases, reaching its lowest at frame 6000. It then returns to the start. An interesting feature is the small bump in the graph in figure \ref{figure:hall-of-pillars-parameter-animation}. Refer back to the animation guide image, figure \ref{figure:hall-of-pillars-parameter-guide} and compare the second and third images. As the pillar on the right becomes larger, it blocks out the light, so to speak. I think this is what causes this small plateau. However, there is no corresponding feature of interest in figure \ref{figure:hall-of-pillars-parameter-animation-gain}.\newline
+
+The greatest performance gain occurs when the parameter hits its highest value, 2.4, and the gain is lowest when the parameter hits its lowest value, 1.6. I think this is partly because the actual movement of geometry is slowest at the peak, and partly because the image at the peak has geometry that resembles one huge bottleneck. I would have expected the image before it to yield greater performance benefits, though. I think it does not because the geometry is changing too rapidly and is triggering ray recasts.\newline
+
+At the lowest parameter level, the geometry becomes very complex (hence the dark image). It is also moving, which will trigger ray recasts a lot of the time, which I think it why the performance is lower here.\newline
+
+Overall, this gave levels of performance somewhere between that for the flythrough and static images, as expected. In all three scenarios, the temporal cache has proved to be worth using, rarely giving performance losses, and only giving small ones when is did. Mostly it seems to be a positive influence on performance.
