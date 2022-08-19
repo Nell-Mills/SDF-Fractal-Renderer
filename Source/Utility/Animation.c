@@ -81,31 +81,31 @@ void update_animation_flythrough(FracRenderProgramState *program_state)
 	int num_key_frames = 25;
 
 	uint64_t key_frames[] = {
-		0,	//  0. Start.
-		100,	//  1. Straight forward, tilt up.
-		250,	//  2. Start turning left and moving left.
-		250,	//  3. Finish turning left and moving left.
-		300,	//  4. Move down into small tunnel.
-		150,	//  5. Move through tunnel and tilt up.
-		200,	//  6. Move into round room, tilt back to even and turn left.
-		200,	//  7. Move straight forward.
-		500,	//  8. Tilt up through the ceiling.
-		1000,	//  9. Continue upwards in huge pillar room.
-		2000,	// 10. Level out.
-		2000,	// 11. Dive into another tunnel.
-		100,	// 12. Follow into yet another tunnel.
-		100,	// 13. Smaller tunnel to the left. Yellow.
-		100,	// 14. Prepare to leave tunnels.
-		150,	// 15. Leave tunnels.
-		200,	// 16. Level out.
-		1000,	// 17. Move forward. Green archway.
-		200,	// 18. Turn right.
-		200,	// 19. Turn right.
-		1000,	// 20. Move extra slowly back to orange archway.
-		100,	// 21. Start moving up into top of archway.
-		100,	// 22. "Aim towards that".
-		100,	// 23. "And that".
-		1000	// 24. Go small.
+		0,	//  0. Frame     0. Start.
+		100,	//  1. Frame   100. Straight forward, tilt up.
+		250,	//  2. Frame   350. Start turning left and moving left.
+		250,	//  3. Frame   600. Finish turning left and moving left.
+		300,	//  4. Frame   900. Move down into small tunnel.
+		150,	//  5. Frame  1050. Move through tunnel and tilt up.
+		200,	//  6. Frame  1250. Move into round room, tilt back to even and turn left.
+		200,	//  7. Frame  1450. Move straight forward.
+		500,	//  8. Frame  1950. Go swift.
+		1000,	//  9. Frame  2950. Continue upwards in huge pillar room.
+		2000,	// 10. Frame  4950. Level out.
+		2000,	// 11. Frame  6950. Dive into another tunnel.
+		100,	// 12. Frame  7050. Follow into yet another tunnel.
+		100,	// 13. Frame  7150. Smaller tunnel to the left. Yellow.
+		100,	// 14. Frame  7250. Prepare to leave tunnels.
+		150,	// 15. Frame  7400. Leave tunnels.
+		200,	// 16. Frame  7600. Level out.
+		1000,	// 17. Frame  8600. Move forward. Green archway.
+		200,	// 18. Frame  8800. Turn right.
+		200,	// 19. Frame  9000. Turn right.
+		1000,	// 20. Frame 10000. Move extra slowly back to orange archway.
+		100,	// 21. Frame 10100. Start moving up into top of archway.
+		100,	// 22. Frame 10200. "Aim towards that".
+		100,	// 23. Frame 10300. "And that".
+		1000	// 24. Frame 11300. Go small.
 	};
 
 	// Get total frames:

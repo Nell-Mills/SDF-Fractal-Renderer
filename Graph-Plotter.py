@@ -15,7 +15,7 @@ import sys
 Recommended Y limits:
 
 Hall of Pillars:
-Flythrough:	5000000, 18000000
+Flythrough:	7000000, 18000000
 Parameter:	      0, 42500000
 
 Mandelbulb:
@@ -147,4 +147,20 @@ if (plot_best_fit == 1):
 
 if second_file > 0:
 	plt.legend(['Unoptimized', 'Temporal Cache'])
+
+# Plot key frames:
+key_frames_x = [0, 600, 1050, 1450, 1950, 2950, 4950, 6950,
+		7050, 7250, 7600, 9000, 10000, 10100, 11299]
+key_frames_y = []
+
+for i in key_frames_x:
+	for j in range(11300):
+		if plot_x[j] == i:
+			if plot_best_fit == 1:
+				key_frames_y.append(line_of_best_fit[j])
+			else:
+				key_frames_y.append(plot_y[j])
+
+plt.scatter(key_frames_x, key_frames_y, s=100, c='r', marker='x', zorder=5)
+
 plt.show()

@@ -255,8 +255,75 @@ The temporal caching method is particularly well suited to this fractal. The nex
 
 \subsection{Animations}
 
+Two animations were constructed for the Hall of Pillars fractal. One is a flythrough of several scenes, and the other is an animation resulting from varying a parameter in the distance function. Refer back to figure \ref{figure:glsl-distance-estimator-hall-of-pillars} in chapter \ref{chapter:implementation} to see the use of the fractal parameter in the distance estimation.
+
+\subsubsection{Flythrough}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Flythrough-Guide.png}
+	\caption{Key frames in the Hall of Pillars flythrough animation. They are in order, left to right, top to bottom. The frames at which they occur are written on each image.}
+	\label{figure:hall-of-pillars-flythrough-guide}
+\end{figure}
+
+Figure \ref{figure:hall-of-pillars-flythrough-guide} provides a guide to the progress of the animation at key points. To give a sense of scale, any image in which you can see white is a scene where the view distance limit (which is just over sixteen thousand) is exceeded. The first four images have a range of approximately five hundred. The penultimate image is of the top of a pillar; a corresponding structure can be seen at the top of the image preceding it (frame 10,000). The last image is inside the top of this structure. The images shown are key images in relation to the graph of performance that will be shown in the results section. These will be explained there, but refer back to this image to aid in understanding what is happening during the animation to cause fluctuations in performance, and performance gain.
+
+\subsubsection{Parameter Animation}
+
 \subsection{Expected Results}
 
-\subsection{Results}
+I expect to see a performance gain over some of the animation - particularly sequences in which movement is slow, and there is no camera movement. I don't expect to see a gain where there is movement, combined with complex geometry, or a lot of camera movement; recipes for lots of occlusion and ray recasting.
 
-\subsection{Evaluation}
+\subsection{Results - Flythrough}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Flythrough-Animation.png}
+	\caption{A graph showing the render pass time during a flythrough animation of the Hall of Pillars, for both unoptimized rendering and rendering using the temporal cache. The red X marks indicate key frames for the animation.}
+	\label{figure:hall-of-pillars-flythrough-animation}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Flythrough-Animation-Gain.png}
+	\caption{A graph showing the performance difference during a flythrough animation of the Hall of Pillars, between unoptimized rendering and rendering using the temporal cache. Positive values mean that the temporal cache performs better. The red X marks indicate key frames for the animation.}
+	\label{figure:hall-of-pillars-flythrough-animation-gain}
+\end{figure}
+
+Figure \ref{figure:hall-of-pillars-flythrough-animation} shows the graph of the render pass time over the animation. A small performance difference can be seen here (where the blue line is visible above the green one), despite the general noisiness due to the changing landscape. The sharp drop in time just before frame 2000 corresponds with the camera moving through the `ceiling' of one of the rooms in the fractal. During this time, the number of iterations will drop to 1 or close to 1, as the camera is inside the shape. The time drops close to zero, but this was not considered an interesting part of the animation, so it is cut off a bit in these graphs. Perhaps it is interesting to note, however, the drop in performance around that time (see figure \ref{figure:hall-of-pillars-flythrough-animation-gain}). This is likely because of the overhead involved in sampling the texture image, and the extra calculations, for no reduction in iteration count.
+
+Figure \ref{figure:hall-of-pillars-flythrough-animation-gain} confirms the observation of a performance boost. A positive difference in performance can be observed over most of the animation, meaning that even for scenes with more rapid movement, the temporal cache still maintains its advantage.
+
+\subsection{Evaluation - Flythrough}
+
+Surprisingly, the temporal cache managed to provide a performance benefit throughout the animation, though it was much reduced. It seems to fluctuate mostly between approximately 1\% and 2.5\%. This is a huge reduction from the numbers seen for the static images, but was to be expected.\newline
+
+The sequence between frames 0 and 600 involves fairly quick movement, but slow camera rotation. There is also a lot of complex geometry in this sequence, mixed with some flat surfaces. I think the performance increases during this sequence because the flat areas can be seen through bottlenecks. The combination of these things means that there is a bottleneck-related performance gain, and the frame-to-frame distance doesn't change too much.\newline
+
+After this sequence, the camera dive into one of the holes near the ground. The geometry becomes less complicated during this time, and the distance from the camera to any surface decreases. Not much performance benefit can be seen here as a result. After this, as mentioned, the camera goes through the ceiling, which results in a dramatic decrease in performance. Upon emerging on the other side, the image in frame 1950 (top-right in figure \ref{figure:hall-of-pillars-flythrough-guide}) can be seen. The camera is still moving, and a large portion of the bottlenecks in this particular scene are near the end of the ray's journey, so some of the performance benefit will be lost due to the deliberate underestimate.\newline
+
+The camera then pans across the ceiling of this large hall to end up at the view in frame 2950. During this sequence the performance increases to its highest level. The camera movement is very slow, as is the rotation, and the movement brings into focus a scene more suited to the strengths of the temporal cache. This scene slowly evolves for 2000 frames until the view in frame 4950. The performance benefit is maintained for this entire duration. This sequence has the best performance for the temporal cache. I think this is due to the very slow movement and rotation, and the temporal cache-friendly scenery.\newline
+
+The performance dips after this, as the camera takes another dive into the base of the right-hand pillar. The geometry contains less bottlenecks and complexity for this sequence, but the camera rotation and movement is still slow, so performance stays in the positive. Here, there is a sequence where the camera moves quickly through a couple of `tunnels', to emerge in another area with a large amount of complex geometry and high view distance, resulting in the second best performance at around frame 7600.\newline
+
+After this, the movement is quite slow, but there are a couple of fast, 90 degree turns of the camera between frames 7600 and 10000. Still, the temporal cache manages to maintain overall positive performance. The performance really suffers when zooming in to the top of a pillar near the end of the sequence. As you can see from the last image, the geometry is simple, and since the camera is moving and rotating at a moderate rate, the ray casting mechanism will be triggered quite often.\newline
+
+Overall the temporal cache holds up well with movement and doesn't completely deteriorate, but much more work is needed to boost the performance during movement. I think a better, more reliable way to detect occlusion would allow for a closer estimate of the true distance, reduce the need for such a harsh underestimate during sampling, and help to trigger ray recasting a lot less often.
+
+\subsection{Results - Parameter Animation}
+
+%\begin{figure}[ht]
+%	\centering
+%	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation.png}
+%	\caption{A graph showing the render pass time during an animation of the Hall of Pillars parameter, for both unoptimized rendering and rendering using the temporal cache.}
+%	\label{figure:hall-of-pillars-parameter-animation}
+%\end{figure}
+%
+%\begin{figure}[ht]
+%	\centering
+%	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-Parameter-Animation-Gain.png}
+%	\caption{A graph showing the performance difference during an animation of the Hall of Pillars parameter, between unoptimized rendering and rendering using the temporal cache. Positive values mean that the temporal cache performs better.}
+%	\label{figure:hall-of-pillars-parameter-animation-gain}
+%\end{figure}
+
+\subsection{Evaluation - Parameter Animation}
