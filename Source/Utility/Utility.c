@@ -246,7 +246,7 @@ void set_up_scene_uniform(FracRenderProgramState *program_state, FracRenderSDF3D
 	else if (program_state->fractal_type == 1)
 	{
 		// Hall of Pillars:
-		scene_uniform->view_distance = 16384.f;
+		scene_uniform->view_distance = 24000.f;
 	}
 	else
 	{

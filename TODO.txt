@@ -4,7 +4,7 @@ Shorten Signed Distance Field to SDF		-->
 
 Extras (like title)				--> Done.
 
-Starting summary				-->
+Starting summary				--> Done.
 
 Introduction					--> Done.
 
