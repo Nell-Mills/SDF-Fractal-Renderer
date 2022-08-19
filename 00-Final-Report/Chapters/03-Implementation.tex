@@ -154,15 +154,15 @@ For the Hall of Pillars fractal particularly, the signed distance field does not
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.45\linewidth, frame]{Images/Octree-Structure.png}
-	\caption{Structure of the signed distance field octree. Only child nodes of traversed nodes are shown.}
+	\includegraphics[width=0.4\linewidth, frame]{Images/Octree-Structure.png}
+	\caption{Structure of the SDF octree. Only children of traversed nodes are shown.}
 	\label{figure:octree-structure}
 \end{figure}
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.65\linewidth, frame]{Images/Octree-Traversal.png}
-	\caption{Code snippets from the octree traversal function. Only significant parts are shown.}
+	\includegraphics[width=0.55\linewidth, frame]{Images/Octree-Traversal.png}
+	\caption{Code snippets from the octree traversal function. The voxel index is incremented by the number of leaf nodes that must appear when traversing the entire tree that comes before the current node.}
 	\label{figure:octree-traversal}
 \end{figure}
 
@@ -170,23 +170,15 @@ The signed distance field is represented as an octree. Figure \ref{figure:octree
 
 The child nodes of every parent node are stored in the same order, which is what makes it possible to calculate the index without explicitly storing information about non-leaf voxels. In memory, the whole structure is represented as an array of floating point numbers; the calculated distances at the centre of each voxel. Additional, vital information is given in the scene uniform. This includes the size and centre of the root voxel, and the total number of subdivisions of the signed distance field. The values in the array are ordered left to right, as the leaf nodes would be if the whole tree was expanded.\newline
 
-Figure \ref{figure:octree-traversal} shows a snippet of shader code for traversing the tree. No memory reads are required until the index of the leaf voxel is found (this function returns said index, which is used to fetch the data in the main sphere tracing function), so most of the effort is spent traversing the tree and calculating the index. This is in line with the goal of introducing as few memory reads as possible, since they are comparatively slow. As mentioned, for an arbitrary, complex polyhedral shape, this might not be a problem, but the fractals are fairly efficient to calculate, so the signed distance field traversal needs to be competitive, even at the expense of accuracy (hence the hybrid approach mentioned above).\newline
+Figure \ref{figure:octree-traversal} shows a snippet of shader code for traversing the tree. No memory reads are required until the index of the leaf voxel is found (this function returns said index, which is used to fetch the data in the main sphere tracing function), so most of the effort is spent traversing the tree and calculating the index. This is in line with the goal of introducing as few memory reads as possible, since they are comparatively slow. As mentioned, for an arbitrary, complex polyhedral shape, this might not be a problem, but the fractals are fairly efficient to calculate, so the signed distance field traversal needs to be competitive.\newline
 
-The calculation of the voxel index is based on its current level in the tree, compared to the maximum level, and its current position in the group of eight child voxels (see the lower image in figure \ref{figure:octree-traversal}). The centre positions of each voxel are calculated based on the position in the group of child voxels (the index of the loop is used to get a value from the array of positions, seen in the top of figure \ref{figure:octree-traversal}), and the current voxel size, which begins equal to the total signed distance field size, and is halved upon entering each new level.\newline
-
-A further explanation on the calculation of the index will be given. Refer to figure \ref{figure:octree-structure}. The index of the current voxel begins at 0, which corresponds to taking the leftmost path until a leaf node is reached. In this case, the third voxel in the first level after the root is taken. This means that the index must be incremented by the number of leaf voxels that come before the leftmost path possible following this third voxel. Each voxel before this one has 8 child nodes, giving 8 * 2 = 16 nodes. Each of those 16 nodes divides into 8 as well, giving 16 * 8 = 128 leaf nodes that have been skipped. To calculate this, one must look at the number of levels left before the leaf level is reached. This is 3 - 1; the maximum level, which is 3, minus the current level, which is 1. This means that there are 2 subdivisions, which matches the amount counted when traversing the tree. Then, one must see how many nodes come before the current node, in the current level. This is equal to the current index, which is 2 (beginning at 0). This matches what is seen here. All that needs to be done now is calculating the number of leaf nodes. This is done by multiplying the number of previous nodes on the current level by the number of leaf nodes each one contains. This is 2 * 8$^2$ = 128, as expected.
+The calculation of the voxel index is based on its current level in the tree, compared to the maximum level, and its current position in the group of eight child voxels (see the lower image in figure \ref{figure:octree-traversal}). The centre positions of each voxel are calculated based on the position in the group of child voxels (the index of the loop is used to get a value from the array of positions, seen in the top of figure \ref{figure:octree-traversal}), and the current voxel size, which begins equal to the total signed distance field size, and is halved upon entering each new level.
 
 \section{Temporal Caching}
 
 \subsection{Data to Cache}
 
-The data chosen to persist across frames was the true distance travelled by the ray. The aim of this optimization method was to reduce the number of iterations in certain areas of the image, especially edges and holes, so just storing the first distance estimate was not the solution. In order to preserve depth data for multiple frames, a texture image with red, green, blue and alpha floating-point components was chosen. With this, the data for the last four frames was stored.\newline
-
-Alternative data was experimented with as well, such as end position, end distance estimate and the first distance estimate along the ray that was below a certain threshold. The end position was intended to help reveal if the end pixel location had moved too much, invalidating the data. To do this, the stored estimate was used to march the point along the ray for the current frame. The magnitude of the difference between the end position for the last and current frames was then used to determine validity. The end distance estimate was used for the same purpose, but allowed data to be stored for two previous frames, as opposed to just one. The reasoning behind only using one texture image was that sampling a texture requires an overhead that quickly builds up, so storing too much data may offset any performance benefit.\newline
-
-The first distance estimate along the ray was intended to help determine if the current ray was close to an edge. As mentioned in section \ref{section:temporal-caching}, if some geometry occluded the ray, and the distance stored was greater than the distance to that geometry, artefacts would appear. A test was performed that would determine the risk that this had happened, based on the stored distance to an edge.\newline
-
-In the end, storing the true distance travelled for the last four frames was the most effective in terms of performance and artefacts.
+The data chosen to persist across frames was the true distance travelled by the ray. The aim of this optimization method was to reduce the number of iterations in certain areas of the image, especially edges and holes, so just storing the first distance estimate was not the solution. In order to preserve depth data for multiple frames, a texture image with red, green, blue and alpha floating-point components was chosen. With this, the data for the last four frames was stored. The reasoning behind only using one texture image was that sampling a texture requires an overhead that quickly builds up, so storing too much data may offset any performance benefit.
 
 \subsection{Image Sampling}
 
@@ -201,7 +193,9 @@ The distance values were written to the G-Buffer for the first render pass. Ever
 	\label{figure:distance-test}
 \end{figure}
 
-The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.
+The test to see if the camera had moved too much is shown in figure \ref{figure:distance-test}. It relied on the difference between the largest distance sample and the smallest. Generally speaking, the `landscape' of the fractals chosen is not smooth, so this proved to be a reliable test for invalidated geometry, without triggering at the smallest movement. If the test passed, and the pixel was still valid, the minimum sampled distance estimate was chosen and reduced a little, to provide a reliable underestimate of the true distance for the current frame. The usual sphere tracing algorithm was then performed, using this head-start.\newline
+
+Alternative data for testing for camera movement was considered as well, such as end position, end distance estimate and the lowest distance estimate along the ray, but in the end, storing the true distance travelled for the last four frames was the most effective in terms of performance and artefacts.
 
 \subsection{Artefacts}
 
@@ -218,26 +212,19 @@ The artefacts in figure \ref{figure:hall-of-pillars-artefacts} were triggered by
 
 \section{Performance Measurement}
 
-This section will go over how performance differences were measured, and how different scenarios were captured.
-
-\subsection{Preparation for Data Collection}
-
-In order to make sure the data collected was consistent, the following measures were taken:
+This section will go over how performance differences were measured, and how different scenarios were captured. In order to make sure the data collected was consistent, the following measures were taken:
 
 \begin{itemize}
-	\item Wait 1000 frames before starting any measurements, to give the GPU time to `warm up'.
-	\item For static images, take measurements for 1000 frames, then choose data based on the whole set, such as median.
-	\item For animated images, run the animation 25 times, then take measurements over sets of matching frames. 25 was chosen because the animations are of considerable length; the longest would have taken approximately 5 hours to run 100 times, but the chosen 1.25 hours was tolerable.
-	\item Close all other running programs to minimize interrupts.
-	\item Turn off the screensaver.
+	\item Wait 1000 frames before starting any measurements, to let the GPU `warm up'.
+	\item For static images, take measurements for 1000 frames, then take the median of the whole set, to cut out outliers.
+	\item For animated images, run the animation 25 times, then take the median over sets of matching frames.
+	\item Close all other programs to minimize interrupts, and turn off the screensaver.
 	\item Make all measurements at the same image resolution: 1280 by 720.
 \end{itemize}
 
 \subsection{Data Types Collected}
 
 The main value taken to measure performance was the execution time of the geometry render pass. To accomplish this, a Vulkan query pool was used to collect timestamps at two different stages each frame. One stage was at the beginning of the render pass and one was at the end, in order to make sure the timestamps were taken at the correct times (Vulkan commands in a command buffer may execute in any order unless specific synchronization is added), and consistently, with flags specifying the pipeline stages at which to take the measurements.\newline
-
-Measurements of static scenes were gathered over a total of one thousand frames before being written out to file. This was to reduce the likelihood of outliers in the data. The median value of the data was taken, as it reliably cuts out outliers and represents a sort of `average case'.\newline
 
 The time it took to copy the image after the render pass was not included in the measurements, because copying the image could have been avoided by swapping the G-Buffer image and texture image after the render pass.
 
@@ -261,6 +248,6 @@ To debug the three-dimensional SDF, there is a function to print a subset of the
 
 The key to print the current position and camera front came in useful for checking camera movement, as well as creating animations.\newline
 
-I also used Valgrind to search for and fix any errors with memory management. Unfortunately, it seems that either Vulkan or Volk causes some memory leaks, so debugging this was tricky. I commented out all functions to do with Vulkan (which, admittedly, is most of the program), and there were no leaks or errors. I uncommented only the function that initializes Volk, and it introduced memory leaks.\newline
+I also used Valgrind to search for and fix any errors with memory management. Unfortunately, it seems that either Vulkan or Volk causes some memory leaks, so debugging this was tricky. Even the function that initializes Volk introduced memory leaks.\newline
 
-I debugged the shaders by adding special return values at various locations, so that if there was a problem or a statement was not running when it should have been, the rendered image would not be as expected (for example, it may be entirely black). This was used in combination with RenderDoc to view the different render passes and pipeline stages.
+I debugged the shaders by adding special return values at various locations, so that if there was a problem or a statement was not running when it should have been, the rendered image would not be as expected (for example, it may be entirely black). This was used in combination with RenderDoc to view the different rendering stages.

@@ -21,8 +21,10 @@ Implementation - Temporal Caching		--> Done.
 Implementation - Performance			--> Done.
 Implementation - Debugging			--> Done.
 
-Results and Evaluation - 3D SDF			-->
-Results and Evaluation - Temporal Caching	-->
+Results and Evaluation - Mandelbulb		--> Done.
+Results and Evaluation - Mandelbulb Anim	--> Done.
+Results and Evaluation - Hall of Pillars	--> Done.
+Results and Evaluation - Hall of Pillars Anim	-->
 
 Conclusion					-->
 

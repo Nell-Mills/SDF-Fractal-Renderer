@@ -9,7 +9,7 @@ The unoptimized time given is the time taken to execute the entire geometry rend
 	diff = \frac{unopt - opt}{unopt} * 100
 \end{equation}
 
-where unopt and opt are the unoptimized time and optimized time, respectively.
+where unopt and opt are the unoptimized time and optimized time, respectively. This equation will produce negative results if the time taken in the optimized render pass is greater than in the unoptimized one, so negative numbers mean a loss of performance compared to the unoptimized version.
 
 \section{Mandelbulb Static Image Tests}
 
@@ -58,7 +58,7 @@ For the signed distance field, it entirely depends on whether searching through 
 
 \begin{table}[ht]
 	\centering
-	\begin{tabular}{||p{0.2\linewidth}|p{0.29\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}||}
+	\begin{tabular}{||p{0.17\linewidth}|p{0.27\linewidth}|p{0.23\linewidth}|p{0.22\linewidth}||}
 		\hline
 		View & Unoptimized Time (ns) & SDF Difference (\%) & TC Difference (\%)\\
 		\hline\hline
@@ -75,7 +75,16 @@ For the signed distance field, it entirely depends on whether searching through 
 	\label{table:mandelbulb-static-results}
 \end{table}
 
-Table \ref{table:mandelbulb-static-results} shows the results obtained for the four representative views of the Mandelbulb fractal. It shows the unoptimized time and the performance differences with the SDF and Temporal Caching (TC).
+Table \ref{table:mandelbulb-static-results} shows the results obtained for the four representative views of the Mandelbulb fractal. It shows the unoptimized time and the performance differences with the SDF and Temporal Caching (TC).\newline
+
+Figure \ref{figure:mandelbulb-ao-results} shows the difference in the number of iterations using the unoptimized rendering and temporal cache methods, by colouring the fractal based on this number.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-AO-Results.png}
+	\caption{The Mandelbulb, coloured based on the number of iterations achieved, rendered using the unoptimized method (left) and the temporal caching method (right).}
+	\label{figure:mandelbulb-ao-results}
+\end{figure}
 
 \subsection{Evaluation}
 
@@ -101,7 +110,7 @@ The performance for the default view lines up with the explanations for the zoom
 
 This drawback does not apply so much to the bottleneck scenario, despite it being close to the surface. There is not a lot of complicated geometry in this view, so the cut to iteration progress doesn't hit the performance so hard. Most of the performance boost probably comes from the avoidance of the obvious bottleneck (hole) in the middle, and the smaller one on the right.\newline
 
-Overall, the temporal cache is worth using for the Mandelbulb fractal, just looking at the static views.
+Figure \ref{figure:mandelbulb-ao-results} shows a distinct reduction in the number of iterations using the temporal caching method, especially in the background and at the edges of the Mandelbulb. However, during testing the image did flicker, especially in the background. I think this is because of the view distance limit. The rays will travel a little further each frame, which triggers the ray recasting. If this was fixed, then one might expect better performance from the temporal cache. Overall, the temporal cache is worth using for the Mandelbulb fractal, even though there are some improvements to be made.
 
 \section{Mandelbulb Animation Test}
 
@@ -113,23 +122,23 @@ The animation of the Mandelbulb parameter takes a total of 8000 frames. The para
 
 \subsection{Expected Results}
 
-I don't have solid predictions for this animation. I expect to see some gains in some sections, and perhaps some losses in others. Any section of the animation that is slower will perhaps trigger the ray recast mechanism less, so there would be gains here. Any faster animation, and the performance may stay the same or decrease. Any part of the animation that involves more empty space will likely see gains, based on the results for the static images.
+I don't have solid predictions for this animation. I expect to see some gains in some sections, and perhaps some losses in others. Any section of the animation that is visually slower will perhaps trigger the ray recast mechanism less, so there would be gains here. Any faster animation, and the performance may stay the same or decrease. Any part of the animation that involves more empty space will likely see gains, based on the results for the static images.
 
 \subsection{Results}
 
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-Parameter-Animation.png}
-	\caption{A graph showing the performance during an animation of the Mandelbulb parameter, for both unoptimized rendering and rendering using the temporal cache.}
+	\caption{A graph showing the render pass time during an animation of the Mandelbulb parameter, for both unoptimized rendering and rendering using the temporal cache.}
 	\label{figure:mandelbulb-parameter-animation}
 \end{figure}
 
-Figure \ref{figure:mandelbulb-parameter-animation} shows the graph of the performance over the animation. It is very difficult to see if there are performance differences anywhere in the animation from this, as the two lines overlap almost exactly, but it's useful to know where the performance changes overall during the animation. The fluctuations in the graph are the result of the changing landscape, not outliers. Figure \ref{figure:mandelbulb-parameter-animation-gain} shows a plot of the performance difference over the animation, with a line of best fit plotted to make it clearer (the line of best fit ignores the large spikes in the data).
+Figure \ref{figure:mandelbulb-parameter-animation} shows the graph of the render pass time over the animation. It is very difficult to see if there are performance differences anywhere in the animation from this, as the two lines overlap almost exactly, but it's useful to know where the performance changes overall during the animation. Figure \ref{figure:mandelbulb-parameter-animation-gain} shows a plot of the performance difference over the animation, with a line of best fit plotted to make it clearer (the line of best fit ignores the large spikes in the data).
 
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth, frame]{Images/Results/Mandelbulb-Parameter-Animation-Gain.png}
-	\caption{A graph showing the performance difference during an animation of the Mandelbulb parameter, between unoptimized rendering and rendering using the temporal cache.}
+	\caption{A graph showing the performance difference during an animation of the Mandelbulb parameter, between unoptimized rendering and rendering using the temporal cache. Positive values mean that the temporal cache performs better.}
 	\label{figure:mandelbulb-parameter-animation-gain}
 \end{figure}
 
@@ -182,11 +191,13 @@ Overall the temporal cache performs quite well during the animation, despite, at
 	\label{figure:hall-of-pillars-views}
 \end{figure}
 
+Figure \ref{figure:hall-of-pillars-views} shows the representative views chosen for the Hall of Pillars fractal. These were chosen to vary greatly in depth and complexity. Given the theory on why the temporal cache should give a performance boost (bottlenecks), images \ref{figure:hall-of-pillars-view-01-default} and \ref{figure:hall-of-pillars-view-02-large-hall} were chosen to provide an average case, images \ref{figure:hall-of-pillars-view-03-bottleneck-corridor} and \ref{figure:hall-of-pillars-view-04-intricate-geometry} were chosen as best cases, and finally \ref{figure:hall-of-pillars-view-05-simple-geometry} was chosen as a worst case. These views also provide good variety for testing the SDF. All but the `Large Hall' view are mostly encompassed by the SDF; the Hall is just too large in scale to be covered adequately.
+
 \subsection{Expected Results}
 
 This fractal contains many bottlenecks (the ray has to pass close to lots of geometry before reaching any surface), so the temporal caching method is expected to perform better here than with the Mandelbulb, in terms of performance difference. A view with very simple geometry was also chosen because of this, as the prediction is that the temporal caching method will provide minimal benefit where these bottlenecks don't exist or the surface is very smooth.\newline
 
-The signed distance field is being used in a somewhat different scenario compared to the Mandelbulb. This fractal doesn't seem to be finite, so only a relatively small area can be covered by the SDF, which makes testing tricky. A ray culling step was tried, to stop any ray which ventures outside the main SDF cube (including in shaders that aren't using the 3D SDF, for consistency) but this did not yield significantly different results to using it as normal, and just allowing the rays to travel outside the box. It was also not representative of the kind of uses for this fractal. Especially in the `Large Hall' view, in which the SDF can only cover a segment of one pillar. I predict that, like with the Mandelbulb, this will not perform well, but judging from the bottleneck view for the Mandelbulb, perhaps it will not perform as badly as it did overall for the Mandelbulb.
+The signed distance field is being used in a somewhat different scenario compared to the Mandelbulb. This fractal doesn't seem to be finite, so only a relatively small area can be covered by the SDF, which makes testing tricky. A ray culling step was tried, to stop any ray which ventures outside the main SDF cube (including in shaders that aren't using the 3D SDF, for consistency) but this did not yield significantly different results to using it as normal, and just allowing the rays to travel outside the box. It was also not representative of the kind of uses for this fractal. Especially in the `Large Hall' view, in which the SDF can only cover a segment of one pillar. I predict that, like with the Mandelbulb, this will not perform well, as the Hall of Pillars distance estimator is not significantly more expensive than the Mandelbulb one.
 
 \subsection{Results}
 
@@ -211,13 +222,20 @@ The signed distance field is being used in a somewhat different scenario compare
 	\label{table:hall-of-pillars-static-results}
 \end{table}
 
-As before, table \ref{table:hall-of-pillars-static-results} shows the raw time for the render pass in the unoptimized rendering, as well as performance differences for the SDF and temporal caching (TC) methods.
+As before, table \ref{table:hall-of-pillars-static-results} shows the raw time for the render pass in the unoptimized rendering, as well as performance differences for the SDF and temporal caching (TC) methods, and figure \ref{figure:hall-of-pillars-ao-results} shows the differences in the number of iterations achieved.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth, frame]{Images/Results/Hall-Of-Pillars-AO-Results.png}
+	\caption{The Hall of Pillars fractal, coloured based on the number of iterations achieved. Each image is split in two; the left half is rendered using the unoptimized method, and the right half uses the temporal cache. The lighter the image, the better the performance.}
+	\label{figure:hall-of-pillars-ao-results}
+\end{figure}
 
 \subsection{Evaluation}
 
 \subsubsection{Signed Distance Field}
 
-Compared to the Mandelbulb, the SDF performed extremely well, though it still reduced performance in all cases. I think that if the Hall of Pillars distance estimator was more expensive to evaluate, there may have been some positive results. That being said, the SDF was comparatively a lot more coarse than for the Mandelbulb, though it did benefit from an extra subdivision level. I did try changing the subdivision level from 9 to 8, but this did not result in a performance difference.\newline
+Compared to the SDF performance for the Mandelbulb, the SDF here performed extremely well, though it still reduced performance in all cases. I think that if the Hall of Pillars distance estimator was more expensive to evaluate, there may have been some positive results. That being said, the SDF was comparatively a lot more coarse than for the Mandelbulb, though it did benefit from an extra subdivision level. I did try changing the subdivision level from 9 to 8, but this did not result in a performance difference.\newline
 
 I think that perhaps for scenes that cross a great deal of the SDF, the shaders are likely to encounter a lot more cache misses, as the total size of the SDF in these tests was 512MB. This will lower performance for scenes such as this. If the subdivision level is too low, and the SDF stretched across too much space, then the voxels will be large, and it will be easier to get past the SDF search stage to fall back on the regular signed distance function. Recall figure \ref{figure:sdf-hybrid-comparison} from chapter \ref{chapter:implementation}. The SDF is clearly a lot more coarse for the Hall of Pillars, in order to cover any kind of decent distance. Another level of subdivision was not possible due to memory constraints. I think this is one reason for the `increase' in performance compared to the Mandelbulb; it simply did not get in the way as much. This is evidenced by the fact that in the view in which it covers the least ground, the Large Hall, we have the smallest performance loss.\newline
 
@@ -227,9 +245,11 @@ Overall, although the SDF performed better than with the Mandelbulb, I believe t
 
 \subsubsection{Temporal Cache}
 
-In contrast to the SDF, the results for the temporal cache were much improved over those it achieved on the Mandelbulb. Even the worst case view resulted in a 12.39\% performance gain. However, this is for a static image, and much of the gain is likely to be lost during movement (more on that in the next section). There isn't much to explain with these results. They are as expected, and likely for the reasons predicted; the presence of a large number of bottlenecks in the scene, and complex geometry. The worst performers were those with less complex geometry (a lot of the Large Hall view was beyond the view distance). For the Large Hall view, I think the performance was lacking partly due to the underestimate of the true distance read from the texture image. A lot of the bottlenecks look like they might have occurred in the last 10\% or so of the ray's journey.\newline
+In contrast to the SDF, the results for the temporal cache were much improved over those it achieved on the Mandelbulb. Even the worst case view resulted in a 12.39\% performance gain. However, this is for a static image, and much of the gain is likely to be lost during movement (more on that in the next section). There isn't much to explain with these results. They are as expected, and likely for the reasons predicted; the presence of a large number of bottlenecks in the scene, and complex geometry. The worst performers were the view with the simplest geometry, as expected, but also the one with the largest view distance (`Large Hall'). This was surprising, as the scene does contain a lot of bottlenecks.\newline
 
-The temporal caching method is particularly well suited to rendering this fractal. The next section will explore how much of the performance gain can be preserved with movement.
+Figure \ref{figure:hall-of-pillars-ao-results} shows the comparison between the number of iterations achieved with unoptimized rendering and the temporal cache, for each of the representative views. The differences seem to match up with the data obtained. The difference is particularly stark for the Bottleneck Corridor view and the Intricate Geometry view. During rendering, the same flickering happened in the background of the Large Hall view as it did for the Mandelbulb, which may be why, despite there being a lot of bottlenecks in the scene, the performance wasn't better. I did expect this view to yield more of a benefit than it did.\newline
+
+The temporal caching method is particularly well suited to this fractal. The next section will explore how much of the performance gain can be preserved with movement.
 
 \section{Hall of Pillars Animation Tests}
 

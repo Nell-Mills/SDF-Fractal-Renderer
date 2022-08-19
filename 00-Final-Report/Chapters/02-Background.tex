@@ -152,8 +152,6 @@ Using a distance function in this way is known as sphere tracing. The magnitude 
 
 See figure \ref{figure:sphere-tracing}. This shows three scenarios for tracing a ray with the sphere tracing technique. At the bottom, the distance function is an exact measure of the distance to the nearest point on the surface. This is the ideal scenario, for correctness and performance. The top left image shows the result of a distance function which underestimates the distance each time. As a result, significantly more steps are taken along the ray, which will result in decreased performance. Lastly, the top right image shows the result of overestimating the distance. The ray ends up stepping past the boundary of the shape.
 
-\newpage
-
 \begin{figure} [ht]
 	\centering
 	\includegraphics[width=0.75\linewidth, frame]{Images/Sphere-Tracing.png}
@@ -165,17 +163,17 @@ See figure \ref{figure:sphere-tracing}. This shows three scenarios for tracing a
 
 A signed distance field is the result of discretizing a signed distance function over a finite space. The aim of the signed distance field is to reduce the need for evaluating potentially expensive signed distance functions for use in, for example, collision detection or ray tracing. Samples of the distance are taken at each point of the field (for example, at every voxel in a three-dimensional grid, as the case will be in this project) and stored for later use. Often, these samples are taken at the vertices of the grid, and when they are read, they are interpolated to get an approximation of the value at the specific point in the voxel \cite{koschier2016hierarchical}.\newline
 
-Memory usage is a concern when using a signed distance field, especially if the shape requires high accuracy, as it will require a greater concentration of samples, especially near the surface. Some methods try to deal with this by increasing the amount of subdivision close to the surface or in areas with more complex geometry, and reducing it elswhere \cite{frisken2000adaptively}.\newline
+Memory usage is a concern when using a signed distance field, especially if the shape requires high accuracy, as it will require a greater concentration of samples, especially near the surface. Some methods try to deal with this by increasing the amount of subdivision close to the surface or in areas with more complex geometry, and reducing it elswhere \cite{frisken2000adaptively}.
 
 \subsection{Storage Methods}
 
 A common representation scheme for signed distance fields, and the one chosen for this project, is an eight-dimensional binary tree, also known as an octree. The nodes of the tree represent areas of the space, and at each level of the tree, these area get exponentially smaller. Leaf nodes contain the information necessary for construction of the scene. Other nodes point to eight child nodes each, so that leaf nodes can be reached by searching the tree, starting with the root \cite{meagher1982geometric}.\newline
 
-This structure, being constructed out of cubes, is simple to manipulate and search. All of the nodes of the tree can be kept in a specific order, which makes indexing very simple, since the tree can just be traversed in a specific order, rather than searching the space itself for the correct cube \cite{meagher1982geometric}.\newline
+This structure, being constructed out of cubes, is simple to manipulate and search. All of the nodes of the tree can be kept in a specific order, which makes indexing very simple, since the tree can just be traversed in a specific order, rather than searching the space itself for the correct cube \cite{meagher1982geometric}.
 
 \subsection{Application to this Project}
 
-The use of a signed distance field is intended to provide a cheaper way of evaluating the distance at any point around the fractal shape than calculating the signed distance using the given function. If evaluating the signed distance field is indeed cheaper than evaluating the signed distance function, then performance boosts will be expected when rendering the fractals in real time.\newline
+The use of a signed distance field is intended to provide a cheaper way of evaluating the distance at any point around the fractal shape than calculating the signed distance using the given function. If this is possible, then performance boosts will be expected when rendering the fractals in real time.\newline
 
 The octree data structure has been chosen for this project for its simplicity, and for the ability to be selective about when to perform a memory read, which is expensive compared to calculations on the GPU. Memory usage will need to be considered, as a very high resolution representation of the space will be costly. For this project, very fine detail is not needed, so a relatively coarse field can be used. However, accuracy is still a concern. Chapter \ref{chapter:implementation} on implementation will discuss decisions made to tackle this problem.
 
@@ -185,7 +183,7 @@ Temporal caching methods rely on the idea that the contents of an image don't ch
 
 Taking advantage of temporal coherence in ray tracing is of special interest in the case of global illumination data, which is very expensive to calculate. In order to maintain spatial coherence between frames, methods often perform temporal reprojection, which maps the location of the point on the surface from the current frame to the previous frame, so that it samples from similar areas in the scene \cite{scherzer2012temporal}.\newline
 
-Consider the scenario in which a ray travels through a room, hitting the back wall. In the next frame, the camera has moved, and the same ray now intersects a closer object, say a chair. However, the sampled distance from the previous frame already places the point behind the chair, rendering the chair invisible. This is not a problem if the current true distance is greater than the previous, as the sphere tracing algorithm can be used to march along the ray further with no loss of accuracy, and in fact potential gains in performance. The method used in this project needs to take this problem into account, since the camera position and rotation will change.\newline
+Consider the scenario in which a ray travels through a room, hitting the back wall. In the next frame, the camera has moved, and the same ray now intersects a closer object, say a chair. However, the sampled distance from the previous frame already places the point behind the chair, rendering the chair invisible. The method used in this project needs to take this problem into account, since the camera position and rotation will change.\newline
 
 Determining whether a pixel value is invalid can be done in a few ways. For example, testing the angle between the normal of the previous frame and the current ray, and recasting the ray if the angle exceeds some threshold. It could also be done by comparing the depth of previous frames with the depth of the current frame, though this would likely work better for mesh geometry, as it requires knowing the exact depth in the current frame, the calculation of which this project is trying to avoid \cite{weier2016foveated}.
 
@@ -198,7 +196,7 @@ Determining whether a pixel value is invalid can be done in a few ways. For exam
 	\label{figure:sphere-tracing-bottleneck}
 \end{figure}
 
-The goal of using temporal caching for rendering three-dimensional fractals is to reduce the number of iterations required to get to the surface. This is a different approach than using a signed distance field, which is intended to reduce the cost of the iterations themselves.\newline
+The goal of using temporal caching for rendering three-dimensional fractals is to reduce the number of iterations required to get to the surface. This is a different approach than using a signed distance field, which is intended to reduce the cost of the iterations.\newline
 
 The information required to render the scenes in this project is the distance travelled by each ray. For a still image (no camera movement), the result of the last frame can be sampled and used again exactly the same in the next frame, skipping all sphere tracing iterations. Of course for real time rendering, an image is likely to change, either because of moving geometry, or camera changes. To tackle this, a test will be performed to see if the camera has moved too much, and a effort will be made to have a consistent, but preferably small, underestimate of the true distance, so that the rays don't overshoot.\newline
 
